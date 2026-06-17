@@ -47,7 +47,7 @@ export default function Navbar() {
             <a
               key={link.name}
               href={link.href}
-              className="text-xs font-medium text-foreground/70 hover:text-primary transition-colors"
+              className="text-sm font-medium text-foreground/70 hover:text-primary transition-colors"
             >
               {link.name}
             </a>
@@ -57,7 +57,7 @@ export default function Navbar() {
         {/* CTA */}
         <div className="hidden lg:flex items-center shrink-0">
           <button
-            className="px-4 py-2 text-xs font-semibold rounded-md bg-gradient-to-r from-primary to-accent text-primary-foreground hover:opacity-90 transition-opacity shadow-[0_0_16px_rgba(99,102,241,0.35)]"
+            className="px-4 py-2 text-sm font-semibold rounded-md bg-gradient-to-r from-primary to-accent text-primary-foreground hover:opacity-90 transition-opacity shadow-[0_0_16px_rgba(99,102,241,0.35)]"
             data-testid="button-book-demo"
           >
             Book Demo Class
