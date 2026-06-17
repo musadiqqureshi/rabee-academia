@@ -1,6 +1,7 @@
 {
-  "buildCommand": "cd ../.. && pnpm install && pnpm --filter @workspace/rabee-academia run build",
-  "outputDirectory": "dist",
+  "installCommand": "pnpm install --no-frozen-lockfile",
+  "buildCommand": "pnpm --filter @workspace/rabee-academia run build",
+  "outputDirectory": "artifacts/rabee-academia/dist",
   "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }],
   "headers": [
     {
