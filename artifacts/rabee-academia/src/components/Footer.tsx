@@ -1,0 +1,63 @@
+import React from "react";
+import { Atom, Linkedin, Twitter, Facebook, Instagram } from "lucide-react";
+
+export default function Footer() {
+  return (
+    <footer className="bg-background border-t border-border pt-16 pb-8">
+      <div className="container mx-auto px-4">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
+          <div className="col-span-1 md:col-span-1">
+            <div className="flex items-center gap-2 mb-4">
+              <Atom className="w-6 h-6 text-primary" />
+              <span className="font-bold text-xl">Rabee Academia</span>
+            </div>
+            <p className="text-sm text-muted-foreground leading-relaxed mb-6">
+              A premium AI-powered educational platform delivering world-class tutoring for FSc, A/O Levels, BS & MS students.
+            </p>
+            <div className="flex gap-4">
+              <a href="#" className="text-muted-foreground hover:text-primary transition-colors"><Linkedin className="w-5 h-5" /></a>
+              <a href="#" className="text-muted-foreground hover:text-primary transition-colors"><Twitter className="w-5 h-5" /></a>
+              <a href="#" className="text-muted-foreground hover:text-primary transition-colors"><Facebook className="w-5 h-5" /></a>
+              <a href="#" className="text-muted-foreground hover:text-primary transition-colors"><Instagram className="w-5 h-5" /></a>
+            </div>
+          </div>
+          
+          <div>
+            <h4 className="font-bold text-foreground mb-4">Programs</h4>
+            <ul className="space-y-2 text-sm text-muted-foreground">
+              <li><a href="#" className="hover:text-primary transition-colors">FSc Pre-Medical</a></li>
+              <li><a href="#" className="hover:text-primary transition-colors">FSc Pre-Engineering</a></li>
+              <li><a href="#" className="hover:text-primary transition-colors">A/O Levels</a></li>
+              <li><a href="#" className="hover:text-primary transition-colors">BS Programs</a></li>
+              <li><a href="#" className="hover:text-primary transition-colors">MS Programs</a></li>
+            </ul>
+          </div>
+
+          <div>
+            <h4 className="font-bold text-foreground mb-4">Subjects</h4>
+            <ul className="space-y-2 text-sm text-muted-foreground">
+              <li><a href="#" className="hover:text-primary transition-colors">Physics</a></li>
+              <li><a href="#" className="hover:text-primary transition-colors">Chemistry</a></li>
+              <li><a href="#" className="hover:text-primary transition-colors">Biology</a></li>
+              <li><a href="#" className="hover:text-primary transition-colors">Mathematics</a></li>
+              <li><a href="#" className="hover:text-primary transition-colors">Computer Science</a></li>
+            </ul>
+          </div>
+
+          <div>
+            <h4 className="font-bold text-foreground mb-4">Contact</h4>
+            <ul className="space-y-2 text-sm text-muted-foreground">
+              <li>info@rabeeacademia.com</li>
+              <li>+92 300 0000000</li>
+              <li>Lahore, Pakistan</li>
+            </ul>
+          </div>
+        </div>
+        
+        <div className="pt-8 border-t border-border text-center text-sm text-muted-foreground">
+          <p>Copyright © 2024 Rabee Academia. All rights reserved.</p>
+        </div>
+      </div>
+    </footer>
+  );
+}

@@ -1,0 +1,363 @@
+# CLAUDE PROMPT — RABEE ACADEMIA LANDING PAGE ONLY
+
+You are a senior Next.js frontend developer and UI/UX designer.
+
+Build only the **landing page** for an educational web platform called **Rabee Academia**.
+
+Do not build dashboard, LMS, authentication, payment system, admin panel, teacher panel, student panel, or backend logic yet.
+
+---
+
+# Project Name
+
+**Rabee Academia**
+
+# Tagline
+
+**AI-Powered Learning for Future Scientists, Engineers & Innovators**
+
+---
+
+# Tech Stack
+
+Use:
+
+* Next.js 15 App Router
+* TypeScript
+* Tailwind CSS
+* ShadCN UI
+* Framer Motion
+* Lucide Icons
+* Responsive design
+* Vercel-ready structure
+
+---
+
+# Design Style
+
+Create a premium **Aura Website** design.
+
+The design must be:
+
+* Modern
+* Clean
+* Fast
+* Professional
+* Educational
+* AI-inspired
+* Mobile-first
+* Smooth but not laggy
+
+Use:
+
+* Navy, indigo, purple, cyan colors
+* Soft aura gradients
+* Lightweight glassmorphism
+* Premium cards
+* Smooth fade-up scrolling animations
+* Modern typography
+
+Avoid:
+
+* Heavy 3D
+* WebGL
+* Large videos
+* Heavy Lottie files
+* Particle systems
+* Laggy animations
+
+The landing page must score well on performance and feel smooth on mobile.
+
+---
+
+# Landing Page Sections
+
+Build these sections in order:
+
+## 1. Sticky Navbar
+
+Menu items:
+
+* Home
+* Subjects
+* Programs
+* Teachers
+* Pricing
+* Reviews
+* Contact
+
+Right buttons:
+
+* Login
+* Book Demo Class
+
+Use a glassmorphism sticky navbar.
+
+---
+
+## 2. Hero Section
+
+Headline:
+
+**Master FSc, A/O Levels, BS & MS Subjects with AI-Powered Expert Learning**
+
+Subheading:
+
+Rabee Academia provides modern online learning for FSc Medical, FSc Engineering, A/O Levels, BS, and MS students with expert teachers, AI-powered academic support, and flexible regular or weekend classes.
+
+CTA buttons:
+
+* Book a Demo Class
+* Explore Subjects
+
+Include modern visual cards showing:
+
+* AI-Powered Learning
+* Expert Teachers
+* Regular & Weekend Classes
+* Students From 5 Countries
+
+---
+
+## 3. Stats Section
+
+Animated counters:
+
+* 400+ Projects Delivered
+* 7+ Years Experience
+* 12+ Industries Served
+* 5 Countries Served
+
+---
+
+## 4. AI-Powered Learning Section
+
+Show that Rabee Academia uses AI-powered learning.
+
+Feature cards:
+
+* Smart Study Guidance
+* Personalized Learning Support
+* Progress Insights
+* Practice Support
+* Academic Improvement Tracking
+
+---
+
+## 5. Programs Offered Section
+
+Show programs:
+
+* FSc Pre-Medical
+* FSc Pre-Engineering
+* A/O Levels
+* BS Physics
+* BS Computer Science
+* BS Mathematics
+* MS Physics
+* MS Computer Science
+* MS Mathematics
+
+Use modern cards with icons.
+
+---
+
+## 6. Subjects Preview Section
+
+Show subject cards:
+
+* Physics
+* Chemistry
+* Biology
+* Mathematics
+* Computer Science
+
+Each card should mention:
+
+* FSc
+* A/O Levels
+* BS/MS available where applicable
+
+Add button:
+
+**View All Subjects**
+
+---
+
+## 7. Pricing Preview Section
+
+Show pricing clearly:
+
+* FSc Subjects — PKR 7,000 per subject
+* BS Subjects — PKR 10,000 per subject
+* A/O Levels — PKR 15,000 per subject
+* MS Subjects — Contact Admin
+
+Mention:
+
+Students can choose regular or weekend classes.
+
+---
+
+## 8. Leadership Section
+
+Add founder and co-founder information.
+
+### Founder & CEO
+
+**Muhammad Mussaddiq Ahmed Qureshi**
+Founder & CEO
+Senior Python Developer & Big Data Engineer
+
+Bio:
+
+Muhammad Mussaddiq Ahmed Qureshi is a Senior Python Developer and Big Data Engineer with 7+ years of IT experience and 5+ years dedicated to Big Data engineering. He founded Rabee Academia with a vision to combine modern education, AI-powered learning, and production-grade technology into one powerful academic platform. Having personally delivered 400+ projects across Healthcare, Aviation, Finance, Hospitality, Logistics, and other industries, he brings enterprise-level engineering and scalable product thinking to Rabee Academia.
+
+### Co-Founder
+
+**Isra Musadiq**
+Co-Founder & Academic Lead
+
+Bio:
+
+Isra Musadiq is an academic expert with a strong Physics background and 4+ years of practical and theoretical teaching experience. She brings deep subject knowledge, academic planning expertise, and student-centered teaching methods to Rabee Academia.
+
+---
+
+## 9. Students From 5 Countries Section
+
+Show country cards:
+
+* Pakistan
+* India
+* United Kingdom
+* America
+* Canada
+
+---
+
+## 10. Trusted Partners Marquee
+
+Create smooth scrolling trusted partner logos/names.
+
+Use placeholders:
+
+* Tech Solutions Pakistan
+* Rabee Academia
+* AI Learning Network
+* Future Scholars Hub
+* Global STEM Academy
+* Digital Learning Partners
+
+The marquee must be lightweight and smooth.
+
+---
+
+## 11. Student Reviews Marquee
+
+Create smooth scrolling review cards.
+
+Include reviews from students in:
+
+* Pakistan
+* India
+* United Kingdom
+* America
+* Canada
+
+Each review card should show:
+
+* Student name
+* Country
+* Subject
+* Star rating
+* Short review
+
+---
+
+## 12. How Learning Works Section
+
+Steps:
+
+1. Create account
+2. Choose subject
+3. Select regular or weekend class
+4. Book demo class
+5. Start learning through Google Meet
+
+---
+
+## 13. Final CTA Section
+
+Headline:
+
+**Start Your Learning Journey with Rabee Academia**
+
+Buttons:
+
+* Book Demo Class
+* Explore Subjects
+
+---
+
+## 14. Footer
+
+Include:
+
+* Rabee Academia logo/name
+* Short description
+* Programs
+* Subjects
+* Contact
+* Social links
+* Copyright
+
+---
+
+# Performance Requirements
+
+The page must be fast.
+
+Use:
+
+* Optimized components
+* Minimal JavaScript
+* CSS animations where possible
+* Lazy loading
+* Responsive layout
+
+Do not add anything that causes lag.
+
+---
+
+# Important Limit
+
+Only build the landing page now.
+
+Do not build:
+
+* Login functionality
+* Register page
+* Supabase integration
+* Dashboard
+* LMS
+* Payment system
+* Admin panel
+* Teacher panel
+* Student panel
+
+Only create frontend landing page UI.
+
+---
+
+# Final Output
+
+Generate:
+
+* Complete landing page code
+* Reusable section components
+* Responsive layout
+* Tailwind styling
+* Framer Motion animations
+* Clean folder structure
+* Vercel-ready project
