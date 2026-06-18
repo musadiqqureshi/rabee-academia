@@ -1,3 +1,5 @@
+"use client";
+
 import React from "react";
 import { motion } from "framer-motion";
 import { UserPlus, BookOpenCheck, CalendarDays, Video, GraduationCap } from "lucide-react";

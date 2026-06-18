@@ -1,45 +1,64 @@
-# [Project name]
+# Rabee Academia
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+Smart online learning platform for FSc, A/O Levels, Oxford curriculum, BS & MS
+students — subject enrollment, role-based dashboards, online classes, and fee
+collection.
 
 ## Run & Operate
 
-- `pnpm --filter @workspace/api-server run dev` — run the API server (port 5000)
-- `pnpm run typecheck` — full typecheck across all packages
-- `pnpm run build` — typecheck + build all packages
-- `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from the OpenAPI spec
-- `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
-- Required env: `DATABASE_URL` — Postgres connection string
+The app lives in `artifacts/rabee-academia/` and is a standalone Next.js app
+(npm, not pnpm workspace tooling).
+
+- `cd artifacts/rabee-academia && npm install` — install dependencies
+- `npm run dev` — run the dev server (http://localhost:3000)
+- `npm run build` — production build
+- `npm run typecheck` — TypeScript check
+- Required env (see `.env.example`):
+  - `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 
 ## Stack
 
-- pnpm workspaces, Node.js 24, TypeScript 5.9
-- API: Express 5
-- DB: PostgreSQL + Drizzle ORM
-- Validation: Zod (`zod/v4`), `drizzle-zod`
-- API codegen: Orval (from OpenAPI spec)
-- Build: esbuild (CJS bundle)
+- Next.js 15 (App Router) + React 19 + TypeScript 5.9
+- Tailwind CSS 4 (via `@tailwindcss/postcss`) + shadcn/ui (Radix) components
+- Supabase (Auth + Postgres) via `@supabase/ssr`
+- Framer Motion, lucide-react, recharts
+- Deploy: Vercel (web) + Supabase (backend)
 
 ## Where things live
 
-_Populate as you build — short repo map plus pointers to the source-of-truth file for DB schema, API contracts, theme files, etc._
+- `app/` — App Router routes
+  - `app/page.tsx` — marketing landing page
+  - `app/login`, `app/register` — auth screens
+  - `app/auth/callback`, `app/auth/signout` — auth route handlers
+  - `app/dashboard/{super-admin,admin,teacher,student}` — role dashboards
+- `src/components/` — landing sections + `ui/` (shadcn) + `dashboard/` shells
+- `src/lib/supabase/` — browser/server/middleware clients + shared types
+- `src/lib/auth.ts` — `getProfile()` and `requireRole()` server guards
+- `middleware.ts` — session refresh + route protection
+- `supabase/schema.sql` — Stage 1 DB schema (profiles, roles, RLS, triggers)
 
 ## Architecture decisions
 
-_Populate as you build — non-obvious choices a reader couldn't infer from the code (3-5 bullets)._
+- Migrated from a Vite SPA to Next.js App Router (per proposal) to enable
+  server-side Supabase auth and per-role server-rendered dashboards.
+- Roles (`super_admin`, `admin`, `teacher`, `student`) are stored on the
+  `profiles` table and mirrored into auth metadata; `requireRole()` guards each
+  dashboard server-side, and `middleware.ts` blocks unauthenticated access.
+- Public sign-up always creates a `student`. Staff roles are provisioned by a
+  super admin via the `set_user_role()` SQL function — never self-served.
+- RLS: users see their own profile; admins/super-admins see all; only super
+  admins can change roles.
 
-## Product
+## Setup (first run)
 
-_Describe the high-level user-facing capabilities of this app once they exist._
+1. Create a free Supabase project; copy URL + anon key into `.env.local`.
+2. Run `supabase/schema.sql` in the Supabase SQL editor.
+3. Register a user, then promote it:
+   `select public.set_user_role('you@example.com', 'super_admin');`
 
-## User preferences
+## Roadmap
 
-_Populate as you build — explicit user instructions worth remembering across sessions._
-
-## Gotchas
-
-_Populate as you build — sharp edges, "always run X before Y" rules._
-
-## Pointers
-
-- See the `pnpm-workspace` skill for workspace structure, TypeScript setup, and package details
+- Stage 1 (done): Next.js migration, auth, role dashboards (scaffolding).
+- Stage 2: AssanPay + IBAN payments, enrollment flow, fee management, Meet links.
+- Stage 3: LMS (materials, assignments, quizzes, attendance), notifications,
+  reports.
