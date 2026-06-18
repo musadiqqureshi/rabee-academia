@@ -1,4 +1,7 @@
+"use client";
+
 import React, { useState, useEffect } from "react";
+import Link from "next/link";
 import { Atom, Menu, X } from "lucide-react";
 
 export default function Navbar() {
@@ -55,13 +58,20 @@ export default function Navbar() {
         </div>
 
         {/* CTA */}
-        <div className="hidden lg:flex items-center shrink-0">
-          <button
+        <div className="hidden lg:flex items-center gap-3 shrink-0">
+          <Link
+            href="/login"
+            className="text-sm font-medium text-foreground/70 hover:text-primary transition-colors"
+          >
+            Sign in
+          </Link>
+          <Link
+            href="/register"
             className="px-4 py-2 text-sm font-semibold rounded-md bg-gradient-to-r from-primary to-accent text-primary-foreground hover:opacity-90 transition-opacity shadow-[0_0_16px_rgba(99,102,241,0.35)]"
             data-testid="button-book-demo"
           >
-            Book Demo Class
-          </button>
+            Get Started
+          </Link>
         </div>
 
         {/* Mobile Toggle */}
@@ -86,9 +96,20 @@ export default function Navbar() {
               {link.name}
             </a>
           ))}
-          <button className="mt-2 w-full py-2.5 text-sm font-semibold rounded-md bg-gradient-to-r from-primary to-accent text-primary-foreground">
-            Book Demo Class
-          </button>
+          <Link
+            href="/login"
+            className="text-sm font-medium py-2 text-foreground/80"
+            onClick={() => setIsMobileMenuOpen(false)}
+          >
+            Sign in
+          </Link>
+          <Link
+            href="/register"
+            className="mt-1 w-full py-2.5 text-center text-sm font-semibold rounded-md bg-gradient-to-r from-primary to-accent text-primary-foreground"
+            onClick={() => setIsMobileMenuOpen(false)}
+          >
+            Get Started
+          </Link>
         </div>
       )}
     </nav>

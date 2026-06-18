@@ -1,3 +1,5 @@
+"use client";
+
 import React from "react";
 import { motion } from "framer-motion";
 import { ArrowRight, Atom, FlaskConical, Calculator, Monitor, Dna, Telescope, Sigma, Microscope } from "lucide-react";
