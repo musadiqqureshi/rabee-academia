@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Atom, Loader2, Eye, EyeOff } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import EnforceTheme from "@/components/EnforceTheme";
 import { ROLE_HOME, type UserRole } from "@/lib/supabase/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -155,6 +156,7 @@ function LoginForm() {
 export default function LoginPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-background px-4">
+      <EnforceTheme mode="light" />
       <Suspense fallback={null}>
         <LoginForm />
       </Suspense>

@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { Atom, LogOut, Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
+import EnforceTheme from "@/components/EnforceTheme";
 
 export interface NavItem {
   label: string;
@@ -33,6 +34,7 @@ export default function DashboardShell({
 
   return (
     <div className="min-h-screen bg-background text-foreground flex">
+      <EnforceTheme mode="light" />
       {/* Sidebar */}
       <aside
         className={`fixed inset-y-0 left-0 z-40 w-64 bg-sidebar border-r border-sidebar-border flex flex-col transition-transform lg:static lg:translate-x-0 ${

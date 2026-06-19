@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Atom, Loader2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import EnforceTheme from "@/components/EnforceTheme";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -61,6 +62,7 @@ export default function RegisterPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background px-4 py-12">
+      <EnforceTheme mode="light" />
       <div className="w-full max-w-md">
         <Link href="/" className="flex items-center justify-center gap-2 mb-8">
           <div className="w-9 h-9 rounded-full bg-primary/20 flex items-center justify-center text-primary">

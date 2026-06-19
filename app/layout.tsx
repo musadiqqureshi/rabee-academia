@@ -118,6 +118,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
+        {/* No-flash theme: marketing site = dark (saved pref), app pages = light */}
+        <script
+          // eslint-disable-next-line react/no-danger
+          dangerouslySetInnerHTML={{
+            __html:
+              "(function(){try{var p=location.pathname;var app=p.indexOf('/dashboard')===0||p.indexOf('/login')===0||p.indexOf('/register')===0||p.indexOf('/auth')===0;var d;if(app){d=false;}else{var t=localStorage.getItem('site-theme');d=t?t==='dark':true;}document.documentElement.classList.toggle('dark',d);}catch(e){}})();",
+          }}
+        />
         <script
           type="application/ld+json"
           // eslint-disable-next-line react/no-danger

@@ -7,6 +7,7 @@ import { motion } from "framer-motion";
 import { ArrowRight, CheckCircle2, CalendarDays, Clock } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import EnforceTheme from "@/components/EnforceTheme";
 import { courses, LEVELS, formatPrice } from "@/lib/courses";
 
 function PricingContent() {
@@ -22,7 +23,8 @@ function PricingContent() {
       : courses.filter((c) => c.level === activeLevel);
 
   return (
-    <div className="dark min-h-screen bg-background text-foreground">
+    <div className="min-h-screen bg-background text-foreground">
+      <EnforceTheme mode="site" />
       <Navbar />
 
       <div className="pt-28 pb-20 container mx-auto px-4 md:px-6">

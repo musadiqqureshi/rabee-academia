@@ -73,7 +73,7 @@ export default function HeroSection() {
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
             <Link
-              href="/enroll"
+              href="/demo"
               className="group w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-lg bg-gradient-to-r from-primary to-accent text-primary-foreground font-semibold text-sm hover:opacity-90 transition-opacity shadow-[0_0_28px_rgba(99,102,241,0.35)]"
             >
               Book a Demo Class

@@ -1,0 +1,47 @@
+"use server";
+
+import { revalidatePath } from "next/cache";
+import { createClient } from "@/lib/supabase/server";
+import { getProfile } from "@/lib/auth";
+
+async function requireStaff() {
+  const profile = await getProfile();
+  if (!profile || !["admin", "super_admin"].includes(profile.role)) {
+    throw new Error("Not authorized");
+  }
+  return profile;
+}
+
+export async function approveEnrollment(formData: FormData) {
+  const profile = await requireStaff();
+  const supabase = await createClient();
+  const id = String(formData.get("enrollment_id") ?? "");
+
+  await supabase
+    .from("enrollments")
+    .update({ status: "approved", approved_by: profile.id, approved_at: new Date().toISOString() })
+    .eq("id", id);
+
+  // Confirm the linked payment + invoice.
+  await supabase
+    .from("payments")
+    .update({ status: "paid", verified_by: profile.id, verified_at: new Date().toISOString(), paid_at: new Date().toISOString() })
+    .eq("enrollment_id", id);
+  await supabase
+    .from("invoices")
+    .update({ status: "paid", paid_at: new Date().toISOString() })
+    .eq("enrollment_id", id);
+
+  revalidatePath("/dashboard/admin/enrollments");
+}
+
+export async function rejectEnrollment(formData: FormData) {
+  await requireStaff();
+  const supabase = await createClient();
+  const id = String(formData.get("enrollment_id") ?? "");
+
+  await supabase.from("enrollments").update({ status: "rejected" }).eq("id", id);
+  await supabase.from("payments").update({ status: "refunded" }).eq("enrollment_id", id);
+
+  revalidatePath("/dashboard/admin/enrollments");
+}
