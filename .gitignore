@@ -8,6 +8,15 @@ out-tsc
 .expo
 .expo-shared
 
+# Next.js
+.next/
+next-env.d.ts
+
+# Environment variables
+.env
+.env.local
+.env*.local
+
 # dependencies
 node_modules
 
@@ -41,20 +50,9 @@ testem.log
 .DS_Store
 Thumbs.db
 
-.cursor/rules/nx-rules.mdc
-.github/instructions/nx.instructions.md
-
 # Replit
 .cache/
 .local/
 
-# Non-Rabee-Academia scaffold directories
-artifacts/api-server/
-artifacts/mockup-sandbox/
-lib/
-scripts/
-.agents/
-
-# Allow src/lib inside artifacts
-!artifacts/*/src/lib/
-!artifacts/*/src/lib/**
+# Vercel
+.vercel
