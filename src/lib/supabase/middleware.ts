@@ -1,22 +1,24 @@
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
-
-type CookieToSet = { name: string; value: string; options: CookieOptions };
 import { ROLE_HOME, type UserRole } from "./types";
 
-// Routes that require an authenticated session.
-const PROTECTED_PREFIXES = ["/dashboard"];
+type CookieToSet = { name: string; value: string; options: CookieOptions };
 
-// Routes only for signed-out users (redirect away if already logged in).
+const PROTECTED_PREFIXES = ["/dashboard"];
 const AUTH_ROUTES = ["/login", "/register"];
 
 export async function updateSession(request: NextRequest) {
-  let supabaseResponse = NextResponse.next({ request });
+  const passthrough = NextResponse.next({ request });
 
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  if (!supabaseUrl || !supabaseAnonKey) return passthrough;
+
+  try {
+    let supabaseResponse = NextResponse.next({ request });
+
+    const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
       cookies: {
         getAll() {
           return request.cookies.getAll();
@@ -31,35 +33,36 @@ export async function updateSession(request: NextRequest) {
           );
         },
       },
-    },
-  );
+    });
 
-  // IMPORTANT: getUser() revalidates the token with Supabase Auth.
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
 
-  const { pathname } = request.nextUrl;
-  const isProtected = PROTECTED_PREFIXES.some((p) => pathname.startsWith(p));
-  const isAuthRoute = AUTH_ROUTES.some((p) => pathname.startsWith(p));
+    const { pathname } = request.nextUrl;
+    const isProtected = PROTECTED_PREFIXES.some((p) => pathname.startsWith(p));
+    const isAuthRoute = AUTH_ROUTES.some((p) => pathname.startsWith(p));
 
-  // Block unauthenticated access to protected areas.
-  if (isProtected && !user) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/login";
-    url.searchParams.set("redirectedFrom", pathname);
-    return NextResponse.redirect(url);
+    if (isProtected && !user) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/login";
+      url.searchParams.set("redirectedFrom", pathname);
+      return NextResponse.redirect(url);
+    }
+
+    if (isAuthRoute && user) {
+      const role = (user.app_metadata?.role ??
+        user.user_metadata?.role) as UserRole | undefined;
+      const url = request.nextUrl.clone();
+      url.pathname = role ? ROLE_HOME[role] : "/dashboard/student";
+      return NextResponse.redirect(url);
+    }
+
+    return supabaseResponse;
+  } catch {
+    // If anything in the Supabase auth check throws (e.g. Edge runtime
+    // compatibility issue, network error), serve the request normally so
+    // the site stays up.
+    return passthrough;
   }
-
-  // Send authenticated users away from auth pages to their dashboard.
-  if (isAuthRoute && user) {
-    const role = (user.app_metadata?.role ?? user.user_metadata?.role) as
-      | UserRole
-      | undefined;
-    const url = request.nextUrl.clone();
-    url.pathname = role ? ROLE_HOME[role] : "/dashboard/student";
-    return NextResponse.redirect(url);
-  }
-
-  return supabaseResponse;
 }
