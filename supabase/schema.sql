@@ -472,7 +472,109 @@ on conflict (slug) do nothing;
 
 
 -- ---------------------------------------------------------------------------
--- 7. Storage buckets
+-- 7. Test users (delete before going to production)
+-- Passwords are all:  TestPass123!
+-- The on_auth_user_created trigger auto-creates their profile rows.
+-- ---------------------------------------------------------------------------
+
+create extension if not exists pgcrypto;
+
+do $$
+declare
+  uid_superadmin uuid := 'a0000001-0000-0000-0000-000000000001';
+  uid_admin      uuid := 'a0000002-0000-0000-0000-000000000002';
+  uid_teacher    uuid := 'a0000003-0000-0000-0000-000000000003';
+  uid_student1   uuid := 'a0000004-0000-0000-0000-000000000004';
+  uid_student2   uuid := 'a0000005-0000-0000-0000-000000000005';
+begin
+
+  -- Super Admin
+  insert into auth.users (
+    id, aud, role, email, encrypted_password,
+    email_confirmed_at, raw_user_meta_data,
+    created_at, updated_at
+  ) values (
+    uid_superadmin, 'authenticated', 'authenticated',
+    'superadmin@rabee.test',
+    crypt('TestPass123!', gen_salt('bf')),
+    now(),
+    '{"full_name":"Rabee Super Admin","role":"super_admin"}'::jsonb,
+    now(), now()
+  ) on conflict (id) do nothing;
+
+  -- Admin
+  insert into auth.users (
+    id, aud, role, email, encrypted_password,
+    email_confirmed_at, raw_user_meta_data,
+    created_at, updated_at
+  ) values (
+    uid_admin, 'authenticated', 'authenticated',
+    'admin@rabee.test',
+    crypt('TestPass123!', gen_salt('bf')),
+    now(),
+    '{"full_name":"Rabee Admin","role":"admin"}'::jsonb,
+    now(), now()
+  ) on conflict (id) do nothing;
+
+  -- Teacher
+  insert into auth.users (
+    id, aud, role, email, encrypted_password,
+    email_confirmed_at, raw_user_meta_data,
+    created_at, updated_at
+  ) values (
+    uid_teacher, 'authenticated', 'authenticated',
+    'teacher@rabee.test',
+    crypt('TestPass123!', gen_salt('bf')),
+    now(),
+    '{"full_name":"Dr. Sarah Teacher","role":"teacher"}'::jsonb,
+    now(), now()
+  ) on conflict (id) do nothing;
+
+  -- Student 1
+  insert into auth.users (
+    id, aud, role, email, encrypted_password,
+    email_confirmed_at, raw_user_meta_data,
+    created_at, updated_at
+  ) values (
+    uid_student1, 'authenticated', 'authenticated',
+    'student1@rabee.test',
+    crypt('TestPass123!', gen_salt('bf')),
+    now(),
+    '{"full_name":"Ahmed Student","role":"student"}'::jsonb,
+    now(), now()
+  ) on conflict (id) do nothing;
+
+  -- Student 2
+  insert into auth.users (
+    id, aud, role, email, encrypted_password,
+    email_confirmed_at, raw_user_meta_data,
+    created_at, updated_at
+  ) values (
+    uid_student2, 'authenticated', 'authenticated',
+    'student2@rabee.test',
+    crypt('TestPass123!', gen_salt('bf')),
+    now(),
+    '{"full_name":"Ayesha Student","role":"student"}'::jsonb,
+    now(), now()
+  ) on conflict (id) do nothing;
+
+  -- Ensure profiles exist with correct roles (in case trigger already ran
+  -- without role metadata, or schema is re-run after users exist).
+  insert into public.profiles (id, email, full_name, role) values
+    (uid_superadmin, 'superadmin@rabee.test', 'Rabee Super Admin', 'super_admin'),
+    (uid_admin,      'admin@rabee.test',      'Rabee Admin',       'admin'),
+    (uid_teacher,    'teacher@rabee.test',    'Dr. Sarah Teacher', 'teacher'),
+    (uid_student1,   'student1@rabee.test',   'Ahmed Student',     'student'),
+    (uid_student2,   'student2@rabee.test',   'Ayesha Student',    'student')
+  on conflict (id) do update
+    set role = excluded.role,
+        full_name = excluded.full_name;
+
+end $$;
+
+
+-- ---------------------------------------------------------------------------
+-- 8. Storage buckets
 -- ---------------------------------------------------------------------------
 -- Create in Supabase Dashboard → Storage, or uncomment:
 -- insert into storage.buckets (id, name, public) values
