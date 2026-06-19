@@ -10,25 +10,23 @@ import {
   UserCog,
 } from "lucide-react";
 import { requireRole } from "@/lib/auth";
-import DashboardShell, {
-  type NavItem,
-} from "@/components/dashboard/DashboardShell";
+import DashboardShell from "@/components/dashboard/DashboardShell";
 import StatCard from "@/components/dashboard/StatCard";
 import PlaceholderPanel from "@/components/dashboard/PlaceholderPanel";
 
-const navItems: NavItem[] = [
-  { label: "Overview", icon: BarChart3 },
-  { label: "Users", icon: Users },
-  { label: "Teachers", icon: UserCog },
-  { label: "Subjects", icon: BookOpen },
-  { label: "Payments", icon: Wallet },
-  { label: "Schedules", icon: CalendarDays },
-  { label: "Notifications", icon: Bell },
-  { label: "Settings", icon: Settings },
-];
-
 export default async function SuperAdminDashboard() {
   const profile = await requireRole("super_admin");
+
+  const navItems = [
+    { label: "Overview", icon: <BarChart3 className="w-4 h-4" /> },
+    { label: "Users", icon: <Users className="w-4 h-4" /> },
+    { label: "Teachers", icon: <UserCog className="w-4 h-4" /> },
+    { label: "Subjects", icon: <BookOpen className="w-4 h-4" /> },
+    { label: "Payments", icon: <Wallet className="w-4 h-4" /> },
+    { label: "Schedules", icon: <CalendarDays className="w-4 h-4" /> },
+    { label: "Notifications", icon: <Bell className="w-4 h-4" /> },
+    { label: "Settings", icon: <Settings className="w-4 h-4" /> },
+  ];
 
   return (
     <DashboardShell

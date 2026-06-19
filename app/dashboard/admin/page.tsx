@@ -9,24 +9,22 @@ import {
   BookOpen,
 } from "lucide-react";
 import { requireRole } from "@/lib/auth";
-import DashboardShell, {
-  type NavItem,
-} from "@/components/dashboard/DashboardShell";
+import DashboardShell from "@/components/dashboard/DashboardShell";
 import StatCard from "@/components/dashboard/StatCard";
 import PlaceholderPanel from "@/components/dashboard/PlaceholderPanel";
 
-const navItems: NavItem[] = [
-  { label: "Overview", icon: BarChart3 },
-  { label: "Enrollments", icon: UserCheck },
-  { label: "Students", icon: Users },
-  { label: "Batches", icon: BookOpen },
-  { label: "Class Links", icon: Video },
-  { label: "Attendance", icon: ClipboardCheck },
-  { label: "Schedules", icon: CalendarDays },
-];
-
 export default async function AdminDashboard() {
   const profile = await requireRole("admin");
+
+  const navItems = [
+    { label: "Overview", icon: <BarChart3 className="w-4 h-4" /> },
+    { label: "Enrollments", icon: <UserCheck className="w-4 h-4" /> },
+    { label: "Students", icon: <Users className="w-4 h-4" /> },
+    { label: "Batches", icon: <BookOpen className="w-4 h-4" /> },
+    { label: "Class Links", icon: <Video className="w-4 h-4" /> },
+    { label: "Attendance", icon: <ClipboardCheck className="w-4 h-4" /> },
+    { label: "Schedules", icon: <CalendarDays className="w-4 h-4" /> },
+  ];
 
   return (
     <DashboardShell

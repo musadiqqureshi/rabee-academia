@@ -2,12 +2,12 @@
 
 import { useState, type ReactNode } from "react";
 import Link from "next/link";
-import { Atom, LogOut, Menu, X, type LucideIcon } from "lucide-react";
+import { Atom, LogOut, Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export interface NavItem {
   label: string;
-  icon: LucideIcon;
+  icon: ReactNode;
 }
 
 interface DashboardShellProps {
@@ -43,7 +43,6 @@ export default function DashboardShell({
 
         <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-1">
           {navItems.map((item) => {
-            const Icon = item.icon;
             const isActive = active === item.label;
             return (
               <button
@@ -55,7 +54,9 @@ export default function DashboardShell({
                     : "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground"
                 }`}
               >
-                <Icon className="w-4 h-4 shrink-0" />
+                <span className="w-4 h-4 shrink-0 flex items-center justify-center">
+                  {item.icon}
+                </span>
                 {item.label}
               </button>
             );

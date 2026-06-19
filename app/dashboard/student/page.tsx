@@ -9,24 +9,22 @@ import {
   BarChart3,
 } from "lucide-react";
 import { requireRole } from "@/lib/auth";
-import DashboardShell, {
-  type NavItem,
-} from "@/components/dashboard/DashboardShell";
+import DashboardShell from "@/components/dashboard/DashboardShell";
 import StatCard from "@/components/dashboard/StatCard";
 import PlaceholderPanel from "@/components/dashboard/PlaceholderPanel";
 
-const navItems: NavItem[] = [
-  { label: "Overview", icon: BarChart3 },
-  { label: "My Subjects", icon: BookOpen },
-  { label: "Payments", icon: Wallet },
-  { label: "Class Links", icon: Video },
-  { label: "Schedule", icon: CalendarDays },
-  { label: "Resources", icon: FileText },
-  { label: "Notifications", icon: Bell },
-];
-
 export default async function StudentDashboard() {
   const profile = await requireRole("student");
+
+  const navItems = [
+    { label: "Overview", icon: <BarChart3 className="w-4 h-4" /> },
+    { label: "My Subjects", icon: <BookOpen className="w-4 h-4" /> },
+    { label: "Payments", icon: <Wallet className="w-4 h-4" /> },
+    { label: "Class Links", icon: <Video className="w-4 h-4" /> },
+    { label: "Schedule", icon: <CalendarDays className="w-4 h-4" /> },
+    { label: "Resources", icon: <FileText className="w-4 h-4" /> },
+    { label: "Notifications", icon: <Bell className="w-4 h-4" /> },
+  ];
 
   return (
     <DashboardShell
