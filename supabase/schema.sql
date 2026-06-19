@@ -1,7 +1,8 @@
 -- =============================================================================
 -- Rabee Academia — Full Platform Schema (Stages 1 & 2)
--- Run this in the Supabase SQL Editor (safe to re-run: uses IF NOT EXISTS /
--- CREATE OR REPLACE / DROP POLICY IF EXISTS throughout).
+-- Safe to re-run: IF NOT EXISTS / CREATE OR REPLACE / on conflict do nothing
+-- NOTE: RLS policies use inline subqueries instead of a helper function to
+--       avoid any ordering dependency issues in Supabase SQL Editor.
 -- =============================================================================
 
 
@@ -59,7 +60,7 @@ end $$;
 
 
 -- ---------------------------------------------------------------------------
--- 2. Tables (no policies yet — functions must exist first)
+-- 2. Tables
 -- ---------------------------------------------------------------------------
 
 create table if not exists public.profiles (
@@ -169,37 +170,16 @@ create table if not exists public.notifications (
 
 
 -- ---------------------------------------------------------------------------
--- 3. Helper functions (must exist BEFORE any RLS policies that call them)
+-- 3. Functions & Triggers
 -- ---------------------------------------------------------------------------
 
--- Returns the current user's role. Used in all RLS policies below.
-create or replace function public.current_user_role()
-returns public.user_role
+-- Utility: role lookup used internally (security definer so it bypasses RLS).
+create or replace function public.get_my_role()
+returns text
 language sql stable security definer
 set search_path = public
 as $$
-  select role from public.profiles where id = auth.uid();
-$$;
-
--- Promote a user to a staff role (run in SQL Editor as project owner).
--- Example: select public.set_user_role('admin@rabee.test', 'super_admin');
-create or replace function public.set_user_role(
-  target_email text,
-  new_role     public.user_role
-)
-returns void
-language plpgsql security definer
-set search_path = public
-as $$
-declare
-  target_id uuid;
-begin
-  select id into target_id from auth.users where email = target_email;
-  if target_id is null then
-    raise exception 'No user found with email %', target_email;
-  end if;
-  update public.profiles set role = new_role where id = target_id;
-end;
+  select role::text from public.profiles where id = auth.uid();
 $$;
 
 -- Keeps updated_at current.
@@ -210,6 +190,16 @@ begin
   return new;
 end;
 $$;
+
+drop trigger if exists profiles_updated_at on public.profiles;
+create trigger profiles_updated_at
+  before update on public.profiles
+  for each row execute function public.set_updated_at();
+
+drop trigger if exists enrollments_updated_at on public.enrollments;
+create trigger enrollments_updated_at
+  before update on public.enrollments
+  for each row execute function public.set_updated_at();
 
 -- Auto-creates a profile row on new sign-up.
 create or replace function public.handle_new_user()
@@ -233,29 +223,34 @@ begin
 end;
 $$;
 
-
--- ---------------------------------------------------------------------------
--- 4. Triggers
--- ---------------------------------------------------------------------------
-
-drop trigger if exists profiles_updated_at on public.profiles;
-create trigger profiles_updated_at
-  before update on public.profiles
-  for each row execute function public.set_updated_at();
-
-drop trigger if exists enrollments_updated_at on public.enrollments;
-create trigger enrollments_updated_at
-  before update on public.enrollments
-  for each row execute function public.set_updated_at();
-
 drop trigger if exists on_auth_user_created on auth.users;
 create trigger on_auth_user_created
   after insert on auth.users
   for each row execute function public.handle_new_user();
 
+-- Promote a user's role (run manually in SQL Editor).
+-- Example: select public.set_user_role('admin@rabee.test', 'super_admin');
+create or replace function public.set_user_role(
+  target_email text,
+  new_role     public.user_role
+)
+returns void language plpgsql security definer
+set search_path = public
+as $$
+declare
+  target_id uuid;
+begin
+  select id into target_id from auth.users where email = target_email;
+  if target_id is null then
+    raise exception 'No user found with email %', target_email;
+  end if;
+  update public.profiles set role = new_role where id = target_id;
+end;
+$$;
+
 
 -- ---------------------------------------------------------------------------
--- 5. Enable RLS on all tables
+-- 4. Enable RLS
 -- ---------------------------------------------------------------------------
 
 alter table public.profiles     enable row level security;
@@ -269,76 +264,97 @@ alter table public.notifications enable row level security;
 
 
 -- ---------------------------------------------------------------------------
--- 6. RLS Policies (current_user_role() is now defined above)
+-- 5. RLS Policies
+-- All role checks use inline subqueries — no external function dependency.
 -- ---------------------------------------------------------------------------
 
--- profiles
-drop policy if exists "profiles_select_own"         on public.profiles;
-drop policy if exists "profiles_select_staff"        on public.profiles;
-drop policy if exists "profiles_update_own"          on public.profiles;
-drop policy if exists "profiles_update_super_admin"  on public.profiles;
+-- profiles -------------------------------------------------------------------
+drop policy if exists "profiles_select_own"        on public.profiles;
+drop policy if exists "profiles_select_staff"       on public.profiles;
+drop policy if exists "profiles_update_own"         on public.profiles;
+drop policy if exists "profiles_update_super_admin" on public.profiles;
 
 create policy "profiles_select_own"
-  on public.profiles for select using (auth.uid() = id);
+  on public.profiles for select
+  using (auth.uid() = id);
 
 create policy "profiles_select_staff"
   on public.profiles for select
-  using (public.current_user_role() in ('admin', 'super_admin'));
+  using (
+    (select role from public.profiles where id = auth.uid())
+    in ('admin', 'super_admin')
+  );
 
 create policy "profiles_update_own"
   on public.profiles for update
   using (auth.uid() = id)
-  with check (auth.uid() = id and role = public.current_user_role());
+  with check (auth.uid() = id);
 
 create policy "profiles_update_super_admin"
   on public.profiles for update
-  using (public.current_user_role() = 'super_admin');
+  using (
+    (select role from public.profiles where id = auth.uid()) = 'super_admin'
+  );
 
--- subjects
-drop policy if exists "subjects_public_read"    on public.subjects;
+-- subjects -------------------------------------------------------------------
+drop policy if exists "subjects_public_read"     on public.subjects;
 drop policy if exists "subjects_super_admin_all" on public.subjects;
 
 create policy "subjects_public_read"
-  on public.subjects for select using (is_active = true);
+  on public.subjects for select
+  using (is_active = true);
 
 create policy "subjects_super_admin_all"
   on public.subjects for all
-  using (public.current_user_role() = 'super_admin');
+  using (
+    (select role from public.profiles where id = auth.uid()) = 'super_admin'
+  );
 
--- batches
-drop policy if exists "batches_staff_read"    on public.batches;
-drop policy if exists "batches_admin_write"   on public.batches;
-drop policy if exists "batches_student_read"  on public.batches;
+-- batches --------------------------------------------------------------------
+drop policy if exists "batches_staff_read"   on public.batches;
+drop policy if exists "batches_admin_write"  on public.batches;
+drop policy if exists "batches_student_read" on public.batches;
 
 create policy "batches_staff_read"
   on public.batches for select
-  using (public.current_user_role() in ('super_admin', 'admin', 'teacher'));
+  using (
+    (select role from public.profiles where id = auth.uid())
+    in ('super_admin', 'admin', 'teacher')
+  );
 
 create policy "batches_admin_write"
   on public.batches for all
-  using (public.current_user_role() in ('super_admin', 'admin'));
+  using (
+    (select role from public.profiles where id = auth.uid())
+    in ('super_admin', 'admin')
+  );
 
 create policy "batches_student_read"
   on public.batches for select
   using (
     exists (
       select 1 from public.enrollments e
-      where e.batch_id = id and e.student_id = auth.uid()
+      where e.batch_id = id
+        and e.student_id = auth.uid()
         and e.status = 'approved'
     )
   );
 
--- enrollments
-drop policy if exists "enrollments_student_own"   on public.enrollments;
-drop policy if exists "enrollments_staff_all"      on public.enrollments;
-drop policy if exists "enrollments_teacher_read"   on public.enrollments;
+-- enrollments ----------------------------------------------------------------
+drop policy if exists "enrollments_student_own"  on public.enrollments;
+drop policy if exists "enrollments_staff_all"     on public.enrollments;
+drop policy if exists "enrollments_teacher_read"  on public.enrollments;
 
 create policy "enrollments_student_own"
-  on public.enrollments for all using (student_id = auth.uid());
+  on public.enrollments for all
+  using (student_id = auth.uid());
 
 create policy "enrollments_staff_all"
   on public.enrollments for all
-  using (public.current_user_role() in ('super_admin', 'admin'));
+  using (
+    (select role from public.profiles where id = auth.uid())
+    in ('super_admin', 'admin')
+  );
 
 create policy "enrollments_teacher_read"
   on public.enrollments for select
@@ -349,24 +365,29 @@ create policy "enrollments_teacher_read"
     )
   );
 
--- payments
+-- payments -------------------------------------------------------------------
 drop policy if exists "payments_student_own" on public.payments;
 drop policy if exists "payments_staff_all"   on public.payments;
 
 create policy "payments_student_own"
-  on public.payments for select using (student_id = auth.uid());
+  on public.payments for select
+  using (student_id = auth.uid());
 
 create policy "payments_staff_all"
   on public.payments for all
-  using (public.current_user_role() in ('super_admin', 'admin'));
+  using (
+    (select role from public.profiles where id = auth.uid())
+    in ('super_admin', 'admin')
+  );
 
--- attendance
-drop policy if exists "attendance_student_own"  on public.attendance;
-drop policy if exists "attendance_teacher_all"  on public.attendance;
-drop policy if exists "attendance_admin_read"   on public.attendance;
+-- attendance -----------------------------------------------------------------
+drop policy if exists "attendance_student_own" on public.attendance;
+drop policy if exists "attendance_teacher_all" on public.attendance;
+drop policy if exists "attendance_admin_read"  on public.attendance;
 
 create policy "attendance_student_own"
-  on public.attendance for select using (student_id = auth.uid());
+  on public.attendance for select
+  using (student_id = auth.uid());
 
 create policy "attendance_teacher_all"
   on public.attendance for all
@@ -379,9 +400,12 @@ create policy "attendance_teacher_all"
 
 create policy "attendance_admin_read"
   on public.attendance for select
-  using (public.current_user_role() in ('super_admin', 'admin'));
+  using (
+    (select role from public.profiles where id = auth.uid())
+    in ('super_admin', 'admin')
+  );
 
--- materials
+-- materials ------------------------------------------------------------------
 drop policy if exists "materials_student_read" on public.materials;
 drop policy if exists "materials_teacher_all"  on public.materials;
 drop policy if exists "materials_admin_read"   on public.materials;
@@ -398,26 +422,34 @@ create policy "materials_student_read"
   );
 
 create policy "materials_teacher_all"
-  on public.materials for all using (teacher_id = auth.uid());
+  on public.materials for all
+  using (teacher_id = auth.uid());
 
 create policy "materials_admin_read"
   on public.materials for select
-  using (public.current_user_role() in ('super_admin', 'admin'));
+  using (
+    (select role from public.profiles where id = auth.uid())
+    in ('super_admin', 'admin')
+  );
 
--- notifications
-drop policy if exists "notifications_own"           on public.notifications;
-drop policy if exists "notifications_staff_insert"  on public.notifications;
+-- notifications --------------------------------------------------------------
+drop policy if exists "notifications_own"          on public.notifications;
+drop policy if exists "notifications_staff_insert" on public.notifications;
 
 create policy "notifications_own"
-  on public.notifications for all using (user_id = auth.uid());
+  on public.notifications for all
+  using (user_id = auth.uid());
 
 create policy "notifications_staff_insert"
   on public.notifications for insert
-  with check (public.current_user_role() in ('super_admin', 'admin'));
+  with check (
+    (select role from public.profiles where id = auth.uid())
+    in ('super_admin', 'admin')
+  );
 
 
 -- ---------------------------------------------------------------------------
--- 7. Seed subject catalogue (matches src/lib/courses.ts)
+-- 6. Seed subject catalogue (matches src/lib/courses.ts)
 -- ---------------------------------------------------------------------------
 
 insert into public.subjects (slug, name, level, regular_price, weekend_price, lessons, description) values
@@ -440,9 +472,9 @@ on conflict (slug) do nothing;
 
 
 -- ---------------------------------------------------------------------------
--- 8. Storage buckets
+-- 7. Storage buckets
 -- ---------------------------------------------------------------------------
--- Create in Supabase Dashboard → Storage, or uncomment and run:
+-- Create in Supabase Dashboard → Storage, or uncomment:
 -- insert into storage.buckets (id, name, public) values
 --   ('receipts',  'receipts',  false),
 --   ('materials', 'materials', false)
