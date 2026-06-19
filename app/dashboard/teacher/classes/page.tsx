@@ -26,7 +26,7 @@ export default async function TeacherClasses() {
 
   const rows: ScheduleRow[] = [];
   for (const b of batches ?? []) {
-    const subject = b.subjects as unknown as { name: string } | null;
+    const subject = b.subjects as unknown as unknown as { name: string } | null;
     for (const s of (b.schedules as { id: string; day_of_week: string; start_time: string; end_time: string; meet_link: string | null }[] | null) ?? []) {
       rows.push({ ...s, subject_name: subject?.name ?? "Unknown" });
     }

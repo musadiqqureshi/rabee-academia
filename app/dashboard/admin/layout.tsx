@@ -1,5 +1,6 @@
 import {
   Users, UserCheck, BookOpen, Video, ClipboardCheck, CalendarDays, BarChart3,
+  ClipboardList, Receipt, Network,
 } from "lucide-react";
 import { requireRole } from "@/lib/auth";
 import DashboardShell, { type NavItem } from "@/components/dashboard/DashboardShell";
@@ -10,6 +11,9 @@ const navItems: NavItem[] = [
   { label: "Enrollments",  icon: <UserCheck className="w-4 h-4" />,      href: "/enrollments" },
   { label: "Students",     icon: <Users className="w-4 h-4" />,          href: "/students" },
   { label: "Batches",      icon: <BookOpen className="w-4 h-4" />,       href: "/batches" },
+  { label: "Allocation",   icon: <Network className="w-4 h-4" />,        href: "/allocation" },
+  { label: "Assignments",  icon: <ClipboardList className="w-4 h-4" />,  href: "/assignments" },
+  { label: "Invoices",     icon: <Receipt className="w-4 h-4" />,        href: "/invoices" },
   { label: "Class Links",  icon: <Video className="w-4 h-4" />,          href: "/classes" },
   { label: "Attendance",   icon: <ClipboardCheck className="w-4 h-4" />, href: "/attendance" },
   { label: "Schedules",    icon: <CalendarDays className="w-4 h-4" />,   href: "/schedules" },
