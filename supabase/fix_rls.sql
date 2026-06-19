@@ -87,6 +87,7 @@ drop policy if exists "subjects_public_read"      on public.subjects;
 drop policy if exists "subjects_admin_all"        on public.subjects;
 drop policy if exists "Public read subjects"      on public.subjects;
 drop policy if exists "Admins manage subjects"    on public.subjects;
+drop policy if exists "subjects_public_select"    on public.subjects;
 
 create policy "subjects_public_read"
   on public.subjects for select
@@ -146,8 +147,9 @@ create policy "enrollments_teacher_read"
 -- ---------------------------------------------------------------------------
 -- 6. Payments
 -- ---------------------------------------------------------------------------
-drop policy if exists "payments_student_own" on public.payments;
-drop policy if exists "payments_staff_all"   on public.payments;
+drop policy if exists "payments_student_own"    on public.payments;
+drop policy if exists "payments_student_insert" on public.payments;
+drop policy if exists "payments_staff_all"      on public.payments;
 
 create policy "payments_student_own"
   on public.payments for select
@@ -165,11 +167,12 @@ create policy "payments_staff_all"
 -- ---------------------------------------------------------------------------
 -- 7. Materials
 -- ---------------------------------------------------------------------------
-drop policy if exists "materials_student_read"  on public.materials;
-drop policy if exists "materials_teacher_all"   on public.materials;
-drop policy if exists "materials_admin_read"    on public.materials;
+drop policy if exists "materials_student_read"       on public.materials;
+drop policy if exists "materials_teacher_all"        on public.materials;
+drop policy if exists "materials_admin_read"         on public.materials;
 drop policy if exists "Authenticated read materials" on public.materials;
-drop policy if exists "Teachers insert materials" on public.materials;
+drop policy if exists "Teachers insert materials"    on public.materials;
+drop policy if exists "materials_teacher_insert"     on public.materials;
 
 -- Students read materials for batches they are enrolled in — scalar boolean
 -- helper avoids the materials→enrollments→batches→enrollments cycle.
@@ -224,13 +227,15 @@ create policy "notifications_staff_insert"
 -- ---------------------------------------------------------------------------
 -- 10. Storage policies — drop old versions first
 -- ---------------------------------------------------------------------------
-drop policy if exists "Students upload own receipts" on storage.objects;
-drop policy if exists "Anyone read receipts"         on storage.objects;
-drop policy if exists "receipts_student_upload"      on storage.objects;
-drop policy if exists "receipts_student_read"        on storage.objects;
-drop policy if exists "receipts_staff_read"          on storage.objects;
-drop policy if exists "Teachers upload materials"    on storage.objects;
-drop policy if exists "Authenticated read materials" on storage.objects;
+drop policy if exists "Students upload own receipts"   on storage.objects;
+drop policy if exists "Anyone read receipts"           on storage.objects;
+drop policy if exists "receipts_student_upload"        on storage.objects;
+drop policy if exists "receipts_student_read"          on storage.objects;
+drop policy if exists "receipts_staff_read"            on storage.objects;
+drop policy if exists "Teachers upload materials"      on storage.objects;
+drop policy if exists "Authenticated read materials"   on storage.objects;
+drop policy if exists "materials_teacher_upload"       on storage.objects;
+drop policy if exists "materials_authenticated_read"   on storage.objects;
 
 -- Ensure storage buckets exist
 insert into storage.buckets (id, name, public)
@@ -348,8 +353,9 @@ create table if not exists public.invoices (
 
 alter table public.invoices enable row level security;
 
-drop policy if exists "invoices_student_own" on public.invoices;
-drop policy if exists "invoices_staff_all"   on public.invoices;
+drop policy if exists "invoices_student_own"    on public.invoices;
+drop policy if exists "invoices_student_insert" on public.invoices;
+drop policy if exists "invoices_staff_all"      on public.invoices;
 
 create policy "invoices_student_own"
   on public.invoices for select
