@@ -6,13 +6,13 @@ import DashboardShell, { type NavItem } from "@/components/dashboard/DashboardSh
 import type { ReactNode } from "react";
 
 const navItems: NavItem[] = [
-  { label: "Overview",     icon: BarChart3,      href: "" },
-  { label: "Enrollments",  icon: UserCheck,      href: "/enrollments" },
-  { label: "Students",     icon: Users,          href: "/students" },
-  { label: "Batches",      icon: BookOpen,       href: "/batches" },
-  { label: "Class Links",  icon: Video,          href: "/classes" },
-  { label: "Attendance",   icon: ClipboardCheck, href: "/attendance" },
-  { label: "Schedules",    icon: CalendarDays,   href: "/schedules" },
+  { label: "Overview",     icon: <BarChart3 className="w-4 h-4" />,      href: "" },
+  { label: "Enrollments",  icon: <UserCheck className="w-4 h-4" />,      href: "/enrollments" },
+  { label: "Students",     icon: <Users className="w-4 h-4" />,          href: "/students" },
+  { label: "Batches",      icon: <BookOpen className="w-4 h-4" />,       href: "/batches" },
+  { label: "Class Links",  icon: <Video className="w-4 h-4" />,          href: "/classes" },
+  { label: "Attendance",   icon: <ClipboardCheck className="w-4 h-4" />, href: "/attendance" },
+  { label: "Schedules",    icon: <CalendarDays className="w-4 h-4" />,   href: "/schedules" },
 ];
 
 export default async function AdminLayout({ children }: { children: ReactNode }) {

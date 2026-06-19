@@ -6,14 +6,14 @@ import DashboardShell, { type NavItem } from "@/components/dashboard/DashboardSh
 import type { ReactNode } from "react";
 
 const navItems: NavItem[] = [
-  { label: "Overview",      icon: BarChart3,  href: "" },
-  { label: "Users",         icon: Users,      href: "/users" },
-  { label: "Teachers",      icon: UserCog,    href: "/teachers" },
-  { label: "Subjects",      icon: BookOpen,   href: "/subjects" },
-  { label: "Payments",      icon: Wallet,     href: "/payments" },
-  { label: "Schedules",     icon: CalendarDays, href: "/schedules" },
-  { label: "Notifications", icon: Bell,       href: "/notifications" },
-  { label: "Settings",      icon: Settings,   href: "/settings" },
+  { label: "Overview",      icon: <BarChart3 className="w-4 h-4" />,    href: "" },
+  { label: "Users",         icon: <Users className="w-4 h-4" />,        href: "/users" },
+  { label: "Teachers",      icon: <UserCog className="w-4 h-4" />,      href: "/teachers" },
+  { label: "Subjects",      icon: <BookOpen className="w-4 h-4" />,     href: "/subjects" },
+  { label: "Payments",      icon: <Wallet className="w-4 h-4" />,       href: "/payments" },
+  { label: "Schedules",     icon: <CalendarDays className="w-4 h-4" />, href: "/schedules" },
+  { label: "Notifications", icon: <Bell className="w-4 h-4" />,         href: "/notifications" },
+  { label: "Settings",      icon: <Settings className="w-4 h-4" />,     href: "/settings" },
 ];
 
 export default async function SuperAdminLayout({ children }: { children: ReactNode }) {
