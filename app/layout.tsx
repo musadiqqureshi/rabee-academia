@@ -25,7 +25,13 @@ export const metadata: Metadata = {
   ],
   authors: [{ name: "Rabee Academia" }],
   robots: "index, follow",
-  icons: { icon: "/favicon.svg" },
+  icons: {
+    icon: [
+      { url: "/favicon.svg", type: "image/svg+xml" },
+    ],
+    apple: "/favicon.svg",
+    shortcut: "/favicon.svg",
+  },
   openGraph: {
     title: "Rabee Academia — Smart Online Learning for Future Achievers",
     description:
