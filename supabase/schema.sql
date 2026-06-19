@@ -59,10 +59,9 @@ end $$;
 
 
 -- ---------------------------------------------------------------------------
--- 2. Core user tables
+-- 2. Tables (no policies yet — functions must exist first)
 -- ---------------------------------------------------------------------------
 
--- One profile per auth user. Mirrors auth.users and carries the app role.
 create table if not exists public.profiles (
   id          uuid primary key references auth.users (id) on delete cascade,
   full_name   text,
@@ -74,163 +73,57 @@ create table if not exists public.profiles (
   updated_at  timestamptz not null default now()
 );
 
-alter table public.profiles enable row level security;
-
-
--- ---------------------------------------------------------------------------
--- 3. Subject catalogue (matches src/lib/courses.ts)
--- ---------------------------------------------------------------------------
-
 create table if not exists public.subjects (
   id             uuid primary key default uuid_generate_v4(),
-  slug           text unique not null,          -- e.g. "fsc-physics"
-  name           text not null,                 -- e.g. "FSc Physics"
-  level          text not null,                 -- "FSc Level" | "A Level" | ...
-  regular_price  integer not null,              -- PKR per month
-  weekend_price  integer not null,              -- PKR per month
+  slug           text unique not null,
+  name           text not null,
+  level          text not null,
+  regular_price  integer not null,
+  weekend_price  integer not null,
   lessons        integer not null default 0,
   description    text,
   is_active      boolean not null default true,
   created_at     timestamptz not null default now()
 );
 
-alter table public.subjects enable row level security;
-
--- Anyone can read active subjects (pricing page, enrollment page).
-drop policy if exists "subjects_public_read" on public.subjects;
-create policy "subjects_public_read"
-  on public.subjects for select
-  using (is_active = true);
-
--- Only super admins can modify subjects.
-drop policy if exists "subjects_super_admin_all" on public.subjects;
-create policy "subjects_super_admin_all"
-  on public.subjects for all
-  using (public.current_user_role() = 'super_admin');
-
--- Seed subjects from courses.ts
-insert into public.subjects (slug, name, level, regular_price, weekend_price, lessons, description) values
-  ('fsc-physics',     'FSc Physics',         'FSc Level', 7000,  5500,  48, 'Complete FSc Physics curriculum with concept-building and exam preparation.'),
-  ('fsc-chemistry',   'FSc Chemistry',       'FSc Level', 7000,  5500,  44, 'In-depth FSc Chemistry covering organic, inorganic, and physical chemistry.'),
-  ('fsc-biology',     'FSc Biology',         'FSc Level', 7000,  5500,  45, 'FSc Biology with diagrams, practicals, and MCQ preparation.'),
-  ('fsc-math',        'FSc Mathematics',     'FSc Level', 7000,  5500,  50, 'FSc Mathematics with step-by-step problem solving and practice.'),
-  ('a-level-physics', 'A Level Physics',     'A Level',  15000, 12000,  58, 'Cambridge A Level Physics with deep conceptual and practical understanding.'),
-  ('a-level-chemistry','A Level Chemistry',  'A Level',  15000, 12000,  60, 'A Level Chemistry with focus on CIE exam structure and paper patterns.'),
-  ('a-level-math',    'A Level Mathematics', 'A Level',  15000, 12000,  62, 'A Level Mathematics covering Pure, Mechanics, and Statistics.'),
-  ('o-level-math',    'O Level Mathematics', 'O Level',  15000, 12000,  52, 'O Level Mathematics with full IGCSE coverage and exam readiness.'),
-  ('o-level-physics', 'O Level Physics',     'O Level',  15000, 12000,  50, 'O Level Physics with experiments, theory, and structured revision.'),
-  ('bs-cs',           'BS Computer Science', 'BS Level', 10000,  8000,  70, 'BS CS covering data structures, algorithms, databases, and software engineering.'),
-  ('bs-physics',      'BS Physics',          'BS Level', 10000,  8000,  65, 'BS Physics with mathematical foundations, quantum, and classical mechanics.'),
-  ('bs-math',         'BS Mathematics',      'BS Level', 10000,  8000,  65, 'BS Mathematics with real analysis, algebra, and applied mathematics.'),
-  ('ms-cs',           'MS Computer Science', 'MS Level', 18000, 15000,  80, 'MS CS with AI, ML, distributed systems, and thesis support.'),
-  ('ms-physics',      'MS Physics',          'MS Level', 18000, 15000,  75, 'MS Physics covering advanced quantum mechanics, condensed matter, and research methods.'),
-  ('ms-math',         'MS Mathematics',      'MS Level', 18000, 15000,  75, 'MS Mathematics with topology, functional analysis, and research guidance.')
-on conflict (slug) do nothing;
-
-
--- ---------------------------------------------------------------------------
--- 4. Batches — a teacher + subject + class type = one runnable batch
--- ---------------------------------------------------------------------------
-
 create table if not exists public.batches (
   id            uuid primary key default uuid_generate_v4(),
   subject_id    uuid not null references public.subjects (id),
   teacher_id    uuid not null references public.profiles (id),
   class_type    public.class_type not null,
-  meet_link     text,                           -- Google Meet URL
-  schedule_text text,                           -- e.g. "Mon, Wed, Fri 6–7 PM"
+  meet_link     text,
+  schedule_text text,
   is_active     boolean not null default true,
   created_at    timestamptz not null default now()
 );
 
-alter table public.batches enable row level security;
-
-drop policy if exists "batches_staff_read" on public.batches;
-create policy "batches_staff_read"
-  on public.batches for select
-  using (public.current_user_role() in ('super_admin', 'admin', 'teacher'));
-
-drop policy if exists "batches_admin_write" on public.batches;
-create policy "batches_admin_write"
-  on public.batches for all
-  using (public.current_user_role() in ('super_admin', 'admin'));
-
--- Students can see their own batch (via enrollment join).
-drop policy if exists "batches_student_read" on public.batches;
-create policy "batches_student_read"
-  on public.batches for select
-  using (
-    exists (
-      select 1 from public.enrollments e
-      where e.batch_id = id and e.student_id = auth.uid()
-        and e.status = 'approved'
-    )
-  );
-
-
--- ---------------------------------------------------------------------------
--- 5. Enrollments — a student joins a batch
--- ---------------------------------------------------------------------------
-
 create table if not exists public.enrollments (
-  id             uuid primary key default uuid_generate_v4(),
-  student_id     uuid not null references public.profiles (id),
-  subject_id     uuid not null references public.subjects (id),
-  batch_id       uuid references public.batches (id),      -- set by admin after approval
-  class_type     public.class_type not null,
-  status         public.enrollment_status not null default 'pending',
-  -- form fields captured during enrollment flow
-  student_name   text,
-  student_email  text,
-  student_phone  text,
+  id              uuid primary key default uuid_generate_v4(),
+  student_id      uuid not null references public.profiles (id),
+  subject_id      uuid not null references public.subjects (id),
+  batch_id        uuid references public.batches (id),
+  class_type      public.class_type not null,
+  status          public.enrollment_status not null default 'pending',
+  student_name    text,
+  student_email   text,
+  student_phone   text,
   education_level text,
-  -- payment
-  payment_method public.payment_method,
-  receipt_url    text,                  -- uploaded IBAN receipt (Supabase Storage path)
-  assanpay_ref   text,                  -- AssanPay transaction reference
-  approved_by    uuid references public.profiles (id),
-  approved_at    timestamptz,
-  created_at     timestamptz not null default now(),
-  updated_at     timestamptz not null default now(),
-  unique (student_id, subject_id)       -- one enrollment per subject per student
+  payment_method  public.payment_method,
+  receipt_url     text,
+  assanpay_ref    text,
+  approved_by     uuid references public.profiles (id),
+  approved_at     timestamptz,
+  created_at      timestamptz not null default now(),
+  updated_at      timestamptz not null default now(),
+  unique (student_id, subject_id)
 );
-
-alter table public.enrollments enable row level security;
-
--- Students see their own enrollments.
-drop policy if exists "enrollments_student_own" on public.enrollments;
-create policy "enrollments_student_own"
-  on public.enrollments for all
-  using (student_id = auth.uid());
-
--- Admin / super admin see and manage all.
-drop policy if exists "enrollments_staff_all" on public.enrollments;
-create policy "enrollments_staff_all"
-  on public.enrollments for all
-  using (public.current_user_role() in ('super_admin', 'admin'));
-
--- Teachers see enrollments for their batches.
-drop policy if exists "enrollments_teacher_read" on public.enrollments;
-create policy "enrollments_teacher_read"
-  on public.enrollments for select
-  using (
-    exists (
-      select 1 from public.batches b
-      where b.id = batch_id and b.teacher_id = auth.uid()
-    )
-  );
-
-
--- ---------------------------------------------------------------------------
--- 6. Payments — monthly fee records per enrollment
--- ---------------------------------------------------------------------------
 
 create table if not exists public.payments (
   id             uuid primary key default uuid_generate_v4(),
   enrollment_id  uuid not null references public.enrollments (id) on delete cascade,
   student_id     uuid not null references public.profiles (id),
   amount_pkr     integer not null,
-  month_year     text not null,          -- "2025-07" (YYYY-MM)
+  month_year     text not null,
   status         public.payment_status not null default 'pending',
   payment_method public.payment_method,
   receipt_url    text,
@@ -242,64 +135,17 @@ create table if not exists public.payments (
   created_at     timestamptz not null default now()
 );
 
-alter table public.payments enable row level security;
-
-drop policy if exists "payments_student_own" on public.payments;
-create policy "payments_student_own"
-  on public.payments for select
-  using (student_id = auth.uid());
-
-drop policy if exists "payments_staff_all" on public.payments;
-create policy "payments_staff_all"
-  on public.payments for all
-  using (public.current_user_role() in ('super_admin', 'admin'));
-
-
--- ---------------------------------------------------------------------------
--- 7. Attendance
--- ---------------------------------------------------------------------------
-
 create table if not exists public.attendance (
-  id          uuid primary key default uuid_generate_v4(),
-  batch_id    uuid not null references public.batches (id),
-  student_id  uuid not null references public.profiles (id),
+  id           uuid primary key default uuid_generate_v4(),
+  batch_id     uuid not null references public.batches (id),
+  student_id   uuid not null references public.profiles (id),
   session_date date not null,
-  status      public.attendance_status not null default 'absent',
-  marked_by   uuid references public.profiles (id),  -- teacher who marked it
-  notes       text,
-  created_at  timestamptz not null default now(),
+  status       public.attendance_status not null default 'absent',
+  marked_by    uuid references public.profiles (id),
+  notes        text,
+  created_at   timestamptz not null default now(),
   unique (batch_id, student_id, session_date)
 );
-
-alter table public.attendance enable row level security;
-
--- Students see their own attendance.
-drop policy if exists "attendance_student_own" on public.attendance;
-create policy "attendance_student_own"
-  on public.attendance for select
-  using (student_id = auth.uid());
-
--- Teachers can mark and view attendance for their batches.
-drop policy if exists "attendance_teacher_all" on public.attendance;
-create policy "attendance_teacher_all"
-  on public.attendance for all
-  using (
-    exists (
-      select 1 from public.batches b
-      where b.id = batch_id and b.teacher_id = auth.uid()
-    )
-  );
-
--- Admins read all.
-drop policy if exists "attendance_admin_read" on public.attendance;
-create policy "attendance_admin_read"
-  on public.attendance for select
-  using (public.current_user_role() in ('super_admin', 'admin'));
-
-
--- ---------------------------------------------------------------------------
--- 8. Study materials — files uploaded by teachers
--- ---------------------------------------------------------------------------
 
 create table if not exists public.materials (
   id          uuid primary key default uuid_generate_v4(),
@@ -307,42 +153,10 @@ create table if not exists public.materials (
   teacher_id  uuid not null references public.profiles (id),
   title       text not null,
   description text,
-  file_url    text not null,    -- Supabase Storage path
-  file_type   text,             -- "pdf", "video", "link"
+  file_url    text not null,
+  file_type   text,
   created_at  timestamptz not null default now()
 );
-
-alter table public.materials enable row level security;
-
--- Students in the batch can read materials.
-drop policy if exists "materials_student_read" on public.materials;
-create policy "materials_student_read"
-  on public.materials for select
-  using (
-    exists (
-      select 1 from public.enrollments e
-      where e.batch_id = materials.batch_id
-        and e.student_id = auth.uid()
-        and e.status = 'approved'
-    )
-  );
-
--- Teachers manage their own materials.
-drop policy if exists "materials_teacher_all" on public.materials;
-create policy "materials_teacher_all"
-  on public.materials for all
-  using (teacher_id = auth.uid());
-
--- Admins read all.
-drop policy if exists "materials_admin_read" on public.materials;
-create policy "materials_admin_read"
-  on public.materials for select
-  using (public.current_user_role() in ('super_admin', 'admin'));
-
-
--- ---------------------------------------------------------------------------
--- 9. Notifications
--- ---------------------------------------------------------------------------
 
 create table if not exists public.notifications (
   id          uuid primary key default uuid_generate_v4(),
@@ -353,24 +167,12 @@ create table if not exists public.notifications (
   created_at  timestamptz not null default now()
 );
 
-alter table public.notifications enable row level security;
-
-drop policy if exists "notifications_own" on public.notifications;
-create policy "notifications_own"
-  on public.notifications for all
-  using (user_id = auth.uid());
-
-drop policy if exists "notifications_staff_insert" on public.notifications;
-create policy "notifications_staff_insert"
-  on public.notifications for insert
-  with check (public.current_user_role() in ('super_admin', 'admin'));
-
 
 -- ---------------------------------------------------------------------------
--- 10. Helper functions
+-- 3. Helper functions (must exist BEFORE any RLS policies that call them)
 -- ---------------------------------------------------------------------------
 
--- Read the current user's role without tripping RLS recursion.
+-- Returns the current user's role. Used in all RLS policies below.
 create or replace function public.current_user_role()
 returns public.user_role
 language sql stable security definer
@@ -400,12 +202,7 @@ begin
 end;
 $$;
 
-
--- ---------------------------------------------------------------------------
--- 11. Triggers
--- ---------------------------------------------------------------------------
-
--- Keep updated_at current on profiles and enrollments.
+-- Keeps updated_at current.
 create or replace function public.set_updated_at()
 returns trigger language plpgsql as $$
 begin
@@ -414,18 +211,7 @@ begin
 end;
 $$;
 
-drop trigger if exists profiles_updated_at on public.profiles;
-create trigger profiles_updated_at
-  before update on public.profiles
-  for each row execute function public.set_updated_at();
-
-drop trigger if exists enrollments_updated_at on public.enrollments;
-create trigger enrollments_updated_at
-  before update on public.enrollments
-  for each row execute function public.set_updated_at();
-
--- Auto-create a profile row when a new auth user signs up.
--- Public sign-ups always land as 'student'; staff are promoted via set_user_role().
+-- Auto-creates a profile row on new sign-up.
 create or replace function public.handle_new_user()
 returns trigger language plpgsql security definer
 set search_path = public
@@ -447,6 +233,21 @@ begin
 end;
 $$;
 
+
+-- ---------------------------------------------------------------------------
+-- 4. Triggers
+-- ---------------------------------------------------------------------------
+
+drop trigger if exists profiles_updated_at on public.profiles;
+create trigger profiles_updated_at
+  before update on public.profiles
+  for each row execute function public.set_updated_at();
+
+drop trigger if exists enrollments_updated_at on public.enrollments;
+create trigger enrollments_updated_at
+  before update on public.enrollments
+  for each row execute function public.set_updated_at();
+
 drop trigger if exists on_auth_user_created on auth.users;
 create trigger on_auth_user_created
   after insert on auth.users
@@ -454,14 +255,194 @@ create trigger on_auth_user_created
 
 
 -- ---------------------------------------------------------------------------
--- 12. Storage buckets (run separately if needed)
+-- 5. Enable RLS on all tables
 -- ---------------------------------------------------------------------------
--- In the Supabase dashboard → Storage, create these two buckets:
---
---   receipts   (private) — IBAN payment receipt uploads from students
---   materials  (private) — study files uploaded by teachers
---
--- Or run via SQL:
+
+alter table public.profiles     enable row level security;
+alter table public.subjects      enable row level security;
+alter table public.batches       enable row level security;
+alter table public.enrollments   enable row level security;
+alter table public.payments      enable row level security;
+alter table public.attendance    enable row level security;
+alter table public.materials     enable row level security;
+alter table public.notifications enable row level security;
+
+
+-- ---------------------------------------------------------------------------
+-- 6. RLS Policies (current_user_role() is now defined above)
+-- ---------------------------------------------------------------------------
+
+-- profiles
+drop policy if exists "profiles_select_own"         on public.profiles;
+drop policy if exists "profiles_select_staff"        on public.profiles;
+drop policy if exists "profiles_update_own"          on public.profiles;
+drop policy if exists "profiles_update_super_admin"  on public.profiles;
+
+create policy "profiles_select_own"
+  on public.profiles for select using (auth.uid() = id);
+
+create policy "profiles_select_staff"
+  on public.profiles for select
+  using (public.current_user_role() in ('admin', 'super_admin'));
+
+create policy "profiles_update_own"
+  on public.profiles for update
+  using (auth.uid() = id)
+  with check (auth.uid() = id and role = public.current_user_role());
+
+create policy "profiles_update_super_admin"
+  on public.profiles for update
+  using (public.current_user_role() = 'super_admin');
+
+-- subjects
+drop policy if exists "subjects_public_read"    on public.subjects;
+drop policy if exists "subjects_super_admin_all" on public.subjects;
+
+create policy "subjects_public_read"
+  on public.subjects for select using (is_active = true);
+
+create policy "subjects_super_admin_all"
+  on public.subjects for all
+  using (public.current_user_role() = 'super_admin');
+
+-- batches
+drop policy if exists "batches_staff_read"    on public.batches;
+drop policy if exists "batches_admin_write"   on public.batches;
+drop policy if exists "batches_student_read"  on public.batches;
+
+create policy "batches_staff_read"
+  on public.batches for select
+  using (public.current_user_role() in ('super_admin', 'admin', 'teacher'));
+
+create policy "batches_admin_write"
+  on public.batches for all
+  using (public.current_user_role() in ('super_admin', 'admin'));
+
+create policy "batches_student_read"
+  on public.batches for select
+  using (
+    exists (
+      select 1 from public.enrollments e
+      where e.batch_id = id and e.student_id = auth.uid()
+        and e.status = 'approved'
+    )
+  );
+
+-- enrollments
+drop policy if exists "enrollments_student_own"   on public.enrollments;
+drop policy if exists "enrollments_staff_all"      on public.enrollments;
+drop policy if exists "enrollments_teacher_read"   on public.enrollments;
+
+create policy "enrollments_student_own"
+  on public.enrollments for all using (student_id = auth.uid());
+
+create policy "enrollments_staff_all"
+  on public.enrollments for all
+  using (public.current_user_role() in ('super_admin', 'admin'));
+
+create policy "enrollments_teacher_read"
+  on public.enrollments for select
+  using (
+    exists (
+      select 1 from public.batches b
+      where b.id = batch_id and b.teacher_id = auth.uid()
+    )
+  );
+
+-- payments
+drop policy if exists "payments_student_own" on public.payments;
+drop policy if exists "payments_staff_all"   on public.payments;
+
+create policy "payments_student_own"
+  on public.payments for select using (student_id = auth.uid());
+
+create policy "payments_staff_all"
+  on public.payments for all
+  using (public.current_user_role() in ('super_admin', 'admin'));
+
+-- attendance
+drop policy if exists "attendance_student_own"  on public.attendance;
+drop policy if exists "attendance_teacher_all"  on public.attendance;
+drop policy if exists "attendance_admin_read"   on public.attendance;
+
+create policy "attendance_student_own"
+  on public.attendance for select using (student_id = auth.uid());
+
+create policy "attendance_teacher_all"
+  on public.attendance for all
+  using (
+    exists (
+      select 1 from public.batches b
+      where b.id = batch_id and b.teacher_id = auth.uid()
+    )
+  );
+
+create policy "attendance_admin_read"
+  on public.attendance for select
+  using (public.current_user_role() in ('super_admin', 'admin'));
+
+-- materials
+drop policy if exists "materials_student_read" on public.materials;
+drop policy if exists "materials_teacher_all"  on public.materials;
+drop policy if exists "materials_admin_read"   on public.materials;
+
+create policy "materials_student_read"
+  on public.materials for select
+  using (
+    exists (
+      select 1 from public.enrollments e
+      where e.batch_id = materials.batch_id
+        and e.student_id = auth.uid()
+        and e.status = 'approved'
+    )
+  );
+
+create policy "materials_teacher_all"
+  on public.materials for all using (teacher_id = auth.uid());
+
+create policy "materials_admin_read"
+  on public.materials for select
+  using (public.current_user_role() in ('super_admin', 'admin'));
+
+-- notifications
+drop policy if exists "notifications_own"           on public.notifications;
+drop policy if exists "notifications_staff_insert"  on public.notifications;
+
+create policy "notifications_own"
+  on public.notifications for all using (user_id = auth.uid());
+
+create policy "notifications_staff_insert"
+  on public.notifications for insert
+  with check (public.current_user_role() in ('super_admin', 'admin'));
+
+
+-- ---------------------------------------------------------------------------
+-- 7. Seed subject catalogue (matches src/lib/courses.ts)
+-- ---------------------------------------------------------------------------
+
+insert into public.subjects (slug, name, level, regular_price, weekend_price, lessons, description) values
+  ('fsc-physics',      'FSc Physics',         'FSc Level',  7000,  5500, 48, 'Complete FSc Physics curriculum with concept-building and exam preparation.'),
+  ('fsc-chemistry',    'FSc Chemistry',       'FSc Level',  7000,  5500, 44, 'In-depth FSc Chemistry covering organic, inorganic, and physical chemistry.'),
+  ('fsc-biology',      'FSc Biology',         'FSc Level',  7000,  5500, 45, 'FSc Biology with diagrams, practicals, and MCQ preparation.'),
+  ('fsc-math',         'FSc Mathematics',     'FSc Level',  7000,  5500, 50, 'FSc Mathematics with step-by-step problem solving and practice.'),
+  ('a-level-physics',  'A Level Physics',     'A Level',   15000, 12000, 58, 'Cambridge A Level Physics with deep conceptual and practical understanding.'),
+  ('a-level-chemistry','A Level Chemistry',   'A Level',   15000, 12000, 60, 'A Level Chemistry with focus on CIE exam structure and paper patterns.'),
+  ('a-level-math',     'A Level Mathematics', 'A Level',   15000, 12000, 62, 'A Level Mathematics covering Pure, Mechanics, and Statistics.'),
+  ('o-level-math',     'O Level Mathematics', 'O Level',   15000, 12000, 52, 'O Level Mathematics with full IGCSE coverage and exam readiness.'),
+  ('o-level-physics',  'O Level Physics',     'O Level',   15000, 12000, 50, 'O Level Physics with experiments, theory, and structured revision.'),
+  ('bs-cs',            'BS Computer Science', 'BS Level',  10000,  8000, 70, 'BS CS covering data structures, algorithms, databases, and software engineering.'),
+  ('bs-physics',       'BS Physics',          'BS Level',  10000,  8000, 65, 'BS Physics with mathematical foundations, quantum, and classical mechanics.'),
+  ('bs-math',          'BS Mathematics',      'BS Level',  10000,  8000, 65, 'BS Mathematics with real analysis, algebra, and applied mathematics.'),
+  ('ms-cs',            'MS Computer Science', 'MS Level',  18000, 15000, 80, 'MS CS with AI, ML, distributed systems, and thesis support.'),
+  ('ms-physics',       'MS Physics',          'MS Level',  18000, 15000, 75, 'MS Physics covering advanced quantum mechanics, condensed matter, and research methods.'),
+  ('ms-math',          'MS Mathematics',      'MS Level',  18000, 15000, 75, 'MS Mathematics with topology, functional analysis, and research guidance.')
+on conflict (slug) do nothing;
+
+
+-- ---------------------------------------------------------------------------
+-- 8. Storage buckets
+-- ---------------------------------------------------------------------------
+-- Create in Supabase Dashboard → Storage, or uncomment and run:
 -- insert into storage.buckets (id, name, public) values
 --   ('receipts',  'receipts',  false),
 --   ('materials', 'materials', false)
