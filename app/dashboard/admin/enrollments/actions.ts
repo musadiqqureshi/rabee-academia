@@ -16,11 +16,19 @@ export async function approveEnrollment(formData: FormData) {
   const profile = await requireStaff();
   const supabase = await createClient();
   const id = String(formData.get("enrollment_id") ?? "");
+  const batchId = String(formData.get("batch_id") ?? "");
 
-  await supabase
-    .from("enrollments")
-    .update({ status: "approved", approved_by: profile.id, approved_at: new Date().toISOString() })
-    .eq("id", id);
+  // Assigning a batch links the student to a teacher + schedule, so the
+  // enrolment shows up in the student's "My Subjects" and the teacher's
+  // "My Students". Approval without a batch is still allowed but unassigned.
+  const update: Record<string, unknown> = {
+    status: "approved",
+    approved_by: profile.id,
+    approved_at: new Date().toISOString(),
+  };
+  if (batchId) update.batch_id = batchId;
+
+  await supabase.from("enrollments").update(update).eq("id", id);
 
   // Confirm the linked payment + invoice.
   await supabase

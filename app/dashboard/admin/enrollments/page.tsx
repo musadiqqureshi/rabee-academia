@@ -22,7 +22,7 @@ export default async function AdminEnrollments() {
   const { data: enrollments } = await supabase
     .from("enrollments")
     .select(`
-      id, status, created_at, class_type, payment_method, receipt_url,
+      id, status, created_at, class_type, payment_method, receipt_url, subject_id,
       student_name, student_email,
       subjects:subject_id ( name ),
       payments ( amount_pkr, status )
@@ -30,6 +30,19 @@ export default async function AdminEnrollments() {
     .order("created_at", { ascending: false });
 
   const rows = enrollments ?? [];
+
+  // Batches grouped by subject, so admins can assign a teacher's batch on approval.
+  const { data: batches } = await supabase
+    .from("batches")
+    .select("id, subject_id, class_type, is_active, subjects:subject_id ( name ), profiles:teacher_id ( full_name )");
+  const batchesBySubject = new Map<string, { id: string; label: string }[]>();
+  for (const b of batches ?? []) {
+    if (!b.subject_id) continue;
+    const teacher = (b.profiles as unknown as { full_name: string | null } | null)?.full_name ?? "Teacher";
+    const list = batchesBySubject.get(b.subject_id) ?? [];
+    list.push({ id: b.id, label: `${teacher} · ${b.class_type}` });
+    batchesBySubject.set(b.subject_id, list);
+  }
   const pending = rows.filter((e) => e.status === "pending").length;
   const approved = rows.filter((e) => e.status === "approved").length;
 
@@ -101,18 +114,28 @@ export default async function AdminEnrollments() {
                       <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium capitalize ${statusStyle[e.status] ?? "bg-muted text-muted-foreground"}`}>{e.status}</span>
                     </td>
                     <td className="px-4 py-3 text-right">
-                      {e.status === "pending" && (
-                        <div className="flex items-center justify-end gap-2">
-                          <form action={approveEnrollment}>
-                            <input type="hidden" name="enrollment_id" value={e.id} />
-                            <button className="px-2.5 py-1 rounded-lg text-xs font-medium bg-emerald-600 text-white hover:opacity-90">Approve</button>
-                          </form>
-                          <form action={rejectEnrollment}>
-                            <input type="hidden" name="enrollment_id" value={e.id} />
-                            <button className="px-2.5 py-1 rounded-lg text-xs font-medium border border-border hover:bg-muted">Reject</button>
-                          </form>
-                        </div>
-                      )}
+                      {e.status === "pending" && (() => {
+                        const opts = e.subject_id ? batchesBySubject.get(e.subject_id) ?? [] : [];
+                        return (
+                          <div className="flex items-center justify-end gap-2 flex-wrap">
+                            <form action={approveEnrollment} className="flex items-center gap-1.5">
+                              <input type="hidden" name="enrollment_id" value={e.id} />
+                              {opts.length > 0 ? (
+                                <select name="batch_id" className="rounded-lg border border-input bg-background px-2 py-1 text-xs max-w-[160px]">
+                                  {opts.map((o) => <option key={o.id} value={o.id}>{o.label}</option>)}
+                                </select>
+                              ) : (
+                                <span className="text-[11px] text-amber-600">No batch — <a href="/dashboard/admin/batches" className="underline">create one</a></span>
+                              )}
+                              <button className="px-2.5 py-1 rounded-lg text-xs font-medium bg-emerald-600 text-white hover:opacity-90">Approve</button>
+                            </form>
+                            <form action={rejectEnrollment}>
+                              <input type="hidden" name="enrollment_id" value={e.id} />
+                              <button className="px-2.5 py-1 rounded-lg text-xs font-medium border border-border hover:bg-muted">Reject</button>
+                            </form>
+                          </div>
+                        );
+                      })()}
                     </td>
                   </tr>
                 );

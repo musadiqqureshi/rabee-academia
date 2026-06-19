@@ -1,6 +1,9 @@
 import { BookOpen } from "lucide-react";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
+import AddBatchForm from "./AddBatchForm";
+
+export const dynamic = "force-dynamic";
 
 export default async function AdminBatches() {
   await requireRole("admin");
@@ -16,6 +19,11 @@ export default async function AdminBatches() {
     `)
     .order("start_date", { ascending: false });
 
+  const { data: subjects } = await supabase.from("subjects").select("id, name").eq("is_active", true).order("name");
+  const { data: teachers } = await supabase.from("profiles").select("id, full_name, email").eq("role", "teacher");
+  const subjectOpts = (subjects ?? []).map((s) => ({ id: s.id, name: s.name }));
+  const teacherOpts = (teachers ?? []).map((t) => ({ id: t.id, name: t.full_name ?? t.email ?? "Teacher" }));
+
   return (
     <div>
       <div className="flex items-start justify-between gap-4">
@@ -23,13 +31,7 @@ export default async function AdminBatches() {
           <h1 className="text-2xl font-bold">Batches</h1>
           <p className="text-sm text-muted-foreground mt-1">All class batches on the platform</p>
         </div>
-        <button
-          disabled
-          className="px-4 py-2 rounded-lg bg-gradient-to-r from-primary to-accent text-white text-sm font-semibold opacity-50 cursor-not-allowed"
-          title="Coming soon"
-        >
-          Create Batch
-        </button>
+        <AddBatchForm subjects={subjectOpts} teachers={teacherOpts} />
       </div>
 
       {(!batches || batches.length === 0) ? (

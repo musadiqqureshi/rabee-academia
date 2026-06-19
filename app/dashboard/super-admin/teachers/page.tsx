@@ -1,6 +1,9 @@
 import { UserCog } from "lucide-react";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
+import AddTeacherForm from "./AddTeacherForm";
+
+export const dynamic = "force-dynamic";
 
 export default async function SuperAdminTeachers() {
   await requireRole("super_admin");
@@ -35,13 +38,7 @@ export default async function SuperAdminTeachers() {
             {teachers?.length ?? 0} teacher{teachers?.length !== 1 ? "s" : ""} on the platform
           </p>
         </div>
-        <button
-          disabled
-          className="px-4 py-2 rounded-lg bg-gradient-to-r from-primary to-accent text-white text-sm font-semibold opacity-50 cursor-not-allowed"
-          title="Coming soon"
-        >
-          Add Teacher
-        </button>
+        <AddTeacherForm />
       </div>
 
       {(!teachers || teachers.length === 0) ? (
