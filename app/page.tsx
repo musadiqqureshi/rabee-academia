@@ -6,7 +6,6 @@ import HeroSection from "@/components/HeroSection";
 import StatsSection from "@/components/StatsSection";
 import PartnersMarquee from "@/components/PartnersMarquee";
 import AISection from "@/components/AISection";
-import ProgramsSection from "@/components/ProgramsSection";
 import SubjectsSection from "@/components/SubjectsSection";
 import LeadershipSection from "@/components/LeadershipSection";
 import CountriesSection from "@/components/CountriesSection";
@@ -41,7 +40,6 @@ export default function HomePage() {
       </div>
 
       <AISection />
-      <ProgramsSection />
       <SubjectsSection />
       <LeadershipSection />
       <CountriesSection />
