@@ -2,6 +2,7 @@ import { UserCheck, FileText } from "lucide-react";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import StatCard from "@/components/dashboard/StatCard";
+import RealtimeRefresher from "@/components/dashboard/RealtimeRefresher";
 import { approveEnrollment, rejectEnrollment } from "./actions";
 
 export const dynamic = "force-dynamic";
@@ -57,6 +58,7 @@ export default async function AdminEnrollments() {
 
   return (
     <div className="space-y-6">
+      <RealtimeRefresher tables={["enrollments", "payments"]} />
       <div>
         <h1 className="text-2xl font-bold">Enrollments</h1>
         <p className="text-sm text-muted-foreground mt-1">Review enrollment requests and verify payments.</p>

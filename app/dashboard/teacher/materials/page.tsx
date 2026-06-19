@@ -2,6 +2,8 @@ import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import MaterialsClient from "./MaterialsClient";
 
+export const dynamic = "force-dynamic";
+
 export default async function TeacherMaterials() {
   const profile = await requireRole("teacher");
   const supabase = await createClient();
@@ -20,7 +22,7 @@ export default async function TeacherMaterials() {
   const { data: rawMaterials } = await supabase
     .from("materials")
     .select(`
-      id, title, description, file_url, created_at, batch_id,
+      id, title, description, file_url, file_type, created_at, batch_id,
       batches ( subjects ( name ) )
     `)
     .in("batch_id", batchIds.length > 0 ? batchIds : ["00000000-0000-0000-0000-000000000000"])
@@ -33,6 +35,7 @@ export default async function TeacherMaterials() {
       title: m.title,
       description: m.description,
       file_url: m.file_url,
+      file_type: (m as unknown as { file_type: string | null }).file_type ?? null,
       created_at: m.created_at,
       subjectName: batch?.subjects?.name ?? null,
     };

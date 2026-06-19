@@ -25,7 +25,7 @@ begin
       and tablename in (
         'profiles','subjects','batches','enrollments',
         'payments','materials','attendance','notifications',
-        'demo_requests','invoices'
+        'demo_requests','invoices','schedules'
       )
   loop
     execute format('drop policy if exists %I on public.%I', r.policyname, r.tablename);
@@ -352,7 +352,44 @@ create policy "invoices_staff_all"
   using (public.get_my_role() in ('super_admin','admin'));
 
 -- ---------------------------------------------------------------------------
--- 13. Ensure subjects seeded (safe duplicate-skip insert)
+-- 13. schedules table (needed by student subjects + teacher subjects pages)
+-- ---------------------------------------------------------------------------
+create table if not exists public.schedules (
+  id           uuid primary key default uuid_generate_v4(),
+  batch_id     uuid not null references public.batches(id) on delete cascade,
+  day_of_week  text not null,
+  start_time   text not null,
+  end_time     text not null,
+  meet_link    text,
+  created_at   timestamptz not null default now()
+);
+
+alter table public.schedules enable row level security;
+
+create policy "schedules_staff_all"
+  on public.schedules for all
+  using (public.get_my_role() in ('super_admin','admin','teacher'));
+
+create policy "schedules_student_read"
+  on public.schedules for select
+  using (public.i_am_enrolled_in_batch(batch_id));
+
+-- ---------------------------------------------------------------------------
+-- 14. Seed one default batch per teacher that currently has no batches.
+--     Uses the first active subject alphabetically. Idempotent.
+-- ---------------------------------------------------------------------------
+insert into public.batches (subject_id, teacher_id, class_type, is_active)
+select
+  (select id from public.subjects where is_active = true order by name limit 1),
+  p.id,
+  'regular',
+  true
+from public.profiles p
+where p.role = 'teacher'
+  and not exists (select 1 from public.batches b where b.teacher_id = p.id);
+
+-- ---------------------------------------------------------------------------
+-- 15. Ensure subjects seeded (safe duplicate-skip insert)
 -- ---------------------------------------------------------------------------
 insert into public.subjects(slug,name,level,regular_price,weekend_price,lessons,description,is_active) values
   ('fsc-physics',      'FSc Physics',         'FSc Level',  7000,  5500, 48,'Complete FSc Physics curriculum.',true),

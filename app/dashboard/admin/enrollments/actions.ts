@@ -41,6 +41,8 @@ export async function approveEnrollment(formData: FormData) {
     .eq("enrollment_id", id);
 
   revalidatePath("/dashboard/admin/enrollments");
+  revalidatePath("/dashboard/admin/students");
+  revalidatePath("/dashboard/student/subjects");
 }
 
 export async function rejectEnrollment(formData: FormData) {
@@ -52,4 +54,6 @@ export async function rejectEnrollment(formData: FormData) {
   await supabase.from("payments").update({ status: "refunded" }).eq("enrollment_id", id);
 
   revalidatePath("/dashboard/admin/enrollments");
+  revalidatePath("/dashboard/admin/students");
+  revalidatePath("/dashboard/student/subjects");
 }
