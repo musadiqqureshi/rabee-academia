@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { CheckCircle2, Loader2, GraduationCap, ArrowRight } from "lucide-react";
+import { CheckCircle2, Loader2, GraduationCap, ArrowRight, CalendarIcon, Clock } from "lucide-react";
+import { format, isBefore, startOfDay } from "date-fns";
 import Navbar from "@/components/Navbar";
 import EnforceTheme from "@/components/EnforceTheme";
 import { courses, LEVELS } from "@/lib/courses";
@@ -10,30 +11,35 @@ import { createDemoRequest } from "./actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
-const TIME_SLOTS = [
-  "Weekday mornings",
-  "Weekday afternoons",
-  "Weekday evenings",
-  "Weekend mornings",
-  "Weekend afternoons",
-  "Weekend evenings",
+const MORNING_SLOTS = [
+  "9:00 AM",
+  "9:30 AM",
+  "10:00 AM",
+  "10:30 AM",
+  "11:00 AM",
+  "11:30 AM",
+  "12:00 PM",
 ];
 
 export default function DemoPage() {
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [slots, setSlots] = useState<string[]>([]);
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
+  const [selectedTime, setSelectedTime] = useState<string | undefined>(undefined);
+  const [calendarOpen, setCalendarOpen] = useState(false);
 
-  function toggleSlot(s: string) {
-    setSlots((prev) => (prev.includes(s) ? prev.filter((x) => x !== s) : [...prev, s]));
-  }
+  const today = startOfDay(new Date());
 
   async function action(formData: FormData) {
     setError(null);
-    if (slots.length === 0) { setError("Please choose at least one preferred time."); return; }
-    slots.forEach((s) => formData.append("preferred_times", s));
+    if (!selectedDate) { setError("Please pick a date for your demo."); return; }
+    if (!selectedTime) { setError("Please pick a time slot."); return; }
+    const preferredSlot = `${format(selectedDate, "EEEE, MMMM d, yyyy")} at ${selectedTime}`;
+    formData.append("preferred_times", preferredSlot);
     const subjectSlug = String(formData.get("subject_slug") ?? "");
     const course = courses.find((c) => c.slug === subjectSlug);
     if (course) formData.set("subject_name", course.name);
@@ -57,7 +63,7 @@ export default function DemoPage() {
             </div>
             <h1 className="text-2xl font-extrabold mb-2">Demo Requested!</h1>
             <p className="text-muted-foreground text-sm mb-8 max-w-md mx-auto">
-              Thank you. Our team will review your preferred times, assign a teacher, and email you a Google Meet link for your free demo class.
+              Thank you. Our team will review your chosen slot, assign a teacher, and email you a Google Meet link for your free demo class.
             </p>
             <Link href="/" className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-primary text-white text-sm font-bold hover:opacity-90">
               Back to Home <ArrowRight className="w-4 h-4" />
@@ -95,17 +101,50 @@ export default function DemoPage() {
                 </select>
               </div>
 
-              <div>
-                <Label>Preferred times *</Label>
-                <div className="grid grid-cols-2 gap-2 mt-1.5">
-                  {TIME_SLOTS.map((s) => (
+              {/* Date picker */}
+              <div className="space-y-1.5">
+                <Label>Preferred date *</Label>
+                <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
+                  <PopoverTrigger asChild>
                     <button
-                      key={s} type="button" onClick={() => toggleSlot(s)}
-                      className={`text-left text-xs px-3 py-2 rounded-lg border transition-colors ${
-                        slots.includes(s) ? "border-primary bg-primary/10 text-foreground" : "border-border text-muted-foreground hover:border-primary/40"}`}
+                      type="button"
+                      className={`w-full flex items-center gap-2 h-10 rounded-md border border-input bg-background px-3 text-sm text-left transition-colors hover:border-primary/50 ${!selectedDate ? "text-muted-foreground" : "text-foreground"}`}
                     >
-                      {slots.includes(s) && <CheckCircle2 className="w-3 h-3 inline mr-1 text-primary" />}
-                      {s}
+                      <CalendarIcon className="w-4 h-4 shrink-0" />
+                      {selectedDate ? format(selectedDate, "EEEE, MMMM d, yyyy") : "Pick a date"}
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={selectedDate}
+                      onSelect={(date) => { setSelectedDate(date); setCalendarOpen(false); }}
+                      disabled={(date) => isBefore(startOfDay(date), today)}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+
+              {/* Time slots */}
+              <div className="space-y-1.5">
+                <Label className="flex items-center gap-1.5">
+                  <Clock className="w-3.5 h-3.5" /> Morning time slot *
+                  <span className="text-muted-foreground font-normal">(9 AM – 12 PM)</span>
+                </Label>
+                <div className="grid grid-cols-4 gap-2">
+                  {MORNING_SLOTS.map((slot) => (
+                    <button
+                      key={slot}
+                      type="button"
+                      onClick={() => setSelectedTime(slot)}
+                      className={`text-center text-xs px-2 py-2.5 rounded-lg border font-medium transition-colors ${
+                        selectedTime === slot
+                          ? "border-primary bg-primary/10 text-primary"
+                          : "border-border text-muted-foreground hover:border-primary/40 hover:text-foreground"
+                      }`}
+                    >
+                      {slot}
                     </button>
                   ))}
                 </div>
