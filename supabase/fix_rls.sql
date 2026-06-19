@@ -1,6 +1,6 @@
 -- =============================================================================
 -- Rabee Academia — RLS Fix + Missing Tables
--- Run in Supabase SQL Editor. Safe to re-run.
+-- Run in Supabase SQL Editor. Safe to re-run (fully idempotent).
 --
 -- Fixes:
 --   1. Infinite recursion in profiles RLS policies
@@ -8,6 +8,43 @@
 --   3. Creates invoices table (needed for enrollment flow)
 --   4. Fixes all role-checking policies across all tables
 -- =============================================================================
+
+-- ---------------------------------------------------------------------------
+-- 0. Nuclear drop — remove EVERY existing policy on every affected table so
+--    subsequent CREATE POLICY statements always succeed on re-runs.
+-- ---------------------------------------------------------------------------
+do $$
+declare
+  r record;
+begin
+  -- public schema tables
+  for r in
+    select policyname, tablename
+    from pg_policies
+    where schemaname = 'public'
+      and tablename in (
+        'profiles','subjects','batches','enrollments',
+        'payments','materials','attendance','notifications',
+        'demo_requests','invoices'
+      )
+  loop
+    execute format('drop policy if exists %I on public.%I', r.policyname, r.tablename);
+  end loop;
+
+  -- storage.objects — only drop policies that reference our buckets
+  for r in
+    select policyname
+    from pg_policies
+    where schemaname = 'storage' and tablename = 'objects'
+      and (
+        policyname ilike '%receipt%'
+        or policyname ilike '%material%'
+      )
+  loop
+    execute format('drop policy if exists %I on storage.objects', r.policyname);
+  end loop;
+end;
+$$;
 
 -- ---------------------------------------------------------------------------
 -- 1. Security-definer helpers — bypass RLS for cross-table lookups so
@@ -49,15 +86,8 @@ as $$
 $$;
 
 -- ---------------------------------------------------------------------------
--- 2. Drop ALL existing profile policies (schema.sql + additions.sql versions)
---    then recreate them cleanly using get_my_role().
+-- 2. Profiles — recreated cleanly using get_my_role() (no recursion).
 -- ---------------------------------------------------------------------------
-drop policy if exists "profiles_select_own"        on public.profiles;
-drop policy if exists "profiles_select_staff"      on public.profiles;
-drop policy if exists "profiles_update_own"        on public.profiles;
-drop policy if exists "profiles_update_super_admin" on public.profiles;
-drop policy if exists "Public read profiles"       on public.profiles;
-drop policy if exists "Own profile update"         on public.profiles;
 
 -- Any authenticated user can read their own profile row.
 create policy "profiles_select_own"
@@ -80,14 +110,8 @@ create policy "profiles_update_super_admin"
   using (public.get_my_role() = 'super_admin');
 
 -- ---------------------------------------------------------------------------
--- 3. Subjects — admins can manage, all authenticated users can read active ones
+-- 3. Subjects
 -- ---------------------------------------------------------------------------
-drop policy if exists "subjects_super_admin_all"  on public.subjects;
-drop policy if exists "subjects_public_read"      on public.subjects;
-drop policy if exists "subjects_admin_all"        on public.subjects;
-drop policy if exists "Public read subjects"      on public.subjects;
-drop policy if exists "Admins manage subjects"    on public.subjects;
-drop policy if exists "subjects_public_select"    on public.subjects;
 
 create policy "subjects_public_read"
   on public.subjects for select
@@ -100,9 +124,6 @@ create policy "subjects_admin_all"
 -- ---------------------------------------------------------------------------
 -- 4. Batches
 -- ---------------------------------------------------------------------------
-drop policy if exists "batches_staff_read"   on public.batches;
-drop policy if exists "batches_admin_write"  on public.batches;
-drop policy if exists "batches_student_read" on public.batches;
 
 create policy "batches_staff_read"
   on public.batches for select
@@ -121,12 +142,6 @@ create policy "batches_student_read"
 -- ---------------------------------------------------------------------------
 -- 5. Enrollments
 -- ---------------------------------------------------------------------------
-drop policy if exists "enrollments_student_own"      on public.enrollments;
-drop policy if exists "enrollments_staff_all"        on public.enrollments;
-drop policy if exists "enrollments_teacher_read"     on public.enrollments;
-drop policy if exists "Students view own enrollments" on public.enrollments;
-drop policy if exists "Students create own enrollments" on public.enrollments;
-drop policy if exists "Admins manage enrollments"    on public.enrollments;
 
 -- Students: full access to their own rows (read + insert + update)
 create policy "enrollments_student_own"
@@ -147,9 +162,6 @@ create policy "enrollments_teacher_read"
 -- ---------------------------------------------------------------------------
 -- 6. Payments
 -- ---------------------------------------------------------------------------
-drop policy if exists "payments_student_own"    on public.payments;
-drop policy if exists "payments_student_insert" on public.payments;
-drop policy if exists "payments_staff_all"      on public.payments;
 
 create policy "payments_student_own"
   on public.payments for select
@@ -167,12 +179,6 @@ create policy "payments_staff_all"
 -- ---------------------------------------------------------------------------
 -- 7. Materials
 -- ---------------------------------------------------------------------------
-drop policy if exists "materials_student_read"       on public.materials;
-drop policy if exists "materials_teacher_all"        on public.materials;
-drop policy if exists "materials_admin_read"         on public.materials;
-drop policy if exists "Authenticated read materials" on public.materials;
-drop policy if exists "Teachers insert materials"    on public.materials;
-drop policy if exists "materials_teacher_insert"     on public.materials;
 
 -- Students read materials for batches they are enrolled in — scalar boolean
 -- helper avoids the materials→enrollments→batches→enrollments cycle.
@@ -191,9 +197,6 @@ create policy "materials_admin_read"
 -- ---------------------------------------------------------------------------
 -- 8. Attendance
 -- ---------------------------------------------------------------------------
-drop policy if exists "attendance_student_own" on public.attendance;
-drop policy if exists "attendance_teacher_all" on public.attendance;
-drop policy if exists "attendance_admin_read"  on public.attendance;
 
 create policy "attendance_student_own"
   on public.attendance for select
@@ -210,11 +213,6 @@ create policy "attendance_admin_read"
 -- ---------------------------------------------------------------------------
 -- 9. Notifications
 -- ---------------------------------------------------------------------------
-drop policy if exists "notifications_own"          on public.notifications;
-drop policy if exists "notifications_staff_insert" on public.notifications;
-drop policy if exists "Own notifications"          on public.notifications;
-drop policy if exists "Admins send notifications"  on public.notifications;
-drop policy if exists "Own notifications update"   on public.notifications;
 
 create policy "notifications_own"
   on public.notifications for all
@@ -225,17 +223,8 @@ create policy "notifications_staff_insert"
   with check (public.get_my_role() in ('super_admin','admin'));
 
 -- ---------------------------------------------------------------------------
--- 10. Storage policies — drop old versions first
+-- 10. Storage policies
 -- ---------------------------------------------------------------------------
-drop policy if exists "Students upload own receipts"   on storage.objects;
-drop policy if exists "Anyone read receipts"           on storage.objects;
-drop policy if exists "receipts_student_upload"        on storage.objects;
-drop policy if exists "receipts_student_read"          on storage.objects;
-drop policy if exists "receipts_staff_read"            on storage.objects;
-drop policy if exists "Teachers upload materials"      on storage.objects;
-drop policy if exists "Authenticated read materials"   on storage.objects;
-drop policy if exists "materials_teacher_upload"       on storage.objects;
-drop policy if exists "materials_authenticated_read"   on storage.objects;
 
 -- Ensure storage buckets exist
 insert into storage.buckets (id, name, public)
@@ -301,10 +290,6 @@ create table if not exists public.demo_requests (
 
 alter table public.demo_requests enable row level security;
 
-drop policy if exists "demo_public_insert" on public.demo_requests;
-drop policy if exists "demo_owner_read"    on public.demo_requests;
-drop policy if exists "demo_staff_all"     on public.demo_requests;
-
 -- Anyone (including anonymous visitors) can submit a demo request
 create policy "demo_public_insert"
   on public.demo_requests for insert to anon, authenticated
@@ -352,10 +337,6 @@ create table if not exists public.invoices (
 );
 
 alter table public.invoices enable row level security;
-
-drop policy if exists "invoices_student_own"    on public.invoices;
-drop policy if exists "invoices_student_insert" on public.invoices;
-drop policy if exists "invoices_staff_all"      on public.invoices;
 
 create policy "invoices_student_own"
   on public.invoices for select
