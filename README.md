@@ -4,13 +4,14 @@ Smart online learning platform for FSc, A/O Levels, Oxford curriculum, BS & MS
 students — subject enrollment, role-based dashboards, online classes, and fee
 collection.
 
+> **Tagline:** Smart Online Learning for Future Achievers
+
 ## Run & Operate
 
-The app lives in `artifacts/rabee-academia/` and is a standalone Next.js app
-(npm, not pnpm workspace tooling).
+A standalone Next.js (App Router) app at the repository root.
 
-- `cd artifacts/rabee-academia && npm install` — install dependencies
-- `npm run dev` — run the dev server (http://localhost:3000)
+- `npm install` — install dependencies
+- `npm run dev` — dev server (http://localhost:3000)
 - `npm run build` — production build
 - `npm run typecheck` — TypeScript check
 - Required env (see `.env.example`):
@@ -39,10 +40,10 @@ The app lives in `artifacts/rabee-academia/` and is a standalone Next.js app
 
 ## Architecture decisions
 
-- Migrated from a Vite SPA to Next.js App Router (per proposal) to enable
-  server-side Supabase auth and per-role server-rendered dashboards.
-- Roles (`super_admin`, `admin`, `teacher`, `student`) are stored on the
-  `profiles` table and mirrored into auth metadata; `requireRole()` guards each
+- Next.js App Router enables server-side Supabase auth and per-role
+  server-rendered dashboards.
+- Roles (`super_admin`, `admin`, `teacher`, `student`) live on the `profiles`
+  table and are mirrored into auth metadata; `requireRole()` guards each
   dashboard server-side, and `middleware.ts` blocks unauthenticated access.
 - Public sign-up always creates a `student`. Staff roles are provisioned by a
   super admin via the `set_user_role()` SQL function — never self-served.
@@ -58,7 +59,8 @@ The app lives in `artifacts/rabee-academia/` and is a standalone Next.js app
 
 ## Roadmap
 
-- Stage 1 (done): Next.js migration, auth, role dashboards (scaffolding).
-- Stage 2: AssanPay + IBAN payments, enrollment flow, fee management, Meet links.
-- Stage 3: LMS (materials, assignments, quizzes, attendance), notifications,
-  reports.
+- **Stage 1 (done):** Next.js app, auth, role dashboards (scaffolding).
+- **Stage 2:** AssanPay + IBAN payments, enrollment flow, fee management, Meet
+  links.
+- **Stage 3:** LMS (materials, assignments, quizzes, attendance),
+  notifications, reports.
