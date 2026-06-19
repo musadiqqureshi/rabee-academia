@@ -23,12 +23,11 @@ export default async function AdminOverview() {
   const { data: pendingEnrollments } = await supabase
     .from("enrollments")
     .select(`
-      id, enrolled_at,
-      profiles ( full_name, email ),
-      batches ( class_type, subjects ( name ) )
+      id, created_at, student_name, student_email, class_type,
+      subjects ( name )
     `)
     .eq("status", "pending")
-    .order("enrolled_at", { ascending: false })
+    .order("created_at", { ascending: false })
     .limit(5);
 
   return (
@@ -63,18 +62,17 @@ export default async function AdminOverview() {
               </thead>
               <tbody className="divide-y divide-border">
                 {pendingEnrollments.map((e) => {
-                  const student = e.profiles as unknown as { full_name: string | null; email: string | null } | null;
-                  const batch = e.batches as unknown as { class_type: string | null; subjects: { name: string } | null } | null;
+                  const subject = e.subjects as unknown as { name: string } | null;
                   return (
                     <tr key={e.id} className="hover:bg-muted/20 transition-colors">
                       <td className="px-4 py-3">
-                        <p className="font-medium">{student?.full_name ?? "—"}</p>
-                        <p className="text-xs text-muted-foreground">{student?.email}</p>
+                        <p className="font-medium">{e.student_name ?? "—"}</p>
+                        <p className="text-xs text-muted-foreground">{e.student_email}</p>
                       </td>
-                      <td className="px-4 py-3">{batch?.subjects?.name ?? "—"}</td>
-                      <td className="px-4 py-3 capitalize text-muted-foreground">{batch?.class_type?.replace("_", " ") ?? "—"}</td>
+                      <td className="px-4 py-3">{subject?.name ?? "—"}</td>
+                      <td className="px-4 py-3 capitalize text-muted-foreground">{e.class_type?.replace("_", " ") ?? "—"}</td>
                       <td className="px-4 py-3 text-muted-foreground text-xs">
-                        {new Date(e.enrolled_at).toLocaleDateString()}
+                        {new Date(e.created_at).toLocaleDateString()}
                       </td>
                     </tr>
                   );

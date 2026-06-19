@@ -95,7 +95,7 @@ export async function submitEnrollment(formData: FormData): Promise<EnrollResult
     }
   }
 
-  // Payment record (pending verification).
+  // Payment record — non-fatal if the table doesn't exist yet.
   const monthYear = new Date().toISOString().slice(0, 7); // YYYY-MM
   await supabase.from("payments").insert({
     enrollment_id: enrollment.id,
@@ -105,9 +105,9 @@ export async function submitEnrollment(formData: FormData): Promise<EnrollResult
     status: "pending",
     payment_method: payMethod,
     receipt_url: receiptPath,
-  });
+  }).then(() => null).catch(() => null);
 
-  // Branded invoice for the registration.
+  // Invoice — non-fatal if the table doesn't exist yet.
   await supabase.from("invoices").insert({
     student_id: profile.id,
     enrollment_id: enrollment.id,
@@ -117,7 +117,7 @@ export async function submitEnrollment(formData: FormData): Promise<EnrollResult
     amount_pkr: amount,
     status: "issued",
     due_date: new Date(Date.now() + 3 * 86400000).toISOString().slice(0, 10),
-  });
+  }).then(() => null).catch(() => null);
 
   revalidatePath("/dashboard/student");
   revalidatePath("/dashboard/admin/enrollments");
