@@ -1,15 +1,15 @@
 "use client";
 
-import React from "react";
+import Link from "next/link";
 import { motion } from "framer-motion";
 
 export default function CTASection() {
   return (
     <section id="contact" className="py-24 relative overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-background to-accent/20 z-0"></div>
-      
+      <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-background to-accent/20 z-0" />
+
       <div className="container mx-auto px-4 relative z-10">
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           whileInView={{ opacity: 1, scale: 1 }}
           viewport={{ once: true }}
@@ -22,12 +22,18 @@ export default function CTASection() {
             Join thousands of students achieving academic excellence through our expert-led, AI-enhanced platform. Your future starts here.
           </p>
           <div className="flex flex-col sm:flex-row justify-center gap-4">
-            <button className="px-8 py-4 rounded-lg bg-primary text-primary-foreground font-bold text-lg hover:bg-primary/90 transition-colors shadow-lg">
+            <Link
+              href="/enroll"
+              className="px-8 py-4 rounded-lg bg-gradient-to-r from-primary to-accent text-white font-bold text-lg hover:opacity-90 transition-opacity shadow-lg"
+            >
               Book Demo Class
-            </button>
-            <button className="px-8 py-4 rounded-lg bg-background text-foreground border border-border font-bold text-lg hover:bg-muted transition-colors">
+            </Link>
+            <Link
+              href="/#subjects"
+              className="px-8 py-4 rounded-lg bg-background text-foreground border border-border font-bold text-lg hover:bg-muted transition-colors"
+            >
               Explore Subjects
-            </button>
+            </Link>
           </div>
         </motion.div>
       </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import { Sparkles, BrainCircuit, CalendarClock, Globe2, ArrowRight, Play } from "lucide-react";
 
@@ -24,7 +25,7 @@ export default function HeroSection() {
   }, []);
 
   return (
-    <section className="relative pt-28 pb-16 md:pt-36 md:pb-24 overflow-hidden min-h-[88vh] flex items-center">
+    <section className="relative pt-36 pb-16 md:pt-44 md:pb-24 overflow-hidden min-h-[88vh] flex items-center">
       {/* Background glows */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] bg-primary/15 rounded-full blur-[130px] -z-10 pointer-events-none" />
       <div className="absolute top-1/4 left-1/4 w-[350px] h-[350px] bg-accent/15 rounded-full blur-[100px] -z-10 pointer-events-none" />
@@ -71,14 +72,20 @@ export default function HeroSection() {
 
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-            <button className="group w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-lg bg-gradient-to-r from-primary to-accent text-primary-foreground font-semibold text-sm hover:opacity-90 transition-opacity shadow-[0_0_28px_rgba(99,102,241,0.35)]">
+            <Link
+              href="/enroll"
+              className="group w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-lg bg-gradient-to-r from-primary to-accent text-primary-foreground font-semibold text-sm hover:opacity-90 transition-opacity shadow-[0_0_28px_rgba(99,102,241,0.35)]"
+            >
               Book a Demo Class
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-            </button>
-            <button className="group w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-lg border border-border bg-background/50 backdrop-blur-sm font-semibold text-sm hover:bg-muted transition-colors text-foreground">
+            </Link>
+            <Link
+              href="/#subjects"
+              className="group w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-lg border border-border bg-background/50 backdrop-blur-sm font-semibold text-sm hover:bg-muted transition-colors text-foreground"
+            >
               <Play className="w-3.5 h-3.5 fill-current opacity-70" />
               Explore Subjects
-            </button>
+            </Link>
           </div>
         </div>
 
@@ -122,9 +129,12 @@ export default function HeroSection() {
                 </div>
               ))}
             </div>
-            <button className="shrink-0 px-5 py-2.5 rounded-lg bg-gradient-to-r from-primary to-accent text-white text-xs font-bold hover:opacity-90 transition-opacity shadow-[0_0_16px_rgba(99,102,241,0.35)] whitespace-nowrap">
+            <Link
+              href="/enroll"
+              className="shrink-0 px-5 py-2.5 rounded-lg bg-gradient-to-r from-primary to-accent text-white text-xs font-bold hover:opacity-90 transition-opacity shadow-[0_0_16px_rgba(99,102,241,0.35)] whitespace-nowrap"
+            >
               Enroll Now →
-            </button>
+            </Link>
           </div>
         </div>
       </div>
