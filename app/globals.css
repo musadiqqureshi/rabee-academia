@@ -106,37 +106,37 @@
   --elevate-1: rgba(15, 23, 42, .035);
   --elevate-2: rgba(15, 23, 42, .07);
 
-  /* Cool, airy off-white canvas with crisp white cards */
-  --background: 220 33% 98%;
-  --foreground: 222 47% 11%;
+  /* Soft cool-gray canvas so crisp white cards lift off it (iOS grouped look) */
+  --background: 214 32% 93%;
+  --foreground: 222 44% 13%;
   --card: 0 0% 100%;
-  --card-foreground: 222 47% 11%;
-  --card-border: 220 22% 92%;
+  --card-foreground: 222 44% 13%;
+  --card-border: 215 25% 87%;
   --popover: 0 0% 100%;
-  --popover-foreground: 222 47% 11%;
-  --popover-border: 220 22% 92%;
+  --popover-foreground: 222 44% 13%;
+  --popover-border: 215 25% 87%;
   /* Vivid iOS blue primary */
   --primary: 221 83% 53%;
   --primary-foreground: 0 0% 100%;
-  --secondary: 214 38% 95%;
-  --secondary-foreground: 222 47% 18%;
-  --muted: 220 24% 96%;
-  --muted-foreground: 220 9% 46%;
+  --secondary: 215 28% 90%;
+  --secondary-foreground: 222 40% 20%;
+  --muted: 215 27% 90%;
+  --muted-foreground: 218 13% 42%;
   /* Warm orange accent (CTA highlights in reference) */
   --accent: 24 94% 53%;
   --accent-foreground: 0 0% 100%;
   --destructive: 0 84% 60%;
   --destructive-foreground: 0 0% 100%;
-  --border: 220 22% 91%;
-  --input: 220 22% 91%;
+  --border: 215 24% 86%;
+  --input: 215 24% 86%;
   --ring: 221 83% 53%;
   --sidebar: 0 0% 100%;
-  --sidebar-foreground: 222 47% 11%;
-  --sidebar-border: 220 22% 92%;
+  --sidebar-foreground: 222 44% 13%;
+  --sidebar-border: 215 25% 88%;
   --sidebar-primary: 221 83% 53%;
   --sidebar-primary-foreground: 0 0% 100%;
-  --sidebar-accent: 214 38% 95%;
-  --sidebar-accent-foreground: 222 47% 18%;
+  --sidebar-accent: 215 28% 91%;
+  --sidebar-accent-foreground: 222 40% 20%;
   --sidebar-ring: 221 83% 53%;
   --chart-1: 221 83% 53%;
   --chart-2: 24 94% 53%;
