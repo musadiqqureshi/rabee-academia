@@ -1,15 +1,78 @@
 import { ClipboardCheck } from "lucide-react";
-import PlaceholderPanel from "@/components/dashboard/PlaceholderPanel";
+import { requireRole } from "@/lib/auth";
+import { createClient } from "@/lib/supabase/server";
 
-export default function AdminAttendance() {
+const statusStyle: Record<string, string> = {
+  present: "bg-green-500/15 text-green-400",
+  absent: "bg-red-500/15 text-red-400",
+  late: "bg-orange-500/15 text-orange-400",
+};
+
+export default async function AdminAttendance() {
+  await requireRole("admin");
+  const supabase = await createClient();
+
+  const { data: records } = await supabase
+    .from("attendance")
+    .select(`
+      id, status, marked_at,
+      profiles ( full_name ),
+      schedules ( day_of_week, start_time, batches ( subjects ( name ) ) )
+    `)
+    .order("marked_at", { ascending: false })
+    .limit(100);
+
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-6">Attendance</h1>
-      <PlaceholderPanel
-        title="Attendance overview"
-        description="View attendance across all batches. Filter by subject, teacher, or date range. Export attendance reports as PDF or CSV."
-        icon={ClipboardCheck}
-      />
+      <h1 className="text-2xl font-bold">Attendance</h1>
+      <p className="text-sm text-muted-foreground mt-1">Recent attendance records across all classes</p>
+
+      {(!records || records.length === 0) ? (
+        <div className="mt-8 bg-card border border-card-border rounded-xl p-10 text-center">
+          <ClipboardCheck className="w-10 h-10 text-muted-foreground mx-auto mb-3" />
+          <p className="font-medium text-lg">No attendance records</p>
+          <p className="text-sm text-muted-foreground mt-1">Attendance records will appear here once marked.</p>
+        </div>
+      ) : (
+        <div className="mt-6 bg-card border border-card-border rounded-xl overflow-hidden">
+          <table className="w-full text-sm">
+            <thead className="border-b border-border bg-muted/30">
+              <tr>
+                <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Student</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Subject</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Session</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Status</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Marked At</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border">
+              {records.map((r) => {
+                const student = r.profiles as unknown as { full_name: string | null } | null;
+                const schedule = r.schedules as unknown as {
+                  day_of_week: string;
+                  start_time: string;
+                  batches: { subjects: { name: string } | null } | null;
+                } | null;
+                return (
+                  <tr key={r.id} className="hover:bg-muted/20 transition-colors">
+                    <td className="px-4 py-3 font-medium">{student?.full_name ?? "—"}</td>
+                    <td className="px-4 py-3">{schedule?.batches?.subjects?.name ?? "—"}</td>
+                    <td className="px-4 py-3 text-muted-foreground">{schedule?.day_of_week} {schedule?.start_time}</td>
+                    <td className="px-4 py-3">
+                      <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium capitalize ${statusStyle[r.status] ?? "bg-muted text-muted-foreground"}`}>
+                        {r.status}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-muted-foreground text-xs">
+                      {new Date(r.marked_at).toLocaleString()}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }

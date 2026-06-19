@@ -1,46 +1,106 @@
+import Link from "next/link";
 import {
-  BookOpen, Wallet, CalendarDays, GraduationCap, Video, FileText,
+  BookOpen, Wallet, Bell, CalendarDays, Video, FileText, ClipboardList,
 } from "lucide-react";
 import StatCard from "@/components/dashboard/StatCard";
-import PlaceholderPanel from "@/components/dashboard/PlaceholderPanel";
 import { requireRole } from "@/lib/auth";
+import { createClient } from "@/lib/supabase/server";
 
 export default async function StudentOverview() {
   const profile = await requireRole("student");
+  const supabase = await createClient();
+
+  const { data: enrollments } = await supabase
+    .from("enrollments")
+    .select("id, status")
+    .eq("student_id", profile.id);
+
+  const { data: payments } = await supabase
+    .from("payments")
+    .select("status")
+    .eq("student_id", profile.id);
+
+  const { data: notifications } = await supabase
+    .from("notifications")
+    .select("id, title, body, created_at, is_read")
+    .or(`recipient_id.eq.${profile.id},and(recipient_role.eq.student,recipient_id.is.null)`)
+    .order("created_at", { ascending: false })
+    .limit(5);
+
+  const approvedCount = enrollments?.filter((e) => e.status === "approved").length ?? 0;
+  const pendingPayments = payments?.filter((p) => p.status === "pending" || p.status === "overdue").length ?? 0;
+  const unreadNotifs = notifications?.filter((n) => !n.is_read).length ?? 0;
+  const paymentLabel = pendingPayments > 0 ? `${pendingPayments} Due` : "All Clear";
+
+  const quickLinks = [
+    { href: "/dashboard/student/subjects", label: "My Subjects", icon: BookOpen },
+    { href: "/dashboard/student/classes", label: "Class Links", icon: Video },
+    { href: "/dashboard/student/schedule", label: "Schedule", icon: CalendarDays },
+    { href: "/dashboard/student/resources", label: "Resources", icon: FileText },
+    { href: "/dashboard/student/payments", label: "Payments", icon: Wallet },
+    { href: "/dashboard/student/notifications", label: "Notifications", icon: Bell },
+  ];
 
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-6">
-        Welcome, {profile.full_name?.split(" ")[0] ?? "Student"} 👋
+      <h1 className="text-2xl font-bold">
+        Welcome back, {profile.full_name?.split(" ")[0] ?? "Student"}
       </h1>
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-8">
-        <StatCard label="Enrolled Subjects" value="—" icon={BookOpen} />
-        <StatCard label="Payment Status"    value="—" icon={Wallet} />
-        <StatCard label="Class Type"        value="—" icon={CalendarDays} />
-        <StatCard label="Assigned Teacher"  value="—" icon={GraduationCap} />
+      <p className="text-sm text-muted-foreground mt-1">Here&apos;s your learning overview</p>
+
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-6">
+        <StatCard label="Enrolled Subjects" value={approvedCount} icon={BookOpen} />
+        <StatCard label="Payment Status" value={paymentLabel} icon={Wallet} hint={pendingPayments > 0 ? "Action required" : "No outstanding payments"} />
+        <StatCard label="Unread Notifications" value={unreadNotifs} icon={Bell} />
       </div>
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <PlaceholderPanel
-          title="Enroll in a subject"
-          description="Choose your education level and subject, pick regular or weekend classes, and pay via AssanPay or IBAN bank transfer."
-          icon={Wallet}
-        />
-        <PlaceholderPanel
-          title="Join your classes"
-          description="Access Google Meet links for your scheduled classes, view your timetable, and download study materials."
-          icon={Video}
-        />
-        <PlaceholderPanel
-          title="Study resources"
-          description="Download AI-generated notes, past papers, and materials shared by your teacher."
-          icon={FileText}
-        />
-        <PlaceholderPanel
-          title="Track your progress"
-          description="See your attendance record, assignment submissions, and performance over time."
-          icon={BookOpen}
-        />
+
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-8">
+        {quickLinks.map(({ href, label, icon: Icon }) => (
+          <Link
+            key={href}
+            href={href}
+            className="bg-card border border-card-border rounded-xl p-4 flex flex-col items-center gap-2 hover:border-primary/50 transition-colors"
+          >
+            <div className="w-10 h-10 rounded-lg bg-primary/15 flex items-center justify-center text-primary">
+              <Icon className="w-5 h-5" />
+            </div>
+            <span className="text-sm font-medium text-center">{label}</span>
+          </Link>
+        ))}
       </div>
+
+      {notifications && notifications.length > 0 && (
+        <div className="mt-8">
+          <h2 className="text-lg font-semibold mb-3 flex items-center gap-2">
+            <Bell className="w-4 h-4 text-primary" /> Recent Notifications
+          </h2>
+          <div className="bg-card border border-card-border rounded-xl divide-y divide-border">
+            {notifications.map((n) => (
+              <div key={n.id} className="px-5 py-4 flex items-start gap-3">
+                <div className={`mt-1 w-2 h-2 rounded-full shrink-0 ${n.is_read ? "bg-muted" : "bg-primary"}`} />
+                <div>
+                  <p className="text-sm font-medium">{n.title}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">{n.body}</p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {new Date(n.created_at).toLocaleDateString()}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+          <Link href="/dashboard/student/notifications" className="text-xs text-primary hover:underline mt-2 inline-block">
+            View all notifications →
+          </Link>
+        </div>
+      )}
+
+      {(!notifications || notifications.length === 0) && (
+        <div className="mt-8 bg-card border border-card-border rounded-xl p-8 text-center">
+          <ClipboardList className="w-10 h-10 text-muted-foreground mx-auto mb-3" />
+          <p className="font-medium">No notifications yet</p>
+          <p className="text-sm text-muted-foreground mt-1">You&apos;ll see announcements and alerts here.</p>
+        </div>
+      )}
     </div>
   );
 }
