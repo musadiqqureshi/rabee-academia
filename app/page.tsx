@@ -1,5 +1,6 @@
 import TopBanner from "@/components/TopBanner";
 import Navbar from "@/components/Navbar";
+import AnimatedBackground from "@/components/AnimatedBackground";
 import HeroSection from "@/components/HeroSection";
 import StatsSection from "@/components/StatsSection";
 import PartnersMarquee from "@/components/PartnersMarquee";
@@ -15,7 +16,10 @@ import Footer from "@/components/Footer";
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen bg-background text-foreground overflow-x-hidden">
+    <div className="min-h-screen text-foreground overflow-x-hidden">
+      {/* Animated aurora + particle background (fixed, behind everything) */}
+      <AnimatedBackground />
+
       {/* Fixed header: banner + navbar stacked */}
       <div className="fixed top-0 inset-x-0 z-50 flex flex-col">
         <TopBanner />

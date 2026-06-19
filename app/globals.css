@@ -248,6 +248,82 @@
   animation: scroll 40s linear infinite;
 }
 
+/* ============================================================
+   Animated aurora gradient + particle background
+   GPU-cheap: blobs are pre-blurred and only transform/translate,
+   particles only translate + fade. No layout/paint thrash.
+   ============================================================ */
+.fx-bg {
+  position: fixed;
+  inset: 0;
+  z-index: -10;
+  overflow: hidden;
+  pointer-events: none;
+  background: hsl(var(--background));
+}
+
+.aurora {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(90px);
+  will-change: transform;
+  mix-blend-mode: normal;
+}
+.aurora-1 {
+  width: 46vw; height: 46vw; left: -6vw; top: -8vh;
+  background: radial-gradient(circle at center, hsl(var(--primary) / 0.40), transparent 68%);
+  animation: auroraDrift1 14s ease-in-out infinite;
+}
+.aurora-2 {
+  width: 42vw; height: 42vw; right: -10vw; top: 18vh;
+  background: radial-gradient(circle at center, hsl(var(--accent) / 0.34), transparent 68%);
+  animation: auroraDrift2 17s ease-in-out infinite;
+}
+.aurora-3 {
+  width: 40vw; height: 40vw; left: 22vw; bottom: -12vh;
+  background: radial-gradient(circle at center, hsl(var(--chart-3) / 0.30), transparent 68%);
+  animation: auroraDrift3 12s ease-in-out infinite;
+}
+
+@keyframes auroraDrift1 {
+  0%   { transform: translate3d(0, 0, 0) scale(1); }
+  50%  { transform: translate3d(10vw, 8vh, 0) scale(1.18); }
+  100% { transform: translate3d(0, 0, 0) scale(1); }
+}
+@keyframes auroraDrift2 {
+  0%   { transform: translate3d(0, 0, 0) scale(1.1); }
+  50%  { transform: translate3d(-12vw, 10vh, 0) scale(1); }
+  100% { transform: translate3d(0, 0, 0) scale(1.1); }
+}
+@keyframes auroraDrift3 {
+  0%   { transform: translate3d(0, 0, 0) scale(1); }
+  50%  { transform: translate3d(8vw, -10vh, 0) scale(1.2); }
+  100% { transform: translate3d(0, 0, 0) scale(1); }
+}
+
+.particle {
+  position: absolute;
+  bottom: -16px;
+  border-radius: 9999px;
+  background: hsl(var(--primary) / 0.55);
+  box-shadow: 0 0 6px hsl(var(--primary) / 0.5);
+  will-change: transform, opacity;
+  opacity: 0;
+  animation: floatUp linear infinite;
+}
+
+@keyframes floatUp {
+  0%   { transform: translate3d(0, 0, 0); opacity: 0; }
+  8%   { opacity: 0.8; }
+  90%  { opacity: 0.8; }
+  100% { transform: translate3d(var(--drift, 12px), -110vh, 0); opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aurora, .particle, .animate-scroll { animation: none !important; }
+  .particle { opacity: 0.4; }
+}
+
 @layer utilities {
   input[type="search"]::-webkit-search-cancel-button { @apply hidden; }
   [contenteditable][data-placeholder]:empty::before {

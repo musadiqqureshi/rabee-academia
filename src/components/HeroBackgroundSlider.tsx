@@ -65,9 +65,11 @@ export default function HeroBackgroundSlider() {
         </div>
       ))}
 
-      {/* Readability overlay: airy white veil with a subtle blue brand tint */}
-      <div className="absolute inset-0 bg-background/82" />
-      <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-background/70 to-background/92" />
+      {/* Readability overlay: lighter veil so the banners show clearly,
+          with a soft blue brand tint and a stronger fade at the edges. */}
+      <div className="absolute inset-0 bg-background/45" />
+      <div className="absolute inset-0 bg-gradient-to-b from-primary/10 via-background/35 to-background/80" />
+      <div className="absolute inset-0 bg-gradient-to-t from-background/70 via-transparent to-background/40" />
 
       {/* Manual navigation arrows */}
       <button
