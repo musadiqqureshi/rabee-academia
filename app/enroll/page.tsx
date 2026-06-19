@@ -42,7 +42,7 @@ function EnrollContent() {
 
   if (!course) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center text-center px-4">
+      <div className="dark min-h-screen bg-background flex items-center justify-center text-center px-4">
         <div>
           <p className="text-lg font-semibold mb-2">Course not found.</p>
           <Link href="/pricing" className="text-primary underline text-sm">Browse all courses</Link>
@@ -88,7 +88,7 @@ function EnrollContent() {
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="dark min-h-screen bg-background text-foreground">
       <Navbar />
 
       <div className="pt-28 pb-20 container mx-auto px-4 md:px-6 max-w-2xl">

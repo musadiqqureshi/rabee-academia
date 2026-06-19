@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Atom, Menu, X, LayoutDashboard, LogOut } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
-import ThemeToggle from "./ThemeToggle";
 
 export default function Navbar() {
   const router = useRouter();
@@ -80,7 +79,6 @@ export default function Navbar() {
 
         {/* CTA */}
         <div className="hidden lg:flex items-center gap-3 shrink-0">
-          <ThemeToggle />
           {isLoggedIn ? (
             <>
               <Link
@@ -117,17 +115,14 @@ export default function Navbar() {
           )}
         </div>
 
-        {/* Mobile: theme switch next to the menu toggle */}
-        <div className="lg:hidden flex items-center gap-1.5 shrink-0">
-          <ThemeToggle />
-          <button
-            className="p-2 text-foreground"
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
-          >
-            {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-          </button>
-        </div>
+        {/* Mobile menu toggle */}
+        <button
+          className="lg:hidden p-2 text-foreground shrink-0"
+          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
+        >
+          {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+        </button>
       </div>
 
       {/* Mobile Menu */}

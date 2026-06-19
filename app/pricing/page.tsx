@@ -22,7 +22,7 @@ function PricingContent() {
       : courses.filter((c) => c.level === activeLevel);
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="dark min-h-screen bg-background text-foreground">
       <Navbar />
 
       <div className="pt-28 pb-20 container mx-auto px-4 md:px-6">

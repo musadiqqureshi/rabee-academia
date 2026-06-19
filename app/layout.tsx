@@ -3,14 +3,25 @@ import "./globals.css";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/toaster";
 
+const SITE_URL = "https://rabeeacademia.site";
+const SITE_NAME = "Rabee Academia";
+const DESCRIPTION =
+  "Rabee Academia is a premium online academy for FSc Pre-Medical & Pre-Engineering, O/A Levels, BS and MS students — expert teachers, AI-powered academic support, and flexible regular or weekend live classes for students across 5 countries.";
+
 export const metadata: Metadata = {
-  metadataBase: new URL("https://rabeeacademia.com"),
-  title: "Rabee Academia — Smart Online Learning for Future Achievers",
-  description:
-    "Rabee Academia provides modern online learning for FSc Medical, FSc Engineering, A/O Levels, BS, and MS students with expert teachers, AI-powered academic support, and flexible regular or weekend classes.",
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: "Rabee Academia — Smart Online Learning for Future Achievers",
+    template: "%s | Rabee Academia",
+  },
+  description: DESCRIPTION,
+  applicationName: SITE_NAME,
   keywords: [
     "Rabee Academia",
+    "online academy Pakistan",
     "FSc tuition",
+    "FSc Pre-Medical",
+    "FSc Pre-Engineering",
     "A Level tuition",
     "O Level tuition",
     "BS tuition",
@@ -22,51 +33,95 @@ export const metadata: Metadata = {
     "Mathematics tuition",
     "Biology tuition",
     "Computer Science tuition",
+    "online classes Google Meet",
   ],
-  authors: [{ name: "Rabee Academia" }],
-  robots: "index, follow",
+  authors: [{ name: SITE_NAME, url: SITE_URL }],
+  creator: SITE_NAME,
+  publisher: SITE_NAME,
+  category: "education",
+  alternates: {
+    canonical: "/",
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+      "max-video-preview": -1,
+    },
+  },
   icons: {
-    icon: [
-      { url: "/favicon.svg", type: "image/svg+xml" },
-    ],
+    icon: [{ url: "/favicon.svg", type: "image/svg+xml" }],
     apple: "/favicon.svg",
     shortcut: "/favicon.svg",
   },
   openGraph: {
     title: "Rabee Academia — Smart Online Learning for Future Achievers",
-    description:
-      "Expert teachers. AI-powered support. Flexible classes. Join students from 5 countries learning FSc, A/O Levels, BS & MS at Rabee Academia.",
+    description: DESCRIPTION,
     type: "website",
-    url: "https://rabeeacademia.com",
-    siteName: "Rabee Academia",
+    url: SITE_URL,
+    siteName: SITE_NAME,
+    locale: "en_US",
+    images: [
+      { url: "/opengraph.jpg", width: 1200, height: 630, alt: "Rabee Academia — Premium Online Academy" },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "Rabee Academia — Smart Online Learning",
     description:
-      "Expert teachers. AI-powered support. Flexible classes. FSc, A/O Levels, BS & MS.",
+      "Expert teachers. AI-powered support. Flexible live classes. FSc, A/O Levels, BS & MS — for students across 5 countries.",
+    images: ["/opengraph.jpg"],
   },
 };
 
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  maximumScale: 1,
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+// Structured data for rich results (search + knowledge panel).
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "EducationalOrganization",
+      "@id": `${SITE_URL}/#organization`,
+      name: SITE_NAME,
+      url: SITE_URL,
+      logo: `${SITE_URL}/favicon.svg`,
+      image: `${SITE_URL}/opengraph.jpg`,
+      description: DESCRIPTION,
+      email: "info@rabeeacademia.site",
+      areaServed: ["Pakistan", "Saudi Arabia", "UAE", "Qatar", "United Kingdom"],
+      address: { "@type": "PostalAddress", addressCountry: "PK" },
+      sameAs: [] as string[],
+    },
+    {
+      "@type": "WebSite",
+      "@id": `${SITE_URL}/#website`,
+      url: SITE_URL,
+      name: SITE_NAME,
+      description: DESCRIPTION,
+      publisher: { "@id": `${SITE_URL}/#organization` },
+      inLanguage: "en",
+    },
+  ],
+};
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link
-          rel="preconnect"
-          href="https://fonts.gstatic.com"
-          crossOrigin=""
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
+        <script
+          type="application/ld+json"
+          // eslint-disable-next-line react/no-danger
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
       </head>
       <body>
