@@ -4,10 +4,15 @@ import { ROLE_HOME, type Profile, type UserRole } from "@/lib/supabase/types";
 
 // Returns the current user's profile, or null if not signed in.
 export async function getProfile(): Promise<Profile | null> {
-  const supabase = await createClient();
+  let supabase;
+  try {
+    supabase = await createClient();
+  } catch {
+    return null;
+  }
   const {
     data: { user },
-  } = await supabase.auth.getUser();
+  } = await supabase.auth.getUser().catch(() => ({ data: { user: null } }));
 
   if (!user) return null;
 
