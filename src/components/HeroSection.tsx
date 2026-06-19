@@ -1,10 +1,17 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useEffect, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import { Sparkles, BrainCircuit, CalendarClock, Globe2, ArrowRight, Play } from "lucide-react";
 
 const cyclingPrograms = ["FSc Medical", "FSc Engineering", "A/O Levels", "BS Programs", "MS Programs"];
+
+const featureCards = [
+  { icon: BrainCircuit, text: "AI-Powered Learning",          color: "text-primary" },
+  { icon: Sparkles,     text: "Expert Teachers",              color: "text-accent" },
+  { icon: CalendarClock,text: "Regular & Weekend Classes",    color: "text-primary" },
+  { icon: Globe2,       text: "Students From 5 Countries",    color: "text-accent" },
+];
 
 export default function HeroSection() {
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -12,45 +19,27 @@ export default function HeroSection() {
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % cyclingPrograms.length);
-    }, 2000);
+    }, 2500);
     return () => clearInterval(interval);
   }, []);
 
-  const featureCards = [
-    { icon: BrainCircuit, text: "AI-Powered Learning", color: "text-primary" },
-    { icon: Sparkles, text: "Expert Teachers", color: "text-accent" },
-    { icon: CalendarClock, text: "Regular & Weekend Classes", color: "text-primary" },
-    { icon: Globe2, text: "Students From 5 Countries", color: "text-accent" },
-  ];
-
   return (
     <section className="relative pt-28 pb-16 md:pt-36 md:pb-24 overflow-hidden min-h-[88vh] flex items-center">
-      {/* Background aura glows */}
+      {/* Background glows */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] bg-primary/15 rounded-full blur-[130px] -z-10 pointer-events-none" />
       <div className="absolute top-1/4 left-1/4 w-[350px] h-[350px] bg-accent/15 rounded-full blur-[100px] -z-10 pointer-events-none" />
-      <div className="absolute bottom-1/4 right-1/4 w-[300px] h-[300px] bg-primary/10 rounded-full blur-[100px] -z-10 pointer-events-none" />
 
       <div className="container mx-auto px-4 md:px-6">
         <div className="max-w-4xl mx-auto text-center relative z-10">
 
           {/* Badge */}
-          <motion.div
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.25 }}
-            className="mb-6 inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 backdrop-blur-sm"
-          >
+          <div className="mb-6 inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 backdrop-blur-sm">
             <Sparkles className="w-3.5 h-3.5 text-accent" />
             <span className="text-xs font-medium text-foreground/80">Premium AI-Powered Education Platform</span>
-          </motion.div>
+          </div>
 
           {/* Headline */}
-          <motion.div
-            initial={{ opacity: 0, y: 14 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3, delay: 0.05 }}
-            className="mb-4"
-          >
+          <div className="mb-4">
             <h1 className="text-3xl md:text-5xl lg:text-6xl font-extrabold tracking-tight leading-tight">
               <span className="text-foreground">We teach</span>
               <br />
@@ -73,90 +62,58 @@ export default function HeroSection() {
                 with AI-Powered Expert Learning
               </span>
             </h1>
-          </motion.div>
+          </div>
 
           {/* Subheading */}
-          <motion.p
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.28, delay: 0.1 }}
-            className="text-sm md:text-base text-foreground/60 mb-8 max-w-2xl mx-auto leading-relaxed"
-          >
+          <p className="text-sm md:text-base text-foreground/60 mb-8 max-w-2xl mx-auto leading-relaxed">
             Expert teachers, AI-powered academic support, and flexible regular or weekend classes — delivered live over Google Meet for students across 5 countries.
-          </motion.p>
+          </p>
 
           {/* CTA Buttons */}
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.28, delay: 0.15 }}
-            className="flex flex-col sm:flex-row items-center justify-center gap-3"
-          >
-            <motion.button
-              animate={{ y: [0, -4, 0] }}
-              transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-              className="group w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-lg bg-gradient-to-r from-primary to-accent text-primary-foreground font-semibold text-sm hover:opacity-90 transition-all shadow-[0_0_28px_rgba(99,102,241,0.35)] hover:shadow-[0_0_40px_rgba(99,102,241,0.55)]"
-              data-testid="hero-book-demo"
-            >
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+            <button className="group w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-lg bg-gradient-to-r from-primary to-accent text-primary-foreground font-semibold text-sm hover:opacity-90 transition-opacity shadow-[0_0_28px_rgba(99,102,241,0.35)]">
               Book a Demo Class
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-            </motion.button>
-            <motion.button
-              animate={{ y: [0, -4, 0] }}
-              transition={{ duration: 3, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
-              className="group w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-lg border border-border bg-background/50 backdrop-blur-sm font-semibold text-sm hover:bg-muted transition-all text-foreground"
-              data-testid="hero-explore"
-            >
+            </button>
+            <button className="group w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-lg border border-border bg-background/50 backdrop-blur-sm font-semibold text-sm hover:bg-muted transition-colors text-foreground">
               <Play className="w-3.5 h-3.5 fill-current opacity-70" />
               Explore Subjects
-            </motion.button>
-          </motion.div>
+            </button>
+          </div>
         </div>
 
-        {/* Feature Cards */}
+        {/* Feature Cards — no animation, just instant render */}
         <div className="mt-14 grid grid-cols-2 lg:grid-cols-4 gap-3 max-w-5xl mx-auto">
-          {featureCards.map((feature, idx) => (
-            <motion.div
-              key={idx}
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 + idx * 0.05, duration: 0.25 }}
-              whileHover={{ y: -4, transition: { duration: 0.15 } }}
+          {featureCards.map((feature) => (
+            <div
+              key={feature.text}
               className="flex items-center gap-2.5 p-3.5 rounded-xl bg-card/60 border border-border backdrop-blur-md hover:border-primary/40 hover:bg-card transition-all cursor-default"
             >
               <div className={`p-1.5 rounded-lg bg-primary/10 ${feature.color} shrink-0`}>
                 <feature.icon className="w-4 h-4" />
               </div>
               <span className="font-medium text-xs text-foreground/80 leading-tight">{feature.text}</span>
-            </motion.div>
+            </div>
           ))}
         </div>
 
-        {/* Gradient academic banner */}
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.35, duration: 0.3 }}
-          className="mt-10 max-w-5xl mx-auto rounded-2xl overflow-hidden relative"
-        >
-          {/* Gradient background */}
+        {/* Academic trust strip */}
+        <div className="mt-10 max-w-5xl mx-auto rounded-2xl overflow-hidden relative">
           <div className="absolute inset-0 bg-gradient-to-r from-primary/20 via-accent/15 to-primary/20 backdrop-blur-md" />
-          <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent" />
-          {/* Top shimmer line */}
           <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/60 to-transparent" />
-          {/* Bottom shimmer line */}
           <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-accent/40 to-transparent" />
 
           <div className="relative flex flex-col sm:flex-row items-center justify-between gap-4 px-7 py-5">
             <div className="text-center sm:text-left">
               <p className="text-xs font-semibold text-accent uppercase tracking-widest mb-0.5">Pakistan&apos;s Premier Online Academy</p>
-              <p className="text-base font-bold text-foreground">Trusted by <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent">1,000+ students</span> across 5 countries</p>
+              <p className="text-base font-bold text-foreground">
+                Trusted by <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent">1,000+ students</span> across 5 countries
+              </p>
             </div>
-
             <div className="flex items-center gap-6 shrink-0">
               {[
-                { value: "FSc", sub: "Pre-Med & Eng" },
-                { value: "A/O", sub: "Level Oxford" },
+                { value: "FSc",   sub: "Pre-Med & Eng" },
+                { value: "A/O",   sub: "Level Oxford" },
                 { value: "BS/MS", sub: "Degree Programs" },
               ].map((item) => (
                 <div key={item.value} className="text-center">
@@ -165,12 +122,11 @@ export default function HeroSection() {
                 </div>
               ))}
             </div>
-
             <button className="shrink-0 px-5 py-2.5 rounded-lg bg-gradient-to-r from-primary to-accent text-white text-xs font-bold hover:opacity-90 transition-opacity shadow-[0_0_16px_rgba(99,102,241,0.35)] whitespace-nowrap">
               Enroll Now →
             </button>
           </div>
-        </motion.div>
+        </div>
       </div>
     </section>
   );
