@@ -241,14 +241,15 @@ insert into storage.buckets (id, name, public)
 values ('materials', 'materials', true)
 on conflict (id) do nothing;
 
--- receipts: students upload to their own folder, staff read all
+-- receipts: students upload to their own folder, staff read all.
+-- split_part is scalar; storage.foldername() is set-returning and banned in policies.
 create policy "receipts_student_upload"
   on storage.objects for insert to authenticated
-  with check (bucket_id = 'receipts' and (storage.foldername(name))[1] = auth.uid()::text);
+  with check (bucket_id = 'receipts' and split_part(name, '/', 1) = auth.uid()::text);
 
 create policy "receipts_student_read"
   on storage.objects for select to authenticated
-  using (bucket_id = 'receipts' and (storage.foldername(name))[1] = auth.uid()::text);
+  using (bucket_id = 'receipts' and split_part(name, '/', 1) = auth.uid()::text);
 
 create policy "receipts_staff_read"
   on storage.objects for select to authenticated
