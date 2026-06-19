@@ -50,8 +50,8 @@ export default function HeroBackgroundSlider() {
       {slides.map((slide, i) => (
         <div
           key={slide.src}
-          className="absolute inset-0 transition-opacity duration-1000 ease-in-out"
-          style={{ opacity: i === index ? 1 : 0 }}
+          className="absolute inset-0 transition-opacity duration-700 ease-in-out"
+          style={{ opacity: i === index ? 1 : 0, willChange: "opacity" }}
         >
           <Image
             src={slide.src}
@@ -65,9 +65,9 @@ export default function HeroBackgroundSlider() {
         </div>
       ))}
 
-      {/* Readability overlay: dark gradient tuned for the dark theme */}
-      <div className="absolute inset-0 bg-background/80" />
-      <div className="absolute inset-0 bg-gradient-to-b from-background/70 via-background/60 to-background/90" />
+      {/* Readability overlay: airy white veil with a subtle blue brand tint */}
+      <div className="absolute inset-0 bg-background/82" />
+      <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-background/70 to-background/92" />
 
       {/* Manual navigation arrows */}
       <button

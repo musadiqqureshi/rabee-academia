@@ -30,10 +30,6 @@ export default function HeroSection() {
       {/* Full-width auto-rotating educational banner slider (background only) */}
       <HeroBackgroundSlider />
 
-      {/* Background glows (sit above the banner overlay for a premium tint) */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] bg-primary/15 rounded-full blur-[130px] z-[1] pointer-events-none" />
-      <div className="absolute top-1/4 left-1/4 w-[350px] h-[350px] bg-accent/15 rounded-full blur-[100px] z-[1] pointer-events-none" />
-
       <div className="container relative z-10 mx-auto px-4 md:px-6">
         <div className="max-w-4xl mx-auto text-center relative z-10">
 

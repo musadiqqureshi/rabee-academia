@@ -94,65 +94,69 @@
   --radius-xl: calc(var(--radius) + 4px);
 }
 
-/* LIGHT MODE */
+/* LIGHT MODE — premium white / iOS-style (default) */
 :root {
-  --button-outline: rgba(0,0,0, .10);
-  --badge-outline: rgba(0,0,0, .05);
+  --button-outline: rgba(15, 23, 42, .08);
+  --badge-outline: rgba(15, 23, 42, .05);
 
   /* Automatic computation of border around primary / danger buttons */
   --opaque-button-border-intensity: -8; /* In terms of percentages */
 
   /* Backgrounds applied on top of other backgrounds when hovered/active */
-  --elevate-1: rgba(0,0,0, .03);
-  --elevate-2: rgba(0,0,0, .08);
+  --elevate-1: rgba(15, 23, 42, .035);
+  --elevate-2: rgba(15, 23, 42, .07);
 
-  --background: 222 47% 6%;
-  --foreground: 210 40% 98%;
-  --card: 222 47% 9%;
-  --card-foreground: 210 40% 98%;
-  --card-border: 222 47% 15%;
-  --popover: 222 47% 9%;
-  --popover-foreground: 210 40% 98%;
-  --popover-border: 222 47% 15%;
-  --primary: 239 84% 67%;
+  /* Cool, airy off-white canvas with crisp white cards */
+  --background: 220 33% 98%;
+  --foreground: 222 47% 11%;
+  --card: 0 0% 100%;
+  --card-foreground: 222 47% 11%;
+  --card-border: 220 22% 92%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 222 47% 11%;
+  --popover-border: 220 22% 92%;
+  /* Vivid iOS blue primary */
+  --primary: 221 83% 53%;
   --primary-foreground: 0 0% 100%;
-  --secondary: 222 47% 13%;
-  --secondary-foreground: 210 40% 98%;
-  --muted: 222 47% 13%;
-  --muted-foreground: 215 20% 65%;
-  --accent: 189 94% 43%;
-  --accent-foreground: 222 47% 6%;
+  --secondary: 214 38% 95%;
+  --secondary-foreground: 222 47% 18%;
+  --muted: 220 24% 96%;
+  --muted-foreground: 220 9% 46%;
+  /* Warm orange accent (CTA highlights in reference) */
+  --accent: 24 94% 53%;
+  --accent-foreground: 0 0% 100%;
   --destructive: 0 84% 60%;
   --destructive-foreground: 0 0% 100%;
-  --border: 222 47% 15%;
-  --input: 222 47% 15%;
-  --ring: 239 84% 67%;
-  --sidebar: 222 47% 8%;
-  --sidebar-foreground: 210 40% 98%;
-  --sidebar-border: 222 47% 15%;
-  --sidebar-primary: 239 84% 67%;
+  --border: 220 22% 91%;
+  --input: 220 22% 91%;
+  --ring: 221 83% 53%;
+  --sidebar: 0 0% 100%;
+  --sidebar-foreground: 222 47% 11%;
+  --sidebar-border: 220 22% 92%;
+  --sidebar-primary: 221 83% 53%;
   --sidebar-primary-foreground: 0 0% 100%;
-  --sidebar-accent: 222 47% 13%;
-  --sidebar-accent-foreground: 210 40% 98%;
-  --sidebar-ring: 239 84% 67%;
-  --chart-1: 239 84% 67%;
-  --chart-2: 189 94% 43%;
-  --chart-3: 270 70% 60%;
+  --sidebar-accent: 214 38% 95%;
+  --sidebar-accent-foreground: 222 47% 18%;
+  --sidebar-ring: 221 83% 53%;
+  --chart-1: 221 83% 53%;
+  --chart-2: 24 94% 53%;
+  --chart-3: 262 83% 58%;
   --chart-4: 142 70% 45%;
-  --chart-5: 38 92% 50%;
+  --chart-5: 199 89% 48%;
 
   --app-font-sans: 'Sora', 'Inter', sans-serif;
   --app-font-serif: Georgia, serif;
   --app-font-mono: Menlo, monospace;
-  --radius: .5rem; /* 8px */
-  --shadow-2xs: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00); 
-  --shadow-xs: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00); 
-  --shadow-sm: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00), 0px 1px 2px -1px hsl(202.8169 89.1213% 53.1373% / 0.00);
-  --shadow: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00), 0px 1px 2px -1px hsl(202.8169 89.1213% 53.1373% / 0.00);
-  --shadow-md: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00), 0px 2px 4px -1px hsl(202.8169 89.1213% 53.1373% / 0.00);
-  --shadow-lg: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00), 0px 4px 6px -1px hsl(202.8169 89.1213% 53.1373% / 0.00);
-  --shadow-xl: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00), 0px 8px 10px -1px hsl(202.8169 89.1213% 53.1373% / 0.00);
-  --shadow-2xl: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00);
+  --radius: .875rem; /* 14px — soft iOS corners */
+  /* Soft, layered iOS-style shadows */
+  --shadow-2xs: 0 1px 2px 0 rgba(16,24,40,0.04);
+  --shadow-xs: 0 1px 2px 0 rgba(16,24,40,0.05);
+  --shadow-sm: 0 1px 3px 0 rgba(16,24,40,0.08), 0 1px 2px -1px rgba(16,24,40,0.05);
+  --shadow: 0 2px 4px -1px rgba(16,24,40,0.07), 0 1px 2px -1px rgba(16,24,40,0.05);
+  --shadow-md: 0 6px 12px -2px rgba(16,24,40,0.08), 0 3px 6px -3px rgba(16,24,40,0.05);
+  --shadow-lg: 0 14px 24px -6px rgba(16,24,40,0.10), 0 6px 10px -4px rgba(16,24,40,0.05);
+  --shadow-xl: 0 24px 38px -8px rgba(16,24,40,0.12), 0 10px 14px -6px rgba(16,24,40,0.05);
+  --shadow-2xl: 0 32px 60px -12px rgba(16,24,40,0.18);
   --tracking-normal: 0em;
   --spacing: 0.25rem;
 
