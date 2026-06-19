@@ -1,4 +1,4 @@
-import { ClipboardCheck } from "lucide-react";
+import { ClipboardCheck, Download } from "lucide-react";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 
@@ -34,8 +34,18 @@ export default async function TeacherAttendance() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold">Attendance</h1>
-      <p className="text-sm text-muted-foreground mt-1">Recent attendance records for your classes</p>
+      <div className="flex items-start justify-between gap-3 flex-wrap">
+        <div>
+          <h1 className="text-2xl font-bold">Attendance</h1>
+          <p className="text-sm text-muted-foreground mt-1">Recent attendance records for your classes</p>
+        </div>
+        <a
+          href="/api/attendance/export"
+          className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-border text-sm font-medium hover:bg-muted"
+        >
+          <Download className="w-4 h-4" /> Export CSV
+        </a>
+      </div>
 
       <div className="mt-4 p-3 bg-muted/20 border border-border rounded-lg text-xs text-muted-foreground">
         Attendance is marked by the admin panel. This view shows existing records only.
