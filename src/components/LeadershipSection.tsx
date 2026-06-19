@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 
 export default function LeadershipSection() {
   return (
-    <section className="py-24 relative">
+    <section id="teachers" className="py-24 relative">
       <div className="container mx-auto px-4">
         <div className="text-center max-w-3xl mx-auto mb-16">
           <motion.h2 

@@ -17,13 +17,13 @@ export default function Navbar() {
   }, []);
 
   const navLinks = [
-    { name: "Home", href: "#" },
-    { name: "Subjects", href: "#subjects" },
-    { name: "Programs", href: "#programs" },
-    { name: "Teachers", href: "#teachers" },
-    { name: "Pricing", href: "#pricing" },
-    { name: "Reviews", href: "#reviews" },
-    { name: "Contact", href: "#contact" },
+    { name: "Home",     href: "/" },
+    { name: "Subjects", href: "/#subjects" },
+    { name: "Programs", href: "/#programs" },
+    { name: "Teachers", href: "/#teachers" },
+    { name: "Pricing",  href: "/pricing" },
+    { name: "Reviews",  href: "/#reviews" },
+    { name: "Contact",  href: "/#contact" },
   ];
 
   return (
@@ -47,13 +47,13 @@ export default function Navbar() {
         {/* Desktop Nav */}
         <div className="hidden lg:flex items-center gap-5 flex-1 justify-center">
           {navLinks.map((link) => (
-            <a
+            <Link
               key={link.name}
               href={link.href}
               className="text-sm font-medium text-foreground/70 hover:text-primary transition-colors"
             >
               {link.name}
-            </a>
+            </Link>
           ))}
         </div>
 
@@ -87,14 +87,14 @@ export default function Navbar() {
       {isMobileMenuOpen && (
         <div className="lg:hidden absolute top-full left-0 right-0 bg-background/95 backdrop-blur-lg border-b border-border py-4 px-4 flex flex-col gap-3">
           {navLinks.map((link) => (
-            <a
+            <Link
               key={link.name}
               href={link.href}
               className="text-sm font-medium py-2 border-b border-border/40 text-foreground/80"
               onClick={() => setIsMobileMenuOpen(false)}
             >
               {link.name}
-            </a>
+            </Link>
           ))}
           <Link
             href="/login"

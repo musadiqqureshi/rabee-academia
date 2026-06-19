@@ -1,19 +1,23 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { type ReactNode } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Atom, LogOut, Menu, X, type LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useState } from "react";
 
 export interface NavItem {
   label: string;
   icon: LucideIcon;
+  href: string;
 }
 
 interface DashboardShellProps {
   roleLabel: string;
   userName: string;
   navItems: NavItem[];
+  basePath: string;
   children: ReactNode;
 }
 
@@ -21,10 +25,11 @@ export default function DashboardShell({
   roleLabel,
   userName,
   navItems,
+  basePath,
   children,
 }: DashboardShellProps) {
+  const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [active, setActive] = useState(navItems[0]?.label);
 
   return (
     <div className="min-h-screen bg-background text-foreground flex">
@@ -44,11 +49,16 @@ export default function DashboardShell({
         <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-1">
           {navItems.map((item) => {
             const Icon = item.icon;
-            const isActive = active === item.label;
+            const fullHref = `${basePath}${item.href}`;
+            const isActive =
+              item.href === ""
+                ? pathname === basePath
+                : pathname.startsWith(fullHref);
             return (
-              <button
+              <Link
                 key={item.label}
-                onClick={() => setActive(item.label)}
+                href={fullHref}
+                onClick={() => setSidebarOpen(false)}
                 className={`w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                   isActive
                     ? "bg-sidebar-primary/15 text-sidebar-primary"
@@ -57,7 +67,7 @@ export default function DashboardShell({
               >
                 <Icon className="w-4 h-4 shrink-0" />
                 {item.label}
-              </button>
+              </Link>
             );
           })}
         </nav>

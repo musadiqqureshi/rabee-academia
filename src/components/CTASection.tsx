@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 
 export default function CTASection() {
   return (
-    <section className="py-24 relative overflow-hidden">
+    <section id="contact" className="py-24 relative overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-background to-accent/20 z-0"></div>
       
       <div className="container mx-auto px-4 relative z-10">

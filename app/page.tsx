@@ -6,7 +6,6 @@ import PartnersMarquee from "@/components/PartnersMarquee";
 import AISection from "@/components/AISection";
 import ProgramsSection from "@/components/ProgramsSection";
 import SubjectsSection from "@/components/SubjectsSection";
-import PricingSection from "@/components/PricingSection";
 import LeadershipSection from "@/components/LeadershipSection";
 import CountriesSection from "@/components/CountriesSection";
 import ReviewsMarquee from "@/components/ReviewsMarquee";
@@ -44,7 +43,6 @@ export default function HomePage() {
       <AISection />
       <ProgramsSection />
       <SubjectsSection />
-      <PricingSection />
       <LeadershipSection />
       <CountriesSection />
       <ReviewsMarquee />

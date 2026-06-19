@@ -12,7 +12,7 @@ export default function ReviewsMarquee() {
   const scrollItems = [...reviews, ...reviews];
 
   return (
-    <section className="py-24 overflow-hidden relative bg-muted/20">
+    <section id="reviews" className="py-24 overflow-hidden relative bg-muted/20">
       <div className="absolute left-0 top-0 bottom-0 w-32 bg-gradient-to-r from-muted/20 to-transparent z-10 pointer-events-none"></div>
       <div className="absolute right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-muted/20 to-transparent z-10 pointer-events-none"></div>
       
