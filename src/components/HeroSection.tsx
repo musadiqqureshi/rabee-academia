@@ -131,6 +131,46 @@ export default function HeroSection() {
             </motion.div>
           ))}
         </div>
+
+        {/* Gradient academic banner */}
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.35, duration: 0.3 }}
+          className="mt-10 max-w-5xl mx-auto rounded-2xl overflow-hidden relative"
+        >
+          {/* Gradient background */}
+          <div className="absolute inset-0 bg-gradient-to-r from-primary/20 via-accent/15 to-primary/20 backdrop-blur-md" />
+          <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent" />
+          {/* Top shimmer line */}
+          <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/60 to-transparent" />
+          {/* Bottom shimmer line */}
+          <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-accent/40 to-transparent" />
+
+          <div className="relative flex flex-col sm:flex-row items-center justify-between gap-4 px-7 py-5">
+            <div className="text-center sm:text-left">
+              <p className="text-xs font-semibold text-accent uppercase tracking-widest mb-0.5">Pakistan&apos;s Premier Online Academy</p>
+              <p className="text-base font-bold text-foreground">Trusted by <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent">1,000+ students</span> across 5 countries</p>
+            </div>
+
+            <div className="flex items-center gap-6 shrink-0">
+              {[
+                { value: "FSc", sub: "Pre-Med & Eng" },
+                { value: "A/O", sub: "Level Oxford" },
+                { value: "BS/MS", sub: "Degree Programs" },
+              ].map((item) => (
+                <div key={item.value} className="text-center">
+                  <p className="text-lg font-extrabold text-foreground leading-none">{item.value}</p>
+                  <p className="text-[10px] text-muted-foreground mt-0.5 whitespace-nowrap">{item.sub}</p>
+                </div>
+              ))}
+            </div>
+
+            <button className="shrink-0 px-5 py-2.5 rounded-lg bg-gradient-to-r from-primary to-accent text-white text-xs font-bold hover:opacity-90 transition-opacity shadow-[0_0_16px_rgba(99,102,241,0.35)] whitespace-nowrap">
+              Enroll Now →
+            </button>
+          </div>
+        </motion.div>
       </div>
     </section>
   );
