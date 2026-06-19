@@ -2,19 +2,39 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { Atom, Menu, X } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Atom, Menu, X, LayoutDashboard, LogOut } from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
 
 export default function Navbar() {
+  const router = useRouter();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 20);
-    };
+    const handleScroll = () => setIsScrolled(window.scrollY > 20);
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setIsLoggedIn(!!session);
+    });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setIsLoggedIn(!!session);
+    });
+    return () => subscription.unsubscribe();
+  }, []);
+
+  async function handleSignOut() {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    router.push("/login");
+    router.refresh();
+  }
 
   const navLinks = [
     { name: "Home",     href: "/" },
@@ -59,19 +79,40 @@ export default function Navbar() {
 
         {/* CTA */}
         <div className="hidden lg:flex items-center gap-3 shrink-0">
-          <Link
-            href="/login"
-            className="text-sm font-medium text-foreground/70 hover:text-primary transition-colors"
-          >
-            Sign in
-          </Link>
-          <Link
-            href="/register"
-            className="px-4 py-2 text-sm font-semibold rounded-md bg-gradient-to-r from-primary to-accent text-primary-foreground hover:opacity-90 transition-opacity shadow-[0_0_16px_rgba(99,102,241,0.35)]"
-            data-testid="button-book-demo"
-          >
-            Get Started
-          </Link>
+          {isLoggedIn ? (
+            <>
+              <Link
+                href="/dashboard"
+                className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold rounded-md bg-gradient-to-r from-primary to-accent text-primary-foreground hover:opacity-90 transition-opacity shadow-[0_0_16px_rgba(99,102,241,0.35)]"
+              >
+                <LayoutDashboard className="w-3.5 h-3.5" />
+                Dashboard
+              </Link>
+              <button
+                onClick={handleSignOut}
+                className="inline-flex items-center gap-1.5 text-sm font-medium text-foreground/70 hover:text-destructive transition-colors"
+              >
+                <LogOut className="w-3.5 h-3.5" />
+                Sign out
+              </button>
+            </>
+          ) : (
+            <>
+              <Link
+                href="/login"
+                className="text-sm font-medium text-foreground/70 hover:text-primary transition-colors"
+              >
+                Sign in
+              </Link>
+              <Link
+                href="/register"
+                className="px-4 py-2 text-sm font-semibold rounded-md bg-gradient-to-r from-primary to-accent text-primary-foreground hover:opacity-90 transition-opacity shadow-[0_0_16px_rgba(99,102,241,0.35)]"
+                data-testid="button-book-demo"
+              >
+                Get Started
+              </Link>
+            </>
+          )}
         </div>
 
         {/* Mobile Toggle */}
@@ -96,20 +137,42 @@ export default function Navbar() {
               {link.name}
             </Link>
           ))}
-          <Link
-            href="/login"
-            className="text-sm font-medium py-2 text-foreground/80"
-            onClick={() => setIsMobileMenuOpen(false)}
-          >
-            Sign in
-          </Link>
-          <Link
-            href="/register"
-            className="mt-1 w-full py-2.5 text-center text-sm font-semibold rounded-md bg-gradient-to-r from-primary to-accent text-primary-foreground"
-            onClick={() => setIsMobileMenuOpen(false)}
-          >
-            Get Started
-          </Link>
+          {isLoggedIn ? (
+            <>
+              <Link
+                href="/dashboard"
+                className="mt-1 w-full py-2.5 text-center text-sm font-semibold rounded-md bg-gradient-to-r from-primary to-accent text-primary-foreground flex items-center justify-center gap-2"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                <LayoutDashboard className="w-4 h-4" />
+                Dashboard
+              </Link>
+              <button
+                onClick={() => { setIsMobileMenuOpen(false); handleSignOut(); }}
+                className="w-full py-2 text-sm font-medium text-foreground/70 hover:text-destructive transition-colors text-left flex items-center gap-2"
+              >
+                <LogOut className="w-4 h-4" />
+                Sign out
+              </button>
+            </>
+          ) : (
+            <>
+              <Link
+                href="/login"
+                className="text-sm font-medium py-2 text-foreground/80"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Sign in
+              </Link>
+              <Link
+                href="/register"
+                className="mt-1 w-full py-2.5 text-center text-sm font-semibold rounded-md bg-gradient-to-r from-primary to-accent text-primary-foreground"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Get Started
+              </Link>
+            </>
+          )}
         </div>
       )}
     </nav>
