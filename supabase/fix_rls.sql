@@ -24,23 +24,23 @@ as $$
 $$;
 
 -- Returns batch IDs where the caller is the assigned teacher.
--- Used in enrollments policy to avoid enrollments→batches→enrollments cycle.
+-- Returns uuid[] (array) — set-returning functions are not allowed in policies.
 create or replace function public.get_my_teacher_batch_ids()
-returns setof uuid
+returns uuid[]
 language sql stable security definer
 set search_path = public
 as $$
-  select id from public.batches where teacher_id = auth.uid();
+  select coalesce(array_agg(id), '{}') from public.batches where teacher_id = auth.uid();
 $$;
 
 -- Returns batch IDs the caller is enrolled in (approved).
--- Used in batches + materials policies to avoid batches→enrollments→batches cycle.
+-- Returns uuid[] (array) — set-returning functions are not allowed in policies.
 create or replace function public.get_my_enrolled_batch_ids()
-returns setof uuid
+returns uuid[]
 language sql stable security definer
 set search_path = public
 as $$
-  select batch_id from public.enrollments
+  select coalesce(array_agg(batch_id), '{}') from public.enrollments
   where student_id = auth.uid() and status = 'approved' and batch_id is not null;
 $$;
 
