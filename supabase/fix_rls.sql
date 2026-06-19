@@ -23,25 +23,29 @@ as $$
   select role::text from public.profiles where id = auth.uid();
 $$;
 
--- Returns batch IDs where the caller is the assigned teacher.
--- Returns uuid[] (array) — set-returning functions are not allowed in policies.
-create or replace function public.get_my_teacher_batch_ids()
-returns uuid[]
+-- Checks if the given batch belongs to the calling teacher.
+-- Scalar boolean — safe to use in policy USING clauses.
+create or replace function public.i_teach_this_batch(p_batch_id uuid)
+returns boolean
 language sql stable security definer
 set search_path = public
 as $$
-  select coalesce(array_agg(id), '{}') from public.batches where teacher_id = auth.uid();
+  select exists(
+    select 1 from public.batches where id = p_batch_id and teacher_id = auth.uid()
+  );
 $$;
 
--- Returns batch IDs the caller is enrolled in (approved).
--- Returns uuid[] (array) — set-returning functions are not allowed in policies.
-create or replace function public.get_my_enrolled_batch_ids()
-returns uuid[]
+-- Checks if the calling student has an approved enrollment in the given batch.
+-- Scalar boolean — safe to use in policy USING clauses.
+create or replace function public.i_am_enrolled_in_batch(p_batch_id uuid)
+returns boolean
 language sql stable security definer
 set search_path = public
 as $$
-  select coalesce(array_agg(batch_id), '{}') from public.enrollments
-  where student_id = auth.uid() and status = 'approved' and batch_id is not null;
+  select exists(
+    select 1 from public.enrollments
+    where batch_id = p_batch_id and student_id = auth.uid() and status = 'approved'
+  );
 $$;
 
 -- ---------------------------------------------------------------------------
@@ -107,11 +111,11 @@ create policy "batches_admin_write"
   on public.batches for all
   using (public.get_my_role() in ('super_admin','admin'));
 
--- Students read batches they are enrolled in — uses helper to avoid
--- the batches→enrollments→batches recursion cycle.
+-- Students read batches they are enrolled in — scalar boolean helper
+-- avoids the batches→enrollments→batches recursion cycle.
 create policy "batches_student_read"
   on public.batches for select
-  using (id = any(public.get_my_enrolled_batch_ids()));
+  using (public.i_am_enrolled_in_batch(id));
 
 -- ---------------------------------------------------------------------------
 -- 5. Enrollments
@@ -133,11 +137,11 @@ create policy "enrollments_staff_all"
   on public.enrollments for all
   using (public.get_my_role() in ('super_admin','admin'));
 
--- Teachers: read enrollments in their batches — uses helper to avoid
--- the enrollments→batches→enrollments recursion cycle.
+-- Teachers: read enrollments in their batches — scalar boolean helper
+-- avoids the enrollments→batches→enrollments recursion cycle.
 create policy "enrollments_teacher_read"
   on public.enrollments for select
-  using (batch_id = any(public.get_my_teacher_batch_ids()));
+  using (public.i_teach_this_batch(batch_id));
 
 -- ---------------------------------------------------------------------------
 -- 6. Payments
@@ -167,11 +171,11 @@ drop policy if exists "materials_admin_read"    on public.materials;
 drop policy if exists "Authenticated read materials" on public.materials;
 drop policy if exists "Teachers insert materials" on public.materials;
 
--- Students read materials for batches they are enrolled in — uses helper
--- to avoid the materials→enrollments→batches→enrollments recursion cycle.
+-- Students read materials for batches they are enrolled in — scalar boolean
+-- helper avoids the materials→enrollments→batches→enrollments cycle.
 create policy "materials_student_read"
   on public.materials for select
-  using (batch_id = any(public.get_my_enrolled_batch_ids()));
+  using (public.i_am_enrolled_in_batch(batch_id));
 
 create policy "materials_teacher_all"
   on public.materials for all
@@ -194,7 +198,7 @@ create policy "attendance_student_own"
 
 create policy "attendance_teacher_all"
   on public.attendance for all
-  using (batch_id = any(public.get_my_teacher_batch_ids()));
+  using (public.i_teach_this_batch(batch_id));
 
 create policy "attendance_admin_read"
   on public.attendance for select
