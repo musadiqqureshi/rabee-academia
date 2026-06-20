@@ -109,6 +109,20 @@ const jsonLd = {
       publisher: { "@id": `${SITE_URL}/#organization` },
       inLanguage: "en",
     },
+    // Helps Google surface sitelinks (sub-pages under the main result).
+    {
+      "@type": "ItemList",
+      "@id": `${SITE_URL}/#sitenav`,
+      name: "Rabee Academia",
+      itemListElement: [
+        { "@type": "SiteNavigationElement", position: 1, name: "Home", url: `${SITE_URL}/` },
+        { "@type": "SiteNavigationElement", position: 2, name: "Pricing", url: `${SITE_URL}/pricing` },
+        { "@type": "SiteNavigationElement", position: 3, name: "Book a Demo", url: `${SITE_URL}/demo` },
+        { "@type": "SiteNavigationElement", position: 4, name: "Enroll", url: `${SITE_URL}/enroll` },
+        { "@type": "SiteNavigationElement", position: 5, name: "Sign in", url: `${SITE_URL}/login` },
+        { "@type": "SiteNavigationElement", position: 6, name: "Register", url: `${SITE_URL}/register` },
+      ],
+    },
   ],
 };
 

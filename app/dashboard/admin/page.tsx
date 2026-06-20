@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Users, UserCheck, BookOpen, GraduationCap } from "lucide-react";
 import StatCard from "@/components/dashboard/StatCard";
+import StatDonut from "@/components/dashboard/StatDonut";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import RealtimeRefresher from "@/components/dashboard/RealtimeRefresher";
@@ -22,6 +23,14 @@ export default async function AdminOverview() {
     supabase.from("batches").select("id", { count: "exact", head: true }).eq("is_active", true),
     supabase.from("profiles").select("id", { count: "exact", head: true }).eq("role", "teacher"),
   ]);
+
+  const { data: allEnr } = await supabase.from("enrollments").select("status");
+  const enrCounts = { approved: 0, pending: 0, rejected: 0 };
+  for (const e of allEnr ?? []) {
+    if (e.status === "approved") enrCounts.approved++;
+    else if (e.status === "pending") enrCounts.pending++;
+    else if (e.status === "rejected") enrCounts.rejected++;
+  }
 
   const { data: pendingEnrollments } = await supabase
     .from("enrollments")
@@ -68,6 +77,20 @@ export default async function AdminOverview() {
           hint={pendingCount ? "Needs review" : undefined} />
         <StatCard label="Active Batches"      value={batchCount ?? 0}   icon={BookOpen} />
         <StatCard label="Teachers"            value={teacherCount ?? 0} icon={GraduationCap} />
+      </div>
+
+      {/* Colorful charts */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+        <StatDonut title="Enrollments by status" slices={[
+          { label: "Approved", value: enrCounts.approved, color: "#10b981" },
+          { label: "Pending",  value: enrCounts.pending,  color: "#f59e0b" },
+          { label: "Rejected", value: enrCounts.rejected, color: "#ef4444" },
+        ]} />
+        <StatDonut title="Platform composition" slices={[
+          { label: "Students", value: studentCount ?? 0, color: "#3b82f6" },
+          { label: "Teachers", value: teacherCount ?? 0, color: "#a855f7" },
+          { label: "Active batches", value: batchCount ?? 0, color: "#f97316" },
+        ]} />
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 mt-8">
