@@ -22,9 +22,10 @@ export default async function TeacherStudents() {
 
   const { data: enrollments } = await supabase
     .from("enrollments")
-    .select("id, status, enrolled_at, batch_id, profiles ( full_name, email )")
+    .select("id, status, created_at, batch_id, profiles:student_id ( full_name, email, student_code )")
     .in("batch_id", batchIds.length > 0 ? batchIds : ["00000000-0000-0000-0000-000000000000"])
-    .order("enrolled_at", { ascending: false });
+    .eq("status", "approved")
+    .order("created_at", { ascending: false });
 
   const batchMap = new Map(batches?.map((b) => [b.id, b]) ?? []);
 
@@ -71,7 +72,7 @@ export default async function TeacherStudents() {
                       </span>
                     </td>
                     <td className="px-4 py-3 text-muted-foreground text-xs">
-                      {new Date(e.enrolled_at).toLocaleDateString()}
+                      {new Date(e.created_at).toLocaleDateString()}
                     </td>
                   </tr>
                 );
