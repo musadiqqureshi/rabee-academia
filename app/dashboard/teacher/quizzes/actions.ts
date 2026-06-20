@@ -62,6 +62,68 @@ async function recalcTotal(quizId: string) {
   await supabase.from("quizzes").update({ total_marks: total }).eq("id", quizId);
 }
 
+// Generate a full quiz with AI from a topic. Creates the quiz + MCQ questions.
+export async function generateQuizWithAI(formData: FormData): Promise<string> {
+  const profile = await requireTeacher();
+  if (!aiConfigured()) throw new Error("AI is not configured. Set AI_BASE_URL + AI_API_KEY.");
+  const supabase = await createClient();
+
+  const batchId = String(formData.get("batch_id") ?? "");
+  if (!batchId) throw new Error("A batch is required");
+  const topic = String(formData.get("topic") ?? "").trim();
+  if (!topic) throw new Error("A topic is required");
+  const count = Math.min(20, Math.max(1, Number(formData.get("count") ?? 5) || 5));
+  const marksEach = Math.max(1, Number(formData.get("marks_each") ?? 1) || 1);
+  const level = String(formData.get("level") ?? "FSc");
+
+  const { data: batch } = await supabase.from("batches").select("subject_id").eq("id", batchId).single();
+
+  const prompt = `Create a ${count}-question multiple-choice quiz for ${level} students on the topic: "${topic}".
+Each question has exactly 4 options labelled a,b,c,d and one correct option.
+Respond ONLY with JSON: {"title":"<short quiz title>","questions":[{"prompt":"<question>","options":[{"id":"a","text":"..."},{"id":"b","text":"..."},{"id":"c","text":"..."},{"id":"d","text":"..."}],"correct":"a"}]}`;
+
+  const text = await chatComplete(
+    "You are an expert exam author. Respond with valid JSON only.",
+    [{ role: "user", content: prompt }],
+    { maxTokens: 3000 },
+  );
+  const parsed = JSON.parse(text.slice(text.indexOf("{"), text.lastIndexOf("}") + 1));
+  const questions: { prompt: string; options: QuizQuestionOption[]; correct: string }[] = parsed.questions ?? [];
+  if (questions.length === 0) throw new Error("AI did not return questions. Try again.");
+
+  const { data: quiz, error } = await supabase
+    .from("quizzes")
+    .insert({
+      batch_id: batchId,
+      teacher_id: profile.id,
+      subject_id: batch?.subject_id ?? null,
+      title: String(parsed.title ?? topic).slice(0, 120),
+      description: `AI-generated quiz on ${topic}`,
+      passing_score: 50,
+      attempt_limit: 1,
+      grading_mode: "manual",
+      total_marks: questions.length * marksEach,
+    })
+    .select("id")
+    .single();
+  if (error || !quiz) throw new Error(error?.message ?? "Failed to create quiz");
+
+  await supabase.from("quiz_questions").insert(
+    questions.map((q, i) => ({
+      quiz_id: quiz.id,
+      question_type: "mcq",
+      prompt: q.prompt,
+      options: q.options,
+      correct_answer: q.correct,
+      marks: marksEach,
+      position: i,
+    })),
+  );
+
+  revalidatePath("/dashboard/teacher/quizzes");
+  return quiz.id as string;
+}
+
 export async function addQuestion(formData: FormData) {
   await requireTeacher();
   const supabase = await createClient();

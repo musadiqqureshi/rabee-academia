@@ -3,6 +3,7 @@ import { ClipboardList, Calendar, Users, ArrowRight } from "lucide-react";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import CreateAssignmentForm from "./CreateAssignmentForm";
+import AIAssignmentForm from "./AIAssignmentForm";
 
 export const dynamic = "force-dynamic";
 
@@ -48,7 +49,10 @@ export default async function TeacherAssignmentsPage() {
         <p className="text-sm text-muted-foreground mt-1">Create assignments and review student submissions.</p>
       </div>
 
-      <CreateAssignmentForm batches={batchOptions} />
+      <div className="flex flex-wrap items-start gap-3">
+        <CreateAssignmentForm batches={batchOptions} />
+        <AIAssignmentForm batches={batchOptions} />
+      </div>
 
       {assignments && assignments.length > 0 ? (
         <div className="grid gap-3">

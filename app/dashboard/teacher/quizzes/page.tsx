@@ -3,6 +3,7 @@ import { ListChecks, ArrowRight, CheckCircle2, CircleDashed } from "lucide-react
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import CreateQuizForm from "./CreateQuizForm";
+import AIQuizForm from "./AIQuizForm";
 
 export const dynamic = "force-dynamic";
 
@@ -31,7 +32,10 @@ export default async function TeacherQuizzesPage() {
         <p className="text-sm text-muted-foreground mt-1">Build quizzes, set marking, and review attempts.</p>
       </div>
 
-      <CreateQuizForm batches={batchOptions} />
+      <div className="flex flex-wrap items-start gap-3">
+        <CreateQuizForm batches={batchOptions} />
+        <AIQuizForm batches={batchOptions} />
+      </div>
 
       {quizzes && quizzes.length > 0 ? (
         <div className="grid gap-3">
