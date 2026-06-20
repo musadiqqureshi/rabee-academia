@@ -6,7 +6,7 @@ import AddTeacherForm from "./AddTeacherForm";
 export const dynamic = "force-dynamic";
 
 export default async function SuperAdminTeachers() {
-  await requireRole("super_admin");
+  await requireRole("admin");
   const supabase = await createClient();
 
   const { data: teachers } = await supabase

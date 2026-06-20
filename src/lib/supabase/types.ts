@@ -1,17 +1,16 @@
 // Application-level enums and shared types for Rabee Academia.
 
+// 'super_admin' is deprecated — all its powers now belong to 'admin'. It is kept
+// in the union only for DB/enum compatibility; the app treats it as admin and
+// routes it to the admin portal.
 export type UserRole = "super_admin" | "admin" | "teacher" | "student";
 
-export const USER_ROLES: UserRole[] = [
-  "super_admin",
-  "admin",
-  "teacher",
-  "student",
-];
+// Roles offered in the UI (super_admin intentionally excluded).
+export const USER_ROLES: UserRole[] = ["admin", "teacher", "student"];
 
 // Maps each role to its dashboard landing route.
 export const ROLE_HOME: Record<UserRole, string> = {
-  super_admin: "/dashboard/super-admin",
+  super_admin: "/dashboard/admin",
   admin: "/dashboard/admin",
   teacher: "/dashboard/teacher",
   student: "/dashboard/student",

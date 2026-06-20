@@ -42,6 +42,8 @@ export async function getProfile(): Promise<Profile | null> {
 export async function requireRole(role: UserRole): Promise<Profile> {
   const profile = await getProfile();
   if (!profile) redirect("/login");
-  if (profile.role !== role) redirect(ROLE_HOME[profile.role]);
+  // 'super_admin' is treated as 'admin' (deprecated role merged into admin).
+  const effective: UserRole = profile.role === "super_admin" ? "admin" : profile.role;
+  if (effective !== role) redirect(ROLE_HOME[effective]);
   return profile;
 }

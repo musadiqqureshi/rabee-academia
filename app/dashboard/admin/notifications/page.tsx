@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import SendNotificationForm from "./SendNotificationForm";
 
 export default async function SuperAdminNotifications() {
-  await requireRole("super_admin");
+  await requireRole("admin");
   const supabase = await createClient();
 
   const { data: notifications } = await supabase

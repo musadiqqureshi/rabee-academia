@@ -10,7 +10,7 @@ function slugify(s: string) {
 
 export async function createSubject(formData: FormData) {
   const profile = await getProfile();
-  if (!profile || profile.role !== "super_admin") throw new Error("Not authorized");
+  if (!profile || !["admin","super_admin"].includes(profile.role)) throw new Error("Not authorized");
   const supabase = await createClient();
 
   const name = String(formData.get("name") ?? "").trim();
@@ -29,5 +29,5 @@ export async function createSubject(formData: FormData) {
   });
   if (error) throw new Error(error.message);
 
-  revalidatePath("/dashboard/super-admin/subjects");
+  revalidatePath("/dashboard/admin/subjects");
 }

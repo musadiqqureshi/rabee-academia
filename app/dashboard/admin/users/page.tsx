@@ -11,7 +11,7 @@ const roleStyle: Record<string, string> = {
 };
 
 export default async function SuperAdminUsers() {
-  await requireRole("super_admin");
+  await requireRole("admin");
   const supabase = await createClient();
 
   const { data: users } = await supabase

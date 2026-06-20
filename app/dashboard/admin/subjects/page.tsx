@@ -6,7 +6,7 @@ import AddSubjectForm from "./AddSubjectForm";
 export const dynamic = "force-dynamic";
 
 export default async function SuperAdminSubjects() {
-  await requireRole("super_admin");
+  await requireRole("admin");
   const supabase = await createClient();
 
   const { data: subjects } = await supabase

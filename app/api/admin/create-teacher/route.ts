@@ -6,7 +6,7 @@ import { getProfile } from "@/lib/auth";
 // role key to create the auth user (not possible with the anon client).
 export async function POST(req: Request) {
   const caller = await getProfile();
-  if (!caller || caller.role !== "super_admin") {
+  if (!caller || !["admin", "super_admin"].includes(caller.role)) {
     return NextResponse.json({ error: "Not authorized" }, { status: 403 });
   }
 

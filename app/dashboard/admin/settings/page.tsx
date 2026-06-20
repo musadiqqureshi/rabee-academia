@@ -2,7 +2,7 @@ import { Settings, Server, Globe, Clock } from "lucide-react";
 import { requireRole } from "@/lib/auth";
 
 export default async function SuperAdminSettings() {
-  await requireRole("super_admin");
+  await requireRole("admin");
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
   const maskedUrl = supabaseUrl

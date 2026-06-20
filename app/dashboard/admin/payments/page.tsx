@@ -10,7 +10,7 @@ const statusStyle: Record<string, string> = {
 };
 
 export default async function SuperAdminPayments() {
-  await requireRole("super_admin");
+  await requireRole("admin");
   const supabase = await createClient();
 
   const { data: payments } = await supabase
