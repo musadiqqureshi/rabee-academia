@@ -1,80 +1,61 @@
-import { CalendarDays, ExternalLink } from "lucide-react";
+import { CalendarDays, Sparkles } from "lucide-react";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
+import { setBatchSchedule, generateScheduleWithAI } from "./actions";
 
-const DAYS = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
+export const dynamic = "force-dynamic";
 
 export default async function AdminSchedules() {
   await requireRole("admin");
   const supabase = await createClient();
 
-  const { data: schedules } = await supabase
-    .from("schedules")
-    .select(`
-      id, day_of_week, start_time, end_time, meet_link,
-      batches (
-        class_type,
-        subjects ( name ),
-        profiles ( full_name )
-      )
-    `);
-
-  const sorted = [...(schedules ?? [])].sort(
-    (a, b) => DAYS.indexOf(a.day_of_week) - DAYS.indexOf(b.day_of_week)
-  );
+  const { data: batches } = await supabase
+    .from("batches")
+    .select("id, class_type, schedule_text, subjects:subject_id ( name ), profiles:teacher_id ( full_name )")
+    .eq("is_active", true);
 
   return (
     <div>
-      <h1 className="text-2xl font-bold">Schedules</h1>
-      <p className="text-sm text-muted-foreground mt-1">All class timetables across batches</p>
+      <div className="flex items-start justify-between gap-3 flex-wrap">
+        <div>
+          <h1 className="text-2xl font-bold">Schedules</h1>
+          <p className="text-sm text-muted-foreground mt-1">Set class timings per batch, or let AI propose a clash-free schedule.</p>
+        </div>
+        <form action={generateScheduleWithAI}>
+          <button className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-primary/40 text-primary text-sm font-semibold hover:bg-primary/5">
+            <Sparkles className="w-4 h-4" /> Generate with AI
+          </button>
+        </form>
+      </div>
 
-      {sorted.length === 0 ? (
+      {(!batches || batches.length === 0) ? (
         <div className="mt-8 bg-card border border-card-border rounded-xl p-10 text-center">
           <CalendarDays className="w-10 h-10 text-muted-foreground mx-auto mb-3" />
-          <p className="font-medium text-lg">No schedules yet</p>
-          <p className="text-sm text-muted-foreground mt-1">Schedules are created when batches are set up.</p>
+          <p className="font-medium text-lg">No batches yet</p>
+          <p className="text-sm text-muted-foreground mt-1">Batches are created automatically when you approve enrollments.</p>
         </div>
       ) : (
-        <div className="mt-6 bg-card border border-card-border rounded-xl overflow-hidden">
-          <table className="w-full text-sm">
-            <thead className="border-b border-border bg-muted/30">
-              <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Day</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Time</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Subject</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Teacher</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Type</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Meet Link</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border">
-              {sorted.map((s) => {
-                const batch = s.batches as unknown as {
-                  class_type: string | null;
-                  subjects: { name: string } | null;
-                  profiles: { full_name: string | null } | null;
-                } | null;
-                return (
-                  <tr key={s.id} className="hover:bg-muted/20 transition-colors">
-                    <td className="px-4 py-3 font-medium">{s.day_of_week}</td>
-                    <td className="px-4 py-3 font-mono text-muted-foreground">{s.start_time} – {s.end_time}</td>
-                    <td className="px-4 py-3">{batch?.subjects?.name ?? "—"}</td>
-                    <td className="px-4 py-3 text-muted-foreground">{batch?.profiles?.full_name ?? "—"}</td>
-                    <td className="px-4 py-3 capitalize text-muted-foreground">{batch?.class_type?.replace("_", " ") ?? "—"}</td>
-                    <td className="px-4 py-3">
-                      {s.meet_link ? (
-                        <a href={s.meet_link} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-primary hover:underline text-xs">
-                          <ExternalLink className="w-3 h-3" /> Open
-                        </a>
-                      ) : (
-                        <span className="text-xs text-muted-foreground italic">Not set</span>
-                      )}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+        <div className="mt-6 space-y-3">
+          {batches.map((b) => {
+            const subject = b.subjects as unknown as { name: string } | null;
+            const teacher = b.profiles as unknown as { full_name: string | null } | null;
+            return (
+              <div key={b.id} className="rounded-2xl border border-card-border bg-card shadow-sm p-4">
+                <div className="flex items-center justify-between gap-3 mb-3 flex-wrap">
+                  <div>
+                    <p className="font-semibold">{subject?.name ?? "Subject"}</p>
+                    <p className="text-xs text-muted-foreground capitalize">{b.class_type} · {teacher?.full_name ?? "Unassigned"}</p>
+                  </div>
+                </div>
+                <form action={setBatchSchedule} className="flex flex-wrap items-center gap-2">
+                  <input type="hidden" name="batch_id" value={b.id} />
+                  <input name="schedule_text" defaultValue={b.schedule_text ?? ""} placeholder="e.g. Mon, Wed, Fri · 5:00–6:00 PM"
+                    className="flex-1 min-w-[240px] rounded-lg border border-input bg-background px-3 py-2 text-sm" />
+                  <button className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90">Save</button>
+                </form>
+              </div>
+            );
+          })}
         </div>
       )}
     </div>
