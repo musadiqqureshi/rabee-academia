@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getProfile } from "@/lib/auth";
+import { chatComplete, aiConfigured } from "@/lib/ai";
 import type { QuizQuestionOption } from "@/lib/supabase/types";
 
 async function requireTeacher() {
@@ -129,8 +130,7 @@ export async function aiGradeAttempt(formData: FormData) {
   const quizId = String(formData.get("quiz_id") ?? "");
   const attemptId = String(formData.get("attempt_id") ?? "");
 
-  const apiKey = process.env.ANTHROPIC_API_KEY;
-  if (!apiKey) throw new Error("AI marking is not configured (missing ANTHROPIC_API_KEY).");
+  if (!aiConfigured()) throw new Error("AI marking is not configured. Set AI_BASE_URL + AI_API_KEY (OpenRouter/NVIDIA) or ANTHROPIC_API_KEY.");
 
   const { data: attempt } = await supabase
     .from("quiz_attempts").select("id, answers").eq("id", attemptId).single();
@@ -162,22 +162,11 @@ export async function aiGradeAttempt(formData: FormData) {
   if (subjective.length > 0) {
     const prompt = `You are grading a student quiz. For each question, award an integer score between 0 and its max marks, and give one short feedback sentence. Respond ONLY with JSON: {"items":[{"id":"<id>","score":<int>,"feedback":"<text>"}],"summary":"<one sentence>"}.\n\nQuestions:\n${JSON.stringify(subjective, null, 2)}`;
 
-    const res = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: {
-        "content-type": "application/json",
-        "x-api-key": apiKey,
-        "anthropic-version": "2023-06-01",
-      },
-      body: JSON.stringify({
-        model: "claude-haiku-4-5",
-        max_tokens: 1024,
-        messages: [{ role: "user", content: prompt }],
-      }),
-    });
-    if (!res.ok) throw new Error(`AI marking failed (${res.status})`);
-    const json = await res.json();
-    const text: string = json?.content?.[0]?.text ?? "{}";
+    const text = await chatComplete(
+      "You are a precise exam grader. Always respond with valid JSON only.",
+      [{ role: "user", content: prompt }],
+      { maxTokens: 2000 },
+    );
     const parsed = JSON.parse(text.slice(text.indexOf("{"), text.lastIndexOf("}") + 1));
     for (const item of parsed.items ?? []) {
       const q = subjective.find((s) => s.id === item.id);
