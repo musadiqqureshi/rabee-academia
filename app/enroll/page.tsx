@@ -77,6 +77,19 @@ function EnrollContent() {
     );
   }
 
+  if (course.comingSoon) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center text-center px-4">
+        <EnforceTheme mode="site" />
+        <div>
+          <p className="text-lg font-semibold mb-1">{course.name} — Coming Soon</p>
+          <p className="text-sm text-muted-foreground mb-3">This launching offer isn&apos;t open for enrollment yet. Stay tuned!</p>
+          <Link href="/pricing" className="text-primary underline text-sm">Browse other courses</Link>
+        </div>
+      </div>
+    );
+  }
+
   if (!authChecked) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">

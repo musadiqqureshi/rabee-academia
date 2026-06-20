@@ -70,6 +70,11 @@ export default function SubjectsSection() {
                   <span className="absolute top-3.5 left-3.5 px-2.5 py-1 rounded-md bg-white/20 backdrop-blur-sm text-white text-xs font-semibold tracking-wide">
                     {course.level}
                   </span>
+                  {course.badge && (
+                    <span className="absolute top-3.5 right-3.5 px-2.5 py-1 rounded-full bg-amber-400 text-amber-950 text-[10px] font-extrabold tracking-wide shadow">
+                      {course.badge}
+                    </span>
+                  )}
                   <div className="relative z-10">
                     <div className="w-20 h-20 rounded-2xl bg-white/10 backdrop-blur-sm flex items-center justify-center border border-white/15 shadow-lg">
                       <Icon className="w-10 h-10 text-white drop-shadow-lg" strokeWidth={1.4} />
@@ -84,13 +89,21 @@ export default function SubjectsSection() {
                     {course.lessons} lessons · Live + recorded
                   </p>
                   <div className="flex items-center justify-between">
-                    <p className="text-xs text-muted-foreground">Regular &amp; weekend options</p>
-                    <Link
-                      href={`/pricing?subject=${course.slug}`}
-                      className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-foreground text-background text-xs font-semibold hover:bg-foreground/90 transition-colors group-hover:gap-2.5"
-                    >
-                      Enroll <ArrowRight className="w-3.5 h-3.5 transition-all" />
-                    </Link>
+                    <p className="text-xs text-muted-foreground">
+                      {course.free ? "Free — limited seats" : "Regular & weekend options"}
+                    </p>
+                    {course.comingSoon ? (
+                      <span className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-muted text-muted-foreground text-xs font-semibold cursor-default">
+                        Coming Soon
+                      </span>
+                    ) : (
+                      <Link
+                        href={`/pricing?subject=${course.slug}`}
+                        className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-foreground text-background text-xs font-semibold hover:bg-foreground/90 transition-colors group-hover:gap-2.5"
+                      >
+                        Enroll <ArrowRight className="w-3.5 h-3.5 transition-all" />
+                      </Link>
+                    )}
                   </div>
                 </div>
               </motion.div>

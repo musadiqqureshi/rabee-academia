@@ -159,6 +159,11 @@ function PricingContent() {
                   <span className="absolute top-3 left-3 px-2 py-0.5 rounded-md bg-white/20 text-white text-[10px] font-semibold">
                     {course.level}
                   </span>
+                  {course.badge && (
+                    <span className="absolute top-3 right-3 px-2 py-0.5 rounded-full bg-amber-400 text-amber-950 text-[10px] font-extrabold shadow">
+                      {course.badge}
+                    </span>
+                  )}
                 </div>
 
                 <div className="p-5 flex flex-col flex-1">
@@ -178,19 +183,25 @@ function PricingContent() {
                     <div className="flex items-end justify-between mb-3">
                       <div>
                         <p className="text-xs text-muted-foreground mb-0.5">
-                          {classType === "regular" ? "Weekdays" : "Sat & Sun"}
+                          {course.free ? "Launching offer" : classType === "regular" ? "Weekdays" : "Sat & Sun"}
                         </p>
-                        <p className="text-xl font-extrabold text-foreground">{formatPrice(price)}</p>
-                        <p className="text-[10px] text-muted-foreground">per subject / month</p>
+                        <p className="text-xl font-extrabold text-foreground">{course.free ? "Free" : formatPrice(price)}</p>
+                        <p className="text-[10px] text-muted-foreground">{course.free ? "limited seats" : "per subject / month"}</p>
                       </div>
                     </div>
 
-                    <Link
-                      href={`/enroll?subject=${course.slug}&type=${classType}`}
-                      className="w-full inline-flex items-center justify-center gap-2 py-2.5 rounded-lg bg-gradient-to-r from-primary to-accent text-white text-xs font-bold hover:opacity-90 transition-opacity shadow-[0_0_16px_rgba(99,102,241,0.25)]"
-                    >
-                      Enroll Now <ArrowRight className="w-3.5 h-3.5" />
-                    </Link>
+                    {course.comingSoon ? (
+                      <span className="w-full inline-flex items-center justify-center gap-2 py-2.5 rounded-lg bg-muted text-muted-foreground text-xs font-bold cursor-default">
+                        Coming Soon
+                      </span>
+                    ) : (
+                      <Link
+                        href={`/enroll?subject=${course.slug}&type=${classType}`}
+                        className="w-full inline-flex items-center justify-center gap-2 py-2.5 rounded-lg bg-gradient-to-r from-primary to-accent text-white text-xs font-bold hover:opacity-90 transition-opacity shadow-[0_0_16px_rgba(99,102,241,0.25)]"
+                      >
+                        Enroll Now <ArrowRight className="w-3.5 h-3.5" />
+                      </Link>
+                    )}
                   </div>
                 </div>
               </motion.div>

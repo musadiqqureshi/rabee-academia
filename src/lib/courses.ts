@@ -1,6 +1,6 @@
 import {
   Atom, FlaskConical, Calculator, Monitor, Dna,
-  Telescope, Sigma, Microscope, BookOpen, Cpu,
+  Telescope, Sigma, Microscope, BookOpen, Cpu, Sparkles,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -15,9 +15,27 @@ export interface Course {
   gradient: string;
   features: string[];
   description: string;
+  comingSoon?: boolean;   // shown but not yet enrollable
+  free?: boolean;
+  badge?: string;         // e.g. "Launching Offer · Free"
 }
 
 export const courses: Course[] = [
+  {
+    slug: "ai-mastery",
+    level: "Special",
+    name: "AI Mastery Course",
+    lessons: 24,
+    regularPrice: 0,
+    weekendPrice: 0,
+    icon: Sparkles,
+    gradient: "from-fuchsia-600 via-purple-600 to-indigo-600",
+    description: "Master practical AI — tools, prompt engineering and automation for studies and work. Launching offer: free for early enrollees.",
+    features: ["Hands-on AI projects", "Prompt engineering", "AI for studies & productivity", "Certificate of completion"],
+    comingSoon: true,
+    free: true,
+    badge: "Launching Offer · Free",
+  },
   {
     slug: "fsc-physics",
     level: "FSc Level",
