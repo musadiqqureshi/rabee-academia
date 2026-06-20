@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getProfile } from "@/lib/auth";
+import { notifyUser } from "@/lib/notify";
 
 async function requireStaff() {
   const profile = await getProfile();
@@ -27,6 +28,19 @@ export async function scheduleDemo(formData: FormData) {
       status: "scheduled",
     })
     .eq("id", id);
+
+  // Notify a registered requester (in-app + email).
+  const { data: demo } = await supabase
+    .from("demo_requests").select("requester_id, meet_link, scheduled_at").eq("id", id).maybeSingle();
+  if (demo?.requester_id) {
+    const when = demo.scheduled_at ? new Date(demo.scheduled_at).toLocaleString() : "soon";
+    await notifyUser(
+      supabase as never,
+      demo.requester_id,
+      "Your demo class is scheduled",
+      `Your free demo class is scheduled for ${when}. Join link: ${demo.meet_link ?? "will be shared shortly"}.`,
+    );
+  }
 
   revalidatePath("/dashboard/admin/demos");
 }

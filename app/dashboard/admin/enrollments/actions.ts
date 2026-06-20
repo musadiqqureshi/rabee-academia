@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getProfile } from "@/lib/auth";
+import { notifyUser } from "@/lib/notify";
 
 async function requireStaff() {
   const profile = await getProfile();
@@ -29,6 +30,22 @@ export async function approveEnrollment(formData: FormData) {
   if (batchId) update.batch_id = batchId;
 
   await supabase.from("enrollments").update(update).eq("id", id);
+
+  // Notify the student (in-app + email).
+  const { data: enr } = await supabase
+    .from("enrollments")
+    .select("student_id, subjects:subject_id ( name )")
+    .eq("id", id)
+    .maybeSingle();
+  if (enr?.student_id) {
+    const subjectName = (enr.subjects as unknown as { name: string } | null)?.name ?? "your course";
+    await notifyUser(
+      supabase as never,
+      enr.student_id,
+      "Enrollment approved 🎉",
+      `Your enrollment for ${subjectName} has been approved. You can now access your classes in the portal.`,
+    );
+  }
 
   // Confirm the linked payment + invoice.
   await supabase
