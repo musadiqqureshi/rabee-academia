@@ -17,17 +17,34 @@ export default async function AdminStudents() {
   await requireRole("admin");
   const supabase = await createClient();
 
-  const { data: students } = await supabase
+  // Split queries — embedding enrollments on profiles is ambiguous (multiple
+  // FKs: student_id, approved_by, teacher_id) and would null out the result.
+  const { data: studentRows } = await supabase
     .from("profiles")
-    .select(`
-      id, full_name, email, phone, created_at,
-      enrollments (
-        id, status, class_type,
-        subjects:subject_id ( name )
-      )
-    `)
+    .select("id, full_name, email, phone, created_at")
     .eq("role", "student")
     .order("created_at", { ascending: false });
+
+  const { data: enrollRows } = await supabase
+    .from("enrollments")
+    .select("id, status, class_type, student_id, subjects:subject_id ( name ), teacher:teacher_id ( full_name )")
+    .order("created_at", { ascending: false });
+
+  const enrByStudent = new Map<string, {
+    id: string; status: string; class_type: string | null;
+    subjects: { name: string } | null; teacher: { full_name: string | null } | null;
+  }[]>();
+  for (const e of enrollRows ?? []) {
+    const list = enrByStudent.get(e.student_id) ?? [];
+    list.push({
+      id: e.id, status: e.status, class_type: e.class_type,
+      subjects: e.subjects as unknown as { name: string } | null,
+      teacher: e.teacher as unknown as { full_name: string | null } | null,
+    });
+    enrByStudent.set(e.student_id, list);
+  }
+
+  const students = (studentRows ?? []).map((s) => ({ ...s, enrollments: enrByStudent.get(s.id) ?? [] }));
 
   return (
     <div>
@@ -46,12 +63,7 @@ export default async function AdminStudents() {
       ) : (
         <div className="mt-6 space-y-4">
           {students.map((s) => {
-            const enrollments = s.enrollments as unknown as {
-              id: string;
-              status: string;
-              class_type: string | null;
-              subjects: { name: string } | null;
-            }[];
+            const enrollments = s.enrollments;
             const activeEnrollments = (enrollments ?? []).filter(
               (e) => e.status === "approved"
             );
@@ -87,6 +99,9 @@ export default async function AdminStudents() {
                             <p className="text-xs text-muted-foreground capitalize hidden sm:block">
                               {e.class_type?.replace("_", " ") ?? ""}
                             </p>
+                            {e.teacher?.full_name && (
+                              <p className="text-xs text-muted-foreground hidden md:block">· {e.teacher.full_name}</p>
+                            )}
                           </div>
                           {e.status === "approved" && (
                             <form action={revokeEnrollment}>

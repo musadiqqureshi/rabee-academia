@@ -2,6 +2,7 @@ import { UserCog } from "lucide-react";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import AddTeacherForm from "./AddTeacherForm";
+import TeacherSubjectsEditor from "./TeacherSubjectsEditor";
 
 export const dynamic = "force-dynamic";
 
@@ -15,18 +16,15 @@ export default async function SuperAdminTeachers() {
     .eq("role", "teacher")
     .order("created_at", { ascending: false });
 
-  const teacherIds = teachers?.map((t) => t.id) ?? [];
+  const { data: subjects } = await supabase.from("subjects").select("id, name").eq("is_active", true).order("name");
+  const subjectOpts = (subjects ?? []).map((s) => ({ id: s.id, name: s.name }));
 
-  const { data: batches } = await supabase
-    .from("batches")
-    .select("teacher_id")
-    .in("teacher_id", teacherIds.length > 0 ? teacherIds : ["00000000-0000-0000-0000-000000000000"]);
-
-  const batchCountByTeacher = new Map<string, number>();
-  for (const b of batches ?? []) {
-    if (b.teacher_id) {
-      batchCountByTeacher.set(b.teacher_id, (batchCountByTeacher.get(b.teacher_id) ?? 0) + 1);
-    }
+  const { data: ts } = await supabase.from("teacher_subjects").select("teacher_id, subject_id");
+  const subjectsByTeacher = new Map<string, string[]>();
+  for (const row of ts ?? []) {
+    const list = subjectsByTeacher.get(row.teacher_id) ?? [];
+    list.push(row.subject_id);
+    subjectsByTeacher.set(row.teacher_id, list);
   }
 
   return (
@@ -55,7 +53,7 @@ export default async function SuperAdminTeachers() {
                 <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Name</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Email</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Phone</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Batches</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Subjects (auto-allot)</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Joined</th>
               </tr>
             </thead>
@@ -65,7 +63,9 @@ export default async function SuperAdminTeachers() {
                   <td className="px-4 py-3 font-medium">{t.full_name ?? "—"}</td>
                   <td className="px-4 py-3 text-muted-foreground">{t.email ?? "—"}</td>
                   <td className="px-4 py-3 text-muted-foreground">{t.phone ?? "—"}</td>
-                  <td className="px-4 py-3">{batchCountByTeacher.get(t.id) ?? 0}</td>
+                  <td className="px-4 py-3">
+                    <TeacherSubjectsEditor teacherId={t.id} subjects={subjectOpts} selected={subjectsByTeacher.get(t.id) ?? []} />
+                  </td>
                   <td className="px-4 py-3 text-muted-foreground text-xs">
                     {new Date(t.created_at).toLocaleDateString()}
                   </td>
