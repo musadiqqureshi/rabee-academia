@@ -58,7 +58,7 @@ export default async function TeacherStudents() {
               {enrollments.map((e) => {
                 const student = e.profiles as unknown as { full_name: string | null; email: string | null } | null;
                 const batch = batchMap.get(e.batch_id);
-                const subject = batch?.subjects as unknown as unknown as { name: string } | null;
+                const subject = batch?.subjects as unknown as { name: string } | null;
                 return (
                   <tr key={e.id} className="hover:bg-muted/20 transition-colors">
                     <td className="px-4 py-3 font-medium">{student?.full_name ?? "—"}</td>

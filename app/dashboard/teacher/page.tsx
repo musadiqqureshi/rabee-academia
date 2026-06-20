@@ -73,7 +73,7 @@ export default async function TeacherOverview() {
           <h2 className="text-lg font-semibold mb-3">My Assigned Subjects</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
             {activeBatches.map((b) => {
-              const subject = b.subjects as { name: string } | null;
+              const subject = b.subjects as unknown as { name: string } | null;
               const studentCount = (enrollments ?? []).filter(
                 (e) => /* enrollment is in this batch */ batchIds.includes(b.id)
               ).length;
@@ -118,7 +118,7 @@ export default async function TeacherOverview() {
               </thead>
               <tbody className="divide-y divide-border">
                 {enrollments.slice(0, 5).map((e) => {
-                  const subject = e.subjects as { name: string } | null;
+                  const subject = e.subjects as unknown as { name: string } | null;
                   return (
                     <tr key={e.id} className="hover:bg-muted/20">
                       <td className="px-4 py-3 font-medium">{e.student_name ?? "—"}</td>
@@ -147,7 +147,7 @@ export default async function TeacherOverview() {
               </thead>
               <tbody className="divide-y divide-border">
                 {pendingEnrollments.map((e) => {
-                  const subject = e.subjects as { name: string } | null;
+                  const subject = e.subjects as unknown as { name: string } | null;
                   return (
                     <tr key={e.id} className="hover:bg-muted/20">
                       <td className="px-4 py-3">

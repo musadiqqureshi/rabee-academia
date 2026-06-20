@@ -76,7 +76,7 @@ export default async function AdminStudents() {
                 {enrollments && enrollments.length > 0 ? (
                   <div className="divide-y divide-border/40">
                     {enrollments.map((e) => {
-                      const subject = e.subjects as { name: string } | null;
+                      const subject = e.subjects as unknown as { name: string } | null;
                       return (
                         <div key={e.id} className="px-5 py-3 flex items-center justify-between gap-3">
                           <div className="flex items-center gap-3 min-w-0">

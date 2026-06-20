@@ -23,7 +23,7 @@ function mapMaterial(m: {
   created_at: string;
   batches: unknown;
 } & Record<string, unknown>): Material {
-  const batch = m.batches as { subjects: { name: string } | null } | null;
+  const batch = m.batches as unknown as { subjects: { name: string } | null } | null;
   return {
     id: m.id,
     title: m.title,

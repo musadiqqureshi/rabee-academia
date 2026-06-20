@@ -72,7 +72,7 @@ export default async function StudentOverview() {
           <h2 className="text-lg font-semibold mb-3">My Subjects</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
             {approvedEnrollments.map((e) => {
-              const subject = e.subjects as { name: string } | null;
+              const subject = e.subjects as unknown as { name: string } | null;
               return (
                 <div key={e.id} className="bg-card border border-card-border rounded-xl px-4 py-3 flex items-center gap-3">
                   <div className="w-8 h-8 rounded-lg bg-primary/15 flex items-center justify-center text-primary shrink-0">

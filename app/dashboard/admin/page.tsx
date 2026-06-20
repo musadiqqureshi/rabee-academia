@@ -51,7 +51,7 @@ export default async function AdminOverview() {
   const batchesByTeacher = new Map<string, { name: string }[]>();
   for (const b of batchesData ?? []) {
     const list = batchesByTeacher.get(b.teacher_id) ?? [];
-    const subj = b.subjects as { name: string } | null;
+    const subj = b.subjects as unknown as { name: string } | null;
     if (subj) list.push(subj);
     batchesByTeacher.set(b.teacher_id, list);
   }
@@ -92,7 +92,7 @@ export default async function AdminOverview() {
                 </thead>
                 <tbody className="divide-y divide-border">
                   {pendingEnrollments.map((e) => {
-                    const subject = e.subjects as { name: string } | null;
+                    const subject = e.subjects as unknown as { name: string } | null;
                     return (
                       <tr key={e.id} className="hover:bg-muted/20">
                         <td className="px-4 py-3">

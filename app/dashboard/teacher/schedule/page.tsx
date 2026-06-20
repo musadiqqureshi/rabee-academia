@@ -30,7 +30,7 @@ export default async function TeacherSchedule() {
 
   const entries: Entry[] = [];
   for (const b of batches ?? []) {
-    const subject = b.subjects as unknown as unknown as { name: string } | null;
+    const subject = b.subjects as unknown as { name: string } | null;
     const enrollments = b.enrollments as { id: string }[] | null;
     for (const s of (b.schedules as { id: string; day_of_week: string; start_time: string; end_time: string }[] | null) ?? []) {
       entries.push({

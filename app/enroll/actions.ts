@@ -105,7 +105,7 @@ export async function submitEnrollment(formData: FormData): Promise<EnrollResult
     status: "pending",
     payment_method: payMethod,
     receipt_url: receiptPath,
-  }).then(() => null).catch(() => null);
+  }).then(() => null, () => null);
 
   // Invoice — non-fatal if the table doesn't exist yet.
   await supabase.from("invoices").insert({
@@ -117,7 +117,7 @@ export async function submitEnrollment(formData: FormData): Promise<EnrollResult
     amount_pkr: amount,
     status: "issued",
     due_date: new Date(Date.now() + 3 * 86400000).toISOString().slice(0, 10),
-  }).then(() => null).catch(() => null);
+  }).then(() => null, () => null);
 
   revalidatePath("/dashboard/student");
   revalidatePath("/dashboard/admin/enrollments");
