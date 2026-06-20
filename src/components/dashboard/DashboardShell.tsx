@@ -7,6 +7,7 @@ import { Atom, LogOut, Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import EnforceTheme from "@/components/EnforceTheme";
+import NotificationBell from "@/components/dashboard/NotificationBell";
 
 export interface NavItem {
   label: string;
@@ -115,12 +116,15 @@ export default function DashboardShell({
               <p className="text-sm font-semibold leading-tight">{userName}</p>
             </div>
           </div>
-          <Link
-            href="/"
-            className="text-sm text-muted-foreground hover:text-foreground"
-          >
-            View site
-          </Link>
+          <div className="flex items-center gap-2">
+            <NotificationBell />
+            <Link
+              href="/"
+              className="text-sm text-muted-foreground hover:text-foreground"
+            >
+              View site
+            </Link>
+          </div>
         </header>
 
         <main className="flex-1 p-4 lg:p-8">{children}</main>
