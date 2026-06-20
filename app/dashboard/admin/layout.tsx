@@ -1,6 +1,6 @@
 import {
   Users, UserCheck, BookOpen, Video, ClipboardCheck, CalendarDays, BarChart3,
-  ClipboardList, Receipt, Network, GraduationCap,
+  ClipboardList, Receipt, Network, GraduationCap, TrendingUp,
 } from "lucide-react";
 import { requireRole } from "@/lib/auth";
 import DashboardShell, { type NavItem } from "@/components/dashboard/DashboardShell";
@@ -8,6 +8,7 @@ import type { ReactNode } from "react";
 
 const navItems: NavItem[] = [
   { label: "Overview",     icon: <BarChart3 className="w-4 h-4" />,      href: "" },
+  { label: "Analytics",    icon: <TrendingUp className="w-4 h-4" />,     href: "/analytics" },
   { label: "Enrollments",  icon: <UserCheck className="w-4 h-4" />,      href: "/enrollments" },
   { label: "Demo Requests", icon: <GraduationCap className="w-4 h-4" />, href: "/demos" },
   { label: "Students",     icon: <Users className="w-4 h-4" />,          href: "/students" },
