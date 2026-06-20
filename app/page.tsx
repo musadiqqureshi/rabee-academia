@@ -6,7 +6,23 @@ import HeroSection from "@/components/HeroSection";
 import StatsSection from "@/components/StatsSection";
 import PartnersMarquee from "@/components/PartnersMarquee";
 import AISection from "@/components/AISection";
+import AIMasterySection from "@/components/AIMasterySection";
 import SubjectsSection from "@/components/SubjectsSection";
+import { createClient } from "@/lib/supabase/server";
+
+async function getMasterySeats(): Promise<number> {
+  try {
+    const supabase = await createClient();
+    const { data: subj } = await supabase.from("subjects").select("id").eq("slug", "ai-mastery").maybeSingle();
+    if (!subj) return 0;
+    const { count } = await supabase
+      .from("enrollments").select("id", { count: "exact", head: true })
+      .eq("subject_id", subj.id).in("status", ["pending", "approved"]);
+    return count ?? 0;
+  } catch {
+    return 0;
+  }
+}
 import LeadershipSection from "@/components/LeadershipSection";
 import CountriesSection from "@/components/CountriesSection";
 import ReviewsMarquee from "@/components/ReviewsMarquee";
@@ -14,7 +30,8 @@ import HowItWorksSection from "@/components/HowItWorksSection";
 import CTASection from "@/components/CTASection";
 import Footer from "@/components/Footer";
 
-export default function HomePage() {
+export default async function HomePage() {
+  const masterySeats = await getMasterySeats();
   return (
     <div className="min-h-screen text-foreground overflow-x-hidden">
       <EnforceTheme mode="site" />
@@ -40,6 +57,7 @@ export default function HomePage() {
       </div>
 
       <AISection />
+      <AIMasterySection seatsTaken={masterySeats} />
       <SubjectsSection />
       <LeadershipSection />
       <CountriesSection />

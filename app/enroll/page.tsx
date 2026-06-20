@@ -133,6 +133,15 @@ function EnrollContent() {
     setStep("success");
   }
 
+  async function handleFreeSubmit() {
+    setLoading(true);
+    setError(null);
+    const res = await submitEnrollment(buildFormData("iban"));
+    setLoading(false);
+    if (!res.ok) { setError(res.error ?? "Something went wrong."); return; }
+    setStep("success");
+  }
+
   async function handleBankSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!receipt) { setError("Please upload your payment screenshot."); return; }
@@ -226,7 +235,22 @@ function EnrollContent() {
           )}
 
           {/* Step 3: Payment */}
-          {step === "payment" && (
+          {step === "payment" && course.free && (
+            <motion.div key="free" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.2 }}>
+              <button onClick={() => setStep("details")} className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-6"><ArrowLeft className="w-4 h-4" /> Back</button>
+              <div className="bg-card border border-border rounded-2xl p-6 text-center">
+                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-fuchsia-500 to-purple-600 text-white grid place-items-center mx-auto mb-4"><CheckCircle2 className="w-7 h-7" /></div>
+                <h1 className="text-2xl font-extrabold mb-1">Reserve your free seat</h1>
+                <p className="text-muted-foreground text-sm mb-6">{course.name} — no payment required. Confirm to reserve your spot (limited seats).</p>
+                {error && <p className="text-sm text-destructive mb-3">{error}</p>}
+                <Button onClick={handleFreeSubmit} disabled={loading} className="w-full font-bold">
+                  {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />} Confirm Free Enrollment
+                </Button>
+              </div>
+            </motion.div>
+          )}
+
+          {step === "payment" && !course.free && (
             <motion.div key="payment" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.2 }}>
               <button onClick={() => { setPayMethod(null); setStep("details"); }} className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-6"><ArrowLeft className="w-4 h-4" /> Back</button>
               <h1 className="text-2xl font-extrabold mb-2">Choose Payment Method</h1>

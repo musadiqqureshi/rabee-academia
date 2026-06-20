@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getProfile } from "@/lib/auth";
+import { getCourse } from "@/lib/courses";
 
 export interface EnrollResult {
   ok: boolean;
@@ -54,8 +55,23 @@ export async function submitEnrollment(formData: FormData): Promise<EnrollResult
   const payMethod = String(formData.get("pay_method") ?? "iban") as "assanpay" | "iban";
   const amount = Number(formData.get("amount") ?? 0) || 0;
 
+  const catalog = getCourse(course.slug);
+  const isFree = Boolean(catalog?.free);
+
   const subjectId = await resolveSubjectId(supabase, course);
   if (!subjectId) return { ok: false, error: "Could not resolve the selected course." };
+
+  // Seat limit (e.g. AI Mastery — 30 seats).
+  if (catalog?.seatLimit) {
+    const { count } = await supabase
+      .from("enrollments")
+      .select("id", { count: "exact", head: true })
+      .eq("subject_id", subjectId)
+      .in("status", ["pending", "approved"]);
+    if ((count ?? 0) >= catalog.seatLimit) {
+      return { ok: false, error: "Sorry, all seats for this course are full." };
+    }
+  }
 
   // Prevent duplicate enrolment in the same subject.
   const { data: dupe } = await supabase
@@ -72,7 +88,7 @@ export async function submitEnrollment(formData: FormData): Promise<EnrollResult
       student_name: String(formData.get("full_name") ?? profile.full_name ?? ""),
       student_email: String(formData.get("email") ?? profile.email ?? ""),
       student_phone: String(formData.get("phone") ?? ""),
-      payment_method: payMethod,
+      payment_method: isFree ? null : payMethod,
     })
     .select("id")
     .single();
@@ -93,6 +109,13 @@ export async function submitEnrollment(formData: FormData): Promise<EnrollResult
     } else {
       await supabase.from("enrollments").update({ receipt_url: receiptPath }).eq("id", enrollment.id);
     }
+  }
+
+  // Free courses skip payment + invoice entirely.
+  if (isFree) {
+    revalidatePath("/dashboard/student");
+    revalidatePath("/dashboard/admin/enrollments");
+    return { ok: true, enrollmentId: enrollment.id };
   }
 
   // Payment record — non-fatal if the table doesn't exist yet.

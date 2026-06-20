@@ -18,6 +18,10 @@ export interface Course {
   comingSoon?: boolean;   // shown but not yet enrollable
   free?: boolean;
   badge?: string;         // e.g. "Launching Offer · Free"
+  special?: boolean;      // highlighted special-offer card
+  seatLimit?: number;     // max enrolments (e.g. 30)
+  duration?: string;      // e.g. "1 week"
+  schedule?: string;      // e.g. "Weekends"
 }
 
 export const courses: Course[] = [
@@ -30,11 +34,14 @@ export const courses: Course[] = [
     weekendPrice: 0,
     icon: Sparkles,
     gradient: "from-fuchsia-600 via-purple-600 to-indigo-600",
-    description: "Master practical AI — tools, prompt engineering and automation for studies and work. Launching offer: free for early enrollees.",
-    features: ["Hands-on AI projects", "Prompt engineering", "AI for studies & productivity", "Certificate of completion"],
-    comingSoon: true,
+    description: "A 1-week intensive on practical AI — tools, prompt engineering and automation for studies and work. Free launching offer, weekends only, limited to 30 seats.",
+    features: ["1-week intensive (weekends)", "Hands-on AI projects", "Prompt engineering", "Certificate of completion"],
     free: true,
-    badge: "Launching Offer · Free",
+    special: true,
+    seatLimit: 30,
+    duration: "1 week",
+    schedule: "Weekends",
+    badge: "Free · 30 seats only",
   },
   {
     slug: "fsc-physics",
