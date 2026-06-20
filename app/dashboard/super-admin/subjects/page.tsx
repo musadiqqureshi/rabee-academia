@@ -1,6 +1,9 @@
 import { BookOpen } from "lucide-react";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
+import AddSubjectForm from "./AddSubjectForm";
+
+export const dynamic = "force-dynamic";
 
 export default async function SuperAdminSubjects() {
   await requireRole("super_admin");
@@ -18,13 +21,7 @@ export default async function SuperAdminSubjects() {
           <h1 className="text-2xl font-bold">Subjects</h1>
           <p className="text-sm text-muted-foreground mt-1">Subject catalogue</p>
         </div>
-        <button
-          disabled
-          className="px-4 py-2 rounded-lg bg-gradient-to-r from-primary to-accent text-white text-sm font-semibold opacity-50 cursor-not-allowed"
-          title="Coming soon"
-        >
-          Add Subject
-        </button>
+        <AddSubjectForm />
       </div>
 
       {(!subjects || subjects.length === 0) ? (
