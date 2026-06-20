@@ -56,8 +56,8 @@ export default async function HomePage() {
         <PartnersMarquee />
       </div>
 
-      <AISection />
       <AIMasterySection seatsTaken={masterySeats} />
+      <AISection />
       <SubjectsSection />
       <LeadershipSection />
       <CountriesSection />

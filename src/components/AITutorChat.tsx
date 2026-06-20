@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import { Send, Sparkles, Loader2, GraduationCap } from "lucide-react";
+import Markdown from "@/components/Markdown";
 
 interface Msg { role: "user" | "assistant"; content: string }
 
@@ -52,7 +53,7 @@ export default function AITutorChat() {
       <div className="flex items-center gap-2 px-5 py-3 border-b border-border bg-gradient-to-r from-primary/10 to-accent/10">
         <div className="w-8 h-8 rounded-lg bg-primary/15 text-primary grid place-items-center"><Sparkles className="w-4 h-4" /></div>
         <div>
-          <p className="font-semibold text-sm leading-tight">AI Study Assistant</p>
+          <p className="font-semibold text-sm leading-tight">Rabee's AI</p>
           <p className="text-xs text-muted-foreground">Subject help · homework · exam prep</p>
         </div>
       </div>
@@ -78,9 +79,9 @@ export default function AITutorChat() {
 
         {messages.map((m, i) => (
           <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
-            <div className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-sm whitespace-pre-wrap leading-relaxed ${
-              m.role === "user" ? "bg-primary text-primary-foreground" : "bg-muted text-foreground"}`}>
-              {m.content}
+            <div className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed ${
+              m.role === "user" ? "bg-primary text-primary-foreground whitespace-pre-wrap" : "bg-muted text-foreground"}`}>
+              {m.role === "user" ? m.content : <Markdown content={m.content} />}
             </div>
           </div>
         ))}

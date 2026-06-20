@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import EnforceTheme from "@/components/EnforceTheme";
 import NotificationBell from "@/components/dashboard/NotificationBell";
+import AnimatedBackground from "@/components/AnimatedBackground";
+import ThemeToggle from "@/components/ThemeToggle";
 
 export interface NavItem {
   label: string;
@@ -34,16 +36,17 @@ export default function DashboardShell({
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-background text-foreground flex">
-      <EnforceTheme mode="light" />
+    <div className="min-h-screen text-foreground flex relative">
+      <EnforceTheme mode="site" />
+      <AnimatedBackground />
       {/* Sidebar */}
       <aside
-        className={`fixed inset-y-0 left-0 z-40 w-64 bg-sidebar border-r border-sidebar-border flex flex-col transition-transform lg:static lg:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-40 w-64 bg-sidebar/95 backdrop-blur-xl border-r border-sidebar-border flex flex-col transition-transform lg:static lg:translate-x-0 ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
-        <div className="h-16 flex items-center gap-2 px-5 border-b border-sidebar-border">
-          <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary">
+        <div className="h-16 flex items-center gap-2 px-5 border-b border-sidebar-border bg-gradient-to-r from-primary/10 to-accent/10">
+          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white shadow-md">
             <Atom className="w-4 h-4" />
           </div>
           <span className="font-bold text-sm">Rabee Academia</span>
@@ -61,10 +64,10 @@ export default function DashboardShell({
                 key={item.label}
                 href={fullHref}
                 onClick={() => setSidebarOpen(false)}
-                className={`w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
                   isActive
-                    ? "bg-sidebar-primary/15 text-sidebar-primary"
-                    : "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground"
+                    ? "bg-gradient-to-r from-primary to-accent text-white shadow-[0_4px_14px_rgba(37,99,235,0.35)]"
+                    : "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground hover:translate-x-0.5"
                 }`}
               >
                 <span className="w-4 h-4 shrink-0 flex items-center justify-center">{item.icon}</span>
@@ -117,6 +120,7 @@ export default function DashboardShell({
             </div>
           </div>
           <div className="flex items-center gap-2">
+            <ThemeToggle />
             <NotificationBell />
             <Link
               href="/"

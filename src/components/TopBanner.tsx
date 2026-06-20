@@ -11,8 +11,13 @@ const items = [
   },
   {
     icon: <Zap className="w-3 h-3 shrink-0 text-yellow-300" />,
-    text: "⚡ AI Mastery Course — Exciting announcement coming very soon. Stay tuned!",
+    text: "🚀 NEW: AI Mastery Course launched — FREE 2-week intensive, weekends, starts July 2026. Only 30 seats!",
     highlight: true,
+  },
+  {
+    icon: <Sparkles className="w-3 h-3 shrink-0 opacity-90" />,
+    text: "🎉 Limited offer: 20% OFF your first subject enrollment",
+    highlight: false,
   },
 ];
 

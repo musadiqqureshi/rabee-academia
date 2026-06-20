@@ -37,12 +37,23 @@ export default async function AdminClasses() {
                     <p className="font-semibold">{subject?.name ?? "Subject"}</p>
                     <p className="text-xs text-muted-foreground capitalize">{b.class_type} · {teacher?.full_name ?? "Unassigned"}</p>
                   </div>
-                  {b.meet_link && (
-                    <a href={b.meet_link} target="_blank" rel="noopener noreferrer"
-                       className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline">
-                      <ExternalLink className="w-4 h-4" /> Open
-                    </a>
-                  )}
+                  <div className="flex items-center gap-2">
+                    {b.meet_link ? (
+                      <>
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-xs font-medium">
+                          Link set by {teacher?.full_name ?? "teacher"}
+                        </span>
+                        <a href={b.meet_link} target="_blank" rel="noopener noreferrer"
+                           className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline">
+                          <ExternalLink className="w-4 h-4" /> Join &amp; check
+                        </a>
+                      </>
+                    ) : (
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-xs font-medium">
+                        No link yet
+                      </span>
+                    )}
+                  </div>
                 </div>
                 <form action={setBatchMeetLink} className="flex flex-wrap items-center gap-2">
                   <input type="hidden" name="batch_id" value={b.id} />

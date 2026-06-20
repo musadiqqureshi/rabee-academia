@@ -30,7 +30,7 @@ export async function chatComplete(
 
   // --- OpenAI-compatible (OpenRouter / NVIDIA NIM) ---
   if (baseUrl && apiKey) {
-    const model = process.env.AI_MODEL ?? "nex-agi/nex-n2-pro:free";
+    const model = process.env.AI_MODEL ?? "cohere/north-mini-code:free";
     const res = await fetch(`${baseUrl.replace(/\/$/, "")}/chat/completions`, {
       method: "POST",
       headers: {

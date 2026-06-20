@@ -78,6 +78,14 @@ export async function submitEnrollment(formData: FormData): Promise<EnrollResult
     .from("enrollments").select("id").eq("student_id", profile.id).eq("subject_id", subjectId).maybeSingle();
   if (dupe) return { ok: false, error: "You are already enrolled in this course." };
 
+  // 20% discount on the student's first-ever enrolment (paid courses only).
+  let finalAmount = amount;
+  if (!isFree) {
+    const { count: priorCount } = await supabase
+      .from("enrollments").select("id", { count: "exact", head: true }).eq("student_id", profile.id);
+    if ((priorCount ?? 0) === 0) finalAmount = Math.round(amount * 0.8);
+  }
+
   const { data: enrollment, error: enrollErr } = await supabase
     .from("enrollments")
     .insert({
@@ -123,7 +131,7 @@ export async function submitEnrollment(formData: FormData): Promise<EnrollResult
   await supabase.from("payments").insert({
     enrollment_id: enrollment.id,
     student_id: profile.id,
-    amount_pkr: amount,
+    amount_pkr: finalAmount,
     month_year: monthYear,
     status: "pending",
     payment_method: payMethod,
@@ -136,8 +144,8 @@ export async function submitEnrollment(formData: FormData): Promise<EnrollResult
     enrollment_id: enrollment.id,
     subject_id: subjectId,
     category: "registration",
-    description: `${course.name} — ${classType} classes`,
-    amount_pkr: amount,
+    description: `${course.name} — ${classType} classes${finalAmount < amount ? " (20% first-enrolment discount)" : ""}`,
+    amount_pkr: finalAmount,
     status: "issued",
     due_date: new Date(Date.now() + 3 * 86400000).toISOString().slice(0, 10),
   }).then(() => null, () => null);

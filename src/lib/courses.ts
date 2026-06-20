@@ -20,8 +20,9 @@ export interface Course {
   badge?: string;         // e.g. "Launching Offer · Free"
   special?: boolean;      // highlighted special-offer card
   seatLimit?: number;     // max enrolments (e.g. 30)
-  duration?: string;      // e.g. "1 week"
+  duration?: string;      // e.g. "2 weeks"
   schedule?: string;      // e.g. "Weekends"
+  startDate?: string;     // e.g. "July 2026"
 }
 
 export const courses: Course[] = [
@@ -34,13 +35,14 @@ export const courses: Course[] = [
     weekendPrice: 0,
     icon: Sparkles,
     gradient: "from-fuchsia-600 via-purple-600 to-indigo-600",
-    description: "A 1-week intensive on practical AI — tools, prompt engineering and automation for studies and work. Free launching offer, weekends only, limited to 30 seats.",
-    features: ["1-week intensive (weekends)", "Hands-on AI projects", "Prompt engineering", "Certificate of completion"],
+    description: "A 2-week intensive on practical AI — tools, prompt engineering and automation for studies and work. Free launching offer, weekends only, limited to 30 seats. Starts July 2026.",
+    features: ["2-week intensive (weekends)", "Starts July 2026", "Hands-on AI projects", "Prompt engineering", "Certificate of completion"],
     free: true,
     special: true,
     seatLimit: 30,
-    duration: "1 week",
-    schedule: "Weekends",
+    duration: "2 weeks",
+    schedule: "Weekends · Starts July 2026",
+    startDate: "July 2026",
     badge: "Free · 30 seats only",
   },
   {
