@@ -12,7 +12,7 @@ export default async function StudentSubjects() {
   // Keep this query simple so a fragile nested join can never blank the page.
   const { data: enrollments } = await supabase
     .from("enrollments")
-    .select("id, status, class_type, created_at, batch_id, subjects:subject_id ( name, level )")
+    .select("id, status, class_type, created_at, batch_id, meet_link, subjects:subject_id ( name, level )")
     .eq("student_id", profile.id)
     .eq("status", "approved")
     .order("created_at", { ascending: false });
@@ -51,6 +51,8 @@ export default async function StudentSubjects() {
             const subject = e.subjects as unknown as { name: string; level: string } | null;
             const info = e.batch_id ? batchInfo.get(e.batch_id) : undefined;
             const teacher = info?.teacher ?? "To be assigned";
+            // Prefer the student's personal 1:1 link; fall back to the group/batch link.
+            const joinLink = e.meet_link ?? info?.meet_link ?? null;
 
             return (
               <div key={e.id} className="bg-card border border-card-border rounded-xl p-5 flex flex-col gap-3">
@@ -83,8 +85,8 @@ export default async function StudentSubjects() {
                   <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700">
                     Active
                   </span>
-                  {info?.meet_link ? (
-                    <a href={info.meet_link} target="_blank" rel="noopener noreferrer"
+                  {joinLink ? (
+                    <a href={joinLink} target="_blank" rel="noopener noreferrer"
                        className="inline-flex items-center gap-1 text-xs text-primary hover:underline">
                       <Video className="w-3.5 h-3.5" /> Join class
                     </a>
