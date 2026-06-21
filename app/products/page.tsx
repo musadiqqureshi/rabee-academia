@@ -1,9 +1,10 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { FileText, Sparkles, ArrowRight, ClipboardCheck, BookOpen, StickyNote, CalendarDays, ListChecks } from "lucide-react";
+import { FileText, Sparkles, ArrowRight, ClipboardCheck, BookOpen, StickyNote, CalendarDays, ListChecks, Wand2, GraduationCap } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import EnforceTheme from "@/components/EnforceTheme";
+import { ENROL_PERK_TEXT } from "@/components/ai/EnrolPerk";
 
 const TOOLS = [
   { href: "/products/paper-maker", name: "Rabee's AI Paper Maker", desc: "Generate professional exam papers with a complete answer key. Print or save as PDF.", icon: FileText, gradient: "from-fuchsia-600 via-purple-600 to-indigo-600", who: "Teachers" },
@@ -12,6 +13,7 @@ const TOOLS = [
   { href: "/products/notes", name: "Rabee's AI Notes & Flashcards", desc: "Turn any chapter into crisp notes, key formulas and revision flashcards.", icon: StickyNote, gradient: "from-fuchsia-600 to-purple-600", who: "Students" },
   { href: "/products/planner", name: "Rabee's AI Study Planner", desc: "A day-by-day, exam-ready revision schedule built around your weak areas.", icon: CalendarDays, gradient: "from-orange-500 to-amber-600", who: "Students" },
   { href: "/products/quiz", name: "Rabee's AI Quiz Maker", desc: "Paste your notes and get an instant self-test with scoring and explanations.", icon: ListChecks, gradient: "from-rose-500 to-red-600", who: "Students" },
+  { href: "/products/humanizer", name: "Rabee's AI Humanizer", desc: "Rewrite AI-generated text to read naturally and human. Free up to 2,000 words/day.", icon: Wand2, gradient: "from-violet-600 to-fuchsia-600", who: "Everyone" },
 ];
 
 export const metadata: Metadata = {
@@ -33,7 +35,10 @@ export default function ProductsPage() {
             <span className="px-1.5 py-0.5 rounded-full bg-amber-400/20 text-amber-600 text-[10px] font-bold uppercase tracking-wide border border-amber-400/30">Beta</span>
           </div>
           <h1 className="text-3xl md:text-5xl font-extrabold mb-3">AI tools for teachers &amp; students</h1>
-          <p className="text-muted-foreground text-sm md:text-base">Smart, time-saving tools powered by Rabee&apos;s AI. Free to try — one paper every day.</p>
+          <p className="text-muted-foreground text-sm md:text-base">Smart, time-saving tools powered by Rabee&apos;s AI. Free to try every day.</p>
+          <div className="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-full border border-emerald-500/25 bg-emerald-500/10 text-xs font-semibold text-emerald-700 dark:text-emerald-400">
+            <GraduationCap className="w-4 h-4" /> {ENROL_PERK_TEXT}
+          </div>
         </div>
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">

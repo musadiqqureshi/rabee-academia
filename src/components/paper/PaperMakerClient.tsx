@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { FileText, Loader2, Printer, Sparkles, Crown, X, ChevronDown, ChevronUp } from "lucide-react";
 import Markdown from "@/components/Markdown";
+import EnrolPerk from "@/components/ai/EnrolPerk";
 
 const input = "w-full rounded-lg border border-input bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring/40";
 const labelCls = "block text-xs font-medium text-muted-foreground mb-1.5";
@@ -82,6 +83,7 @@ export default function PaperMakerClient() {
             <div className="w-8 h-8 rounded-lg bg-primary/15 text-primary grid place-items-center"><FileText className="w-4 h-4" /></div>
             <p className="font-semibold text-sm">Paper details</p>
           </div>
+          <EnrolPerk />
 
           <div><label className={labelCls}>Subject *</label><input required className={input} value={spec.subject} onChange={(e) => set("subject", e.target.value)} placeholder="Physics" /></div>
           <div className="grid grid-cols-2 gap-3">

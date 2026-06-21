@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Loader2, Sparkles, CheckCircle2, XCircle, RotateCcw } from "lucide-react";
 import UpgradeModal from "@/components/ai/UpgradeModal";
+import EnrolPerk from "@/components/ai/EnrolPerk";
 
 interface Q { q: string; options: string[]; answer: number; explanation: string }
 
@@ -45,6 +46,7 @@ export default function QuizFromNotesClient() {
     <>
       <div className="grid lg:grid-cols-[360px_1fr] gap-6">
         <form onSubmit={generate} className="bg-card border border-border rounded-2xl p-5 space-y-3 h-fit lg:sticky lg:top-24">
+          <EnrolPerk />
           <div><label className="block text-xs font-medium text-muted-foreground mb-1.5">Subject</label><input className={inputCls} value={subject} onChange={(e) => setSubject(e.target.value)} placeholder="Biology" /></div>
           <div><label className="block text-xs font-medium text-muted-foreground mb-1.5"># Questions</label><input type="number" min={3} max={20} className={inputCls} value={count} onChange={(e) => setCount(e.target.value)} /></div>
           <div><label className="block text-xs font-medium text-muted-foreground mb-1.5">Your notes / topic *</label><textarea required className={`${inputCls} min-h-[160px]`} value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Paste a chapter, your notes, or a topic to be tested on…" /></div>

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Loader2, Printer, Sparkles } from "lucide-react";
 import Markdown from "@/components/Markdown";
 import UpgradeModal from "@/components/ai/UpgradeModal";
+import EnrolPerk from "@/components/ai/EnrolPerk";
 
 export interface ToolField {
   name: string;
@@ -64,6 +65,7 @@ export default function AiToolClient({
 
       <div className="grid lg:grid-cols-[360px_1fr] gap-6">
         <form onSubmit={submit} className="no-print bg-card border border-border rounded-2xl p-5 space-y-3 h-fit lg:sticky lg:top-24">
+          <EnrolPerk />
           {fields.map((f) => (
             <div key={f.name}>
               <label className="block text-xs font-medium text-muted-foreground mb-1.5">{f.label}{f.required && " *"}</label>
