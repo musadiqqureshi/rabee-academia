@@ -32,7 +32,10 @@ export default function PaperMakerPage() {
         <div className="no-print mb-6 flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-fuchsia-600 to-indigo-600 text-white grid place-items-center"><FileText className="w-5 h-5" /></div>
           <div>
-            <h1 className="text-2xl font-extrabold leading-tight">Rabee&apos;s AI Paper Maker</h1>
+            <h1 className="text-2xl font-extrabold leading-tight flex items-center gap-2">
+              Rabee&apos;s AI Paper Maker
+              <span className="px-1.5 py-0.5 rounded-full bg-amber-400/20 text-amber-600 text-[10px] font-bold uppercase tracking-wide border border-amber-400/30">Beta</span>
+            </h1>
             <p className="text-sm text-muted-foreground">Generate an exam paper with answer key — free once a day.</p>
           </div>
         </div>

@@ -30,6 +30,7 @@ export default function ProductsPage() {
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 mb-4">
             <Sparkles className="w-3.5 h-3.5 text-primary" />
             <span className="text-xs font-medium text-foreground/80">Rabee&apos;s AI Products</span>
+            <span className="px-1.5 py-0.5 rounded-full bg-amber-400/20 text-amber-600 text-[10px] font-bold uppercase tracking-wide border border-amber-400/30">Beta</span>
           </div>
           <h1 className="text-3xl md:text-5xl font-extrabold mb-3">AI tools for teachers &amp; students</h1>
           <p className="text-muted-foreground text-sm md:text-base">Smart, time-saving tools powered by Rabee&apos;s AI. Free to try — one paper every day.</p>
@@ -43,6 +44,7 @@ export default function ProductsPage() {
                 <div className={`h-24 bg-gradient-to-br ${t.gradient} flex items-center justify-center relative`}>
                   <div className="w-12 h-12 rounded-xl bg-white/15 backdrop-blur-sm grid place-items-center border border-white/20"><Icon className="w-6 h-6 text-white" /></div>
                   <span className="absolute top-2.5 right-2.5 px-2 py-0.5 rounded-full bg-white/20 text-white text-[10px] font-bold">{t.who}</span>
+                  <span className="absolute top-2.5 left-2.5 px-2 py-0.5 rounded-full bg-amber-400 text-amber-950 text-[10px] font-extrabold uppercase tracking-wide">Beta</span>
                 </div>
                 <div className="p-5 flex flex-col flex-1">
                   <h2 className="font-bold mb-1">{t.name}</h2>

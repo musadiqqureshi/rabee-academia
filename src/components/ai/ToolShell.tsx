@@ -37,7 +37,10 @@ export default function ToolShell({
           <div className="flex items-center gap-3">
             <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${gradient} text-white grid place-items-center`}>{icon}</div>
             <div>
-              <h1 className="text-2xl font-extrabold leading-tight">{title}</h1>
+              <h1 className="text-2xl font-extrabold leading-tight flex items-center gap-2">
+                {title}
+                <span className="px-1.5 py-0.5 rounded-full bg-amber-400/20 text-amber-600 text-[10px] font-bold uppercase tracking-wide border border-amber-400/30">Beta</span>
+              </h1>
               <p className="text-sm text-muted-foreground">{subtitle}</p>
             </div>
           </div>
