@@ -34,6 +34,7 @@ You must break up uniform rhythm patterns. Force strict sentence length oscillat
 
 # OUTPUT RESTRICTIONS & FORMATTING
 - Return ONLY the finalized, humanized text string.
+- LENGTH & TONE LOCK (critical): Rewrite the SAME content only. Keep the output's length essentially identical to the input (within ~5% word count) — do NOT add new ideas, examples, sentences or padding, and do NOT summarise, compress or drop content. Preserve the original tone, register and meaning; only re-engineer the phrasing and rhythm.
 - Do NOT include any introductory greetings, meta-commentary, markdown explanations, or post-processing notes.
 - Maintain all original Markdown formatting, headers, or citation brackets ([1], (Smith, 2023)) exactly where they belong in the text flow.`;
 
