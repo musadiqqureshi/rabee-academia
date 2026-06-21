@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Loader2, FileText } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import EnforceTheme from "@/components/EnforceTheme";
+import AnimatedBackground from "@/components/AnimatedBackground";
 import { createClient } from "@/lib/supabase/client";
 import PaperMakerClient from "@/components/paper/PaperMakerClient";
 
@@ -24,8 +25,9 @@ export default function PaperMakerPage() {
   }, [router]);
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="min-h-screen text-foreground relative">
       <EnforceTheme mode="site" />
+      <div className="no-print"><AnimatedBackground /></div>
       <div className="no-print"><Navbar /></div>
 
       <div className="pt-24 pb-16 container mx-auto px-4 md:px-6">

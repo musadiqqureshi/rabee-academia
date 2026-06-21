@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { Crown, Loader2, Building2, Upload, Copy, CheckCircle2, Clock, ArrowLeft } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import EnforceTheme from "@/components/EnforceTheme";
+import AnimatedBackground from "@/components/AnimatedBackground";
 import { createClient } from "@/lib/supabase/client";
 import { submitProRequest } from "./actions";
 
@@ -65,8 +66,9 @@ export default function ProPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="min-h-screen text-foreground relative">
       <EnforceTheme mode="site" />
+      <AnimatedBackground />
       <Navbar />
       <div className="pt-28 pb-20 container mx-auto px-4 md:px-6 max-w-xl">
         <Link href="/products/paper-maker" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-6"><ArrowLeft className="w-4 h-4" /> Back to Paper Maker</Link>

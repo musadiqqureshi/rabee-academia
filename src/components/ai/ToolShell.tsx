@@ -6,6 +6,7 @@ import Link from "next/link";
 import { Loader2, ArrowLeft, ShieldCheck } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import EnforceTheme from "@/components/EnforceTheme";
+import AnimatedBackground from "@/components/AnimatedBackground";
 import { createClient } from "@/lib/supabase/client";
 
 // Auth-gated shell shared by every Rabee's AI tool page.
@@ -27,8 +28,9 @@ export default function ToolShell({
   }, [router, pathname]);
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="min-h-screen text-foreground relative">
       <EnforceTheme mode="site" />
+      <div className="no-print"><AnimatedBackground /></div>
       <div className="no-print"><Navbar /></div>
 
       <div className="pt-24 pb-16 container mx-auto px-4 md:px-6">

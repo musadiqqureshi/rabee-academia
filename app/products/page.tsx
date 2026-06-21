@@ -4,6 +4,7 @@ import { FileText, Sparkles, ArrowRight, ClipboardCheck, BookOpen, StickyNote, C
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import EnforceTheme from "@/components/EnforceTheme";
+import AnimatedBackground from "@/components/AnimatedBackground";
 import { ENROL_PERK_TEXT } from "@/components/ai/EnrolPerk";
 
 const TOOLS = [
@@ -22,8 +23,9 @@ export const metadata: Metadata = {
 
 export default function ProductsPage() {
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="min-h-screen text-foreground relative">
       <EnforceTheme mode="site" />
+      <AnimatedBackground />
       <Navbar />
 
       <div className="pt-28 pb-20 container mx-auto px-4 md:px-6">
