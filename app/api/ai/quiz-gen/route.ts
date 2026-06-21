@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { chatComplete } from "@/lib/ai";
-import { guardTool, TOOL_MODEL } from "@/lib/aiTool";
+import { guardTool, TOOL_MODELS } from "@/lib/aiTool";
 
 const SYSTEM = `You are "Rabee's AI Quiz Maker". Generate a multiple-choice self-test from the student's notes.
 Return ONLY valid JSON — no markdown, no code fences, no commentary — exactly this shape:
@@ -49,7 +49,7 @@ export async function POST(req: Request) {
   const user = `Create ${n} multiple-choice questions.\n${i.subject ? `Subject: ${i.subject}\n` : ""}${i.grade ? `Level: ${i.grade}\n` : ""}Notes / topic:\n${notes}`;
 
   try {
-    const raw = await chatComplete(SYSTEM, [{ role: "user", content: user }], { maxTokens: 3000, model: TOOL_MODEL });
+    const raw = await chatComplete(SYSTEM, [{ role: "user", content: user }], { maxTokens: 3000, models: TOOL_MODELS });
     const questions = sanitize(extractJson(raw)?.questions);
     if (!questions.length) {
       return NextResponse.json({ error: "Couldn't build a quiz from that. Try pasting more/clearer notes." }, { status: 502 });

@@ -3,10 +3,23 @@ import { getProfile } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { aiConfigured, chatComplete } from "@/lib/ai";
 
-// Model used by all Rabee's AI tools (Paper Maker, Essay Grader, Lesson Plan,
-// Notes, Planner, Quiz). Independent of the dashboard's AI_MODEL — set
-// AI_TOOLS_MODEL to override without code changes.
-export const TOOL_MODEL = process.env.AI_TOOLS_MODEL ?? "meta-llama/llama-3.3-70b-instruct:free";
+// Models used by all Rabee's AI tools (Paper Maker, Essay Grader, Lesson Plan,
+// Notes, Planner, Quiz). Independent of the dashboard's AI_MODEL.
+// AI_TOOLS_MODEL may be a comma-separated list — they're tried in order, so if
+// the first (free) model is rate-limited (429) we fall back to the next.
+const DEFAULT_TOOL_MODELS = [
+  "meta-llama/llama-3.3-70b-instruct:free",
+  "google/gemini-2.0-flash-exp:free",
+  "qwen/qwen-2.5-72b-instruct:free",
+  "mistralai/mistral-nemo:free",
+];
+
+export const TOOL_MODELS = (process.env.AI_TOOLS_MODEL
+  ? process.env.AI_TOOLS_MODEL.split(",").map((s) => s.trim()).filter(Boolean)
+  : DEFAULT_TOOL_MODELS);
+
+// First choice (kept for any single-model callers).
+export const TOOL_MODEL = TOOL_MODELS[0];
 
 type GuardResult = { error: NextResponse } | { ok: true; pro: boolean };
 
@@ -45,7 +58,7 @@ export async function guardTool(tool: string, dailyLimit = 1): Promise<GuardResu
 // tools). Keeps each route to just a prompt + field parsing.
 export async function generateMarkdown(pro: boolean, system: string, user: string, maxTokens = 2500) {
   try {
-    const text = await chatComplete(system, [{ role: "user", content: user }], { maxTokens, model: TOOL_MODEL });
+    const text = await chatComplete(system, [{ role: "user", content: user }], { maxTokens, models: TOOL_MODELS });
     return NextResponse.json({ text, pro });
   } catch (e) {
     return NextResponse.json({ error: e instanceof Error ? e.message : "Generation failed. Please try again." }, { status: 502 });

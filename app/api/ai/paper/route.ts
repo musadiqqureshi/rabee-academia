@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getProfile } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { chatComplete, aiConfigured } from "@/lib/ai";
-import { TOOL_MODEL } from "@/lib/aiTool";
+import { TOOL_MODELS } from "@/lib/aiTool";
 
 // "Rabee's AI Paper Maker" — generates an exam paper + answer key. We render
 // with KaTeX + browser print (not a LaTeX toolchain), so the model returns
@@ -98,7 +98,7 @@ export async function POST(req: Request) {
   }
 
   try {
-    const raw = await chatComplete(SYSTEM, [{ role: "user", content: specToPrompt(spec) }], { maxTokens: 4000, model: TOOL_MODEL });
+    const raw = await chatComplete(SYSTEM, [{ role: "user", content: specToPrompt(spec) }], { maxTokens: 4000, models: TOOL_MODELS });
     // Split the two delimited blocks; tolerate a missing key block.
     const paperIdx = raw.indexOf("<<<PAPER>>>");
     const keyIdx = raw.indexOf("<<<KEY>>>");

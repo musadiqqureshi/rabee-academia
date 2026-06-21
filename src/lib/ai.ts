@@ -22,45 +22,63 @@ export function aiConfigured(): boolean {
 export async function chatComplete(
   system: string,
   messages: ChatMessage[],
-  opts: { maxTokens?: number; model?: string } = {},
+  opts: { maxTokens?: number; model?: string; models?: string[] } = {},
 ): Promise<string> {
   const maxTokens = opts.maxTokens ?? 2000;
   const baseUrl = process.env.AI_BASE_URL;
   const apiKey = process.env.AI_API_KEY;
+  const anthropicKey = process.env.ANTHROPIC_API_KEY;
 
   // --- OpenAI-compatible (OpenRouter / NVIDIA NIM) ---
   if (baseUrl && apiKey) {
-    // Per-call model wins (each AI tool can pick its own), then env, then default.
-    const model = opts.model ?? process.env.AI_MODEL ?? "cohere/north-mini-code:free";
-    const res = await fetch(`${baseUrl.replace(/\/$/, "")}/chat/completions`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
-        // OpenRouter attribution headers (ignored by NVIDIA).
-        "HTTP-Referer": "https://rabeeacademia.site",
-        "X-Title": "Rabee Academia",
-      },
-      body: JSON.stringify({
-        model,
-        max_tokens: maxTokens,
-        messages: [{ role: "system", content: system }, ...messages],
-      }),
-    });
-    if (!res.ok) {
-      const t = await res.text();
-      throw new Error(`AI provider error (${res.status}): ${t.slice(0, 160)}`);
+    // Try each candidate model in order; on a failure (e.g. 429 rate-limit,
+    // or an empty reply) fall back to the next one. Per-call list wins, then a
+    // single per-call model, then the env model, then a default.
+    const candidates =
+      opts.models?.length
+        ? opts.models
+        : [opts.model ?? process.env.AI_MODEL ?? "cohere/north-mini-code:free"];
+
+    let lastErr = "";
+    for (const model of candidates) {
+      try {
+        const res = await fetch(`${baseUrl.replace(/\/$/, "")}/chat/completions`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${apiKey}`,
+            // OpenRouter attribution headers (ignored by NVIDIA).
+            "HTTP-Referer": "https://rabeeacademia.site",
+            "X-Title": "Rabee Academia",
+          },
+          body: JSON.stringify({
+            model,
+            max_tokens: maxTokens,
+            messages: [{ role: "system", content: system }, ...messages],
+          }),
+        });
+        if (!res.ok) {
+          const t = await res.text();
+          lastErr = `AI provider error (${res.status}): ${t.slice(0, 160)}`;
+          continue; // try the next model
+        }
+        const json = await res.json();
+        const msg = json?.choices?.[0]?.message ?? {};
+        // Some reasoning models put the answer in `content`; fall back to `reasoning`.
+        const text: string = msg.content || msg.reasoning || "";
+        if (text) return text.trim();
+        lastErr = "AI returned an empty response.";
+      } catch (e) {
+        lastErr = e instanceof Error ? e.message : "AI request failed.";
+      }
     }
-    const json = await res.json();
-    const msg = json?.choices?.[0]?.message ?? {};
-    // Some reasoning models put the answer in `content`; fall back to `reasoning`.
-    const text: string = msg.content || msg.reasoning || "";
-    if (!text) throw new Error("AI returned an empty response. Try a higher token budget or another model.");
-    return text.trim();
+    // Every candidate failed. Fall through to Anthropic if available, else throw.
+    if (!anthropicKey) {
+      throw new Error(lastErr || "All AI models are busy right now. Please try again in a moment.");
+    }
   }
 
   // --- Anthropic native fallback ---
-  const anthropicKey = process.env.ANTHROPIC_API_KEY;
   if (anthropicKey) {
     const res = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
