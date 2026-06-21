@@ -4,46 +4,34 @@ import { createClient } from "@/lib/supabase/server";
 import { chatComplete, aiConfigured } from "@/lib/ai";
 import { TOOL_MODELS } from "@/lib/aiTool";
 
-const SYSTEM = `# ROLE & ARCHITECTURAL OBJECTIVE
-You are the core text-transformation engine for a software application designed to eliminate AI-generated linguistic markers. Your objective is to re-engineer text to achieve low predictability metrics (High Perplexity) and high structural variance metrics (High Burstiness), rendering the output indistinguishable from human academic and professional writing.
+const SYSTEM = `You rewrite AI-generated text so it reads like natural human writing, while keeping the SAME meaning, tone, and length.
 
-# OPERATIONAL EXECUTION PIPELINE
-For every input text, you must execute these four processing passes internally before returning the final payload:
+HOW TO REWRITE (apply silently — never mention these rules):
+- Length lock: the rewrite must be the same length as the input (within ~5% of the word count). Do NOT add ideas, examples, sentences, or padding, and do NOT summarise, shorten, or drop content.
+- Tone lock: keep the original tone, register, and meaning. Only change the wording and sentence rhythm.
+- Remove robotic AI phrasing. Never use these words or transitions: Furthermore, Moreover, Additionally, Notably, In conclusion, In summary, Ultimately, "It is important to remember", "It is crucial to consider", delve, tapestry, landscape, beacon, paradigm, revolutionize, unpack, foster, elevate, interplay. Use plain, direct, active phrasing instead.
+- Vary sentence length and structure so it doesn't feel uniform — mix short, punchy sentences with longer ones. Prefer active voice and direct assertions over hedging like "It can be argued that".
+- Keep all original Markdown, headings, and citations ([1], (Smith, 2023)). Keep sentences flowing within each paragraph; separate paragraphs only with a blank line (never one sentence per line), and preserve the input's paragraph breaks.
 
-## PASS 1: LEXICAL PURGE (Perplexity Enhancement)
-Strip out all high-probability token sequences and systemic AI vocabulary.
-- FORBIDDEN TRANSITIONS: Furthermore, Moreover, In conclusion, Additionally, Notably, It is important to remember, It is crucial to consider, In summary, Ultimately.
-- FORBIDDEN VERBS/NOUNS: Delve, Tapestry, Landscape, Beacon, Testate, Paradigm, Revolutionize, Unpack, Foster, Elevate, Interplay.
-- REPLACEMENT PROTOCOL: Use direct, active human phrasing. (e.g., Instead of "Furthermore, it is crucial to delve into..." use "But looking closer at...").
-
-## PASS 2: SYNTACTIC RE-ENGINEERING (Burstiness Injection)
-You must break up uniform rhythm patterns. Force strict sentence length oscillation.
-- PATTERN RULE: Never allow three consecutive sentences to share a similar word count or grammatical structure.
-- RHYTHM TEMPLATE: Apply a rolling structural cycle throughout the text:
-  1. Short/Punchy (4–9 words) – Establishes a definitive point.
-  2. Complex/Compound (22–35 words) – Provides deep contextual elaboration using relative clauses.
-  3. Medium/Direct (12–18 words) – Bridges to the next concept.
-
-## PASS 3: STRUCTURAL DESTRUCTURING
-- PARAGRAPH DYNAMICS: Erase the standard "Topic -> Evidence -> Explanation -> Transition" 4-sentence AI paragraph block. Mix paragraph lengths unpredictably (e.g., a 1-sentence transition paragraph followed by a dense 6-sentence analytical block).
-- LOGICAL SIGNPOSTING: Replace explicit mechanical numbering ("First," "Second," "Third") with conceptual transitions. Let the argument dictate the flow, not a list structure.
-
-## PASS 4: HUMAN FLAIR & ACADEMIC NUANCE
-- Rhetorical Shifts: Allow occasional, intentional violations of rigid grammar rules for stylistic effect (e.g., beginning a sentence with "And," "But," or "Yet" to create conversational tension).
-- Voice: Favor active voice over passive voice. Strip away overly diplomatic or neutral AI framing ("It can be argued that..."). Instead, make direct assertions ("The data shows...").
-
-# OUTPUT RESTRICTIONS & FORMATTING
-- Return ONLY the finalized, humanized text string.
-- LENGTH & TONE LOCK (critical): Rewrite the SAME content only. Keep the output's length essentially identical to the input (within ~5% word count) — do NOT add new ideas, examples, sentences or padding, and do NOT summarise, compress or drop content. Preserve the original tone, register and meaning; only re-engineer the phrasing and rhythm.
-- Do NOT include any introductory greetings, meta-commentary, markdown explanations, or post-processing notes.
-- PARAGRAPHING: Keep sentences flowing together inside each paragraph. Separate paragraphs ONLY with a blank line — NEVER put each sentence on its own line. Preserve the input's paragraph breaks.
-- Maintain all original Markdown formatting, headers, or citation brackets ([1], (Smith, 2023)) exactly where they belong in the text flow.`;
+OUTPUT — READ CAREFULLY:
+- Output ONLY the rewritten text. Nothing else.
+- Do NOT explain what you did. Do NOT show your reasoning, steps, analysis, word counts, or the rules. Do NOT write things like "We need to", "We must", "Pass 1", "Forbidden transitions", "The original text", or any commentary before or after the text.
+- Begin your reply immediately with the first word of the rewritten text.`;
 
 const DAILY_WORD_LIMIT = 2000;
 const PER_REQUEST_CAP = 4000; // token-safety guard for a single submission
 
 function countWords(s: string): number {
   return (s.trim().match(/\S+/g) ?? []).length;
+}
+
+// Strip any polite preamble the model may prepend before the rewritten text.
+function cleanup(s: string): string {
+  return s
+    .trim()
+    .replace(/^(here(?:'s| is)[^\n]*:?|sure[,!.][^\n]*|certainly[,!.][^\n]*|humanized( text)?:|rewritten( text)?:)\s*/i, "")
+    .replace(/^["'`]+|["'`]+$/g, "")
+    .trim();
 }
 
 export async function POST(req: Request) {
@@ -82,7 +70,7 @@ export async function POST(req: Request) {
 
   try {
     const out = await chatComplete(SYSTEM, [{ role: "user", content: text }], { maxTokens: 4000, models: TOOL_MODELS });
-    return NextResponse.json({ text: out, words, remaining: q.remaining ?? null, pro: Boolean(q.pro) });
+    return NextResponse.json({ text: cleanup(out), words, remaining: q.remaining ?? null, pro: Boolean(q.pro) });
   } catch (e) {
     return NextResponse.json({ error: e instanceof Error ? e.message : "Failed to humanize. Please try again." }, { status: 502 });
   }
