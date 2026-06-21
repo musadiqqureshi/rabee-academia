@@ -22,7 +22,7 @@ export function aiConfigured(): boolean {
 export async function chatComplete(
   system: string,
   messages: ChatMessage[],
-  opts: { maxTokens?: number } = {},
+  opts: { maxTokens?: number; model?: string } = {},
 ): Promise<string> {
   const maxTokens = opts.maxTokens ?? 2000;
   const baseUrl = process.env.AI_BASE_URL;
@@ -30,7 +30,8 @@ export async function chatComplete(
 
   // --- OpenAI-compatible (OpenRouter / NVIDIA NIM) ---
   if (baseUrl && apiKey) {
-    const model = process.env.AI_MODEL ?? "cohere/north-mini-code:free";
+    // Per-call model wins (each AI tool can pick its own), then env, then default.
+    const model = opts.model ?? process.env.AI_MODEL ?? "cohere/north-mini-code:free";
     const res = await fetch(`${baseUrl.replace(/\/$/, "")}/chat/completions`, {
       method: "POST",
       headers: {
