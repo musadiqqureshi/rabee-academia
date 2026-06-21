@@ -64,7 +64,11 @@ export default function PaperMakerClient() {
   return (
     <>
       {/* Print isolation: only the paper area is sent to the printer. */}
-      <style>{`@media print {
+      <style>{`
+      #paper-print-area table { border-collapse: collapse; width: 100%; }
+      #paper-print-area th, #paper-print-area td { border: 1px solid rgba(0,0,0,0.45); padding: 6px 8px; vertical-align: top; }
+      #paper-print-area th { background: rgba(0,0,0,0.05); text-align: left; }
+      @media print {
         body * { visibility: hidden !important; }
         #paper-print-area, #paper-print-area * { visibility: visible !important; }
         #paper-print-area { position: absolute; left: 0; top: 0; width: 100%; padding: 0 !important; border: none !important; box-shadow: none !important; }
@@ -152,21 +156,47 @@ export default function PaperMakerClient() {
               <div id="paper-print-area" className="bg-white text-black rounded-xl border border-border p-8 shadow-sm">
                 {docSpec && (
                   <div className="mb-6">
-                    <div className="text-center space-y-0.5">
-                      <h1 className="text-2xl font-extrabold tracking-tight">{docSpec.institution.trim() || "Rabee Academia"}</h1>
-                      <p className="text-base font-semibold">{docSpec.examTitle.trim() || `${docSpec.subject} Examination`}</p>
-                      <p className="text-sm">{docSpec.subject}{docSpec.grade ? ` — ${docSpec.grade}` : ""}</p>
-                      {docSpec.topics.trim() && <p className="text-xs text-black/60">Topic: {docSpec.topics}</p>}
+                    <div className="text-center space-y-1">
+                      <h1 className="text-2xl font-extrabold uppercase tracking-wide">{docSpec.institution.trim() || "Rabee Academia"}</h1>
+                      <p className="text-sm font-semibold uppercase tracking-wide">{docSpec.examTitle.trim() || "Examination"}</p>
+                      <p className="text-lg font-bold uppercase">{docSpec.subject}{docSpec.grade ? ` (${docSpec.grade})` : ""}</p>
+                      {docSpec.topics.trim() && <p className="text-sm font-medium">{docSpec.topics}</p>}
                     </div>
-                    <div className="mt-4 flex items-center justify-between border-y-2 border-black/80 py-1.5 text-sm font-semibold">
-                      <span>Time Allowed: {docSpec.timeAllowed.trim() || "____"}</span>
-                      <span>Name: ______________________</span>
-                      <span>Total Marks: {docSpec.totalMarks}</span>
-                    </div>
+
+                    <table className="w-full border-collapse mt-4 text-sm">
+                      <tbody>
+                        <tr>
+                          <td className="border border-black/40 px-3 py-1.5"><strong>Exam Type:</strong> {docSpec.examTitle.trim() || "—"}</td>
+                          <td className="border border-black/40 px-3 py-1.5 text-right"><strong>Time Allowed:</strong> {docSpec.timeAllowed.trim() || "—"}</td>
+                        </tr>
+                        <tr>
+                          <td className="border border-black/40 px-3 py-1.5"><strong>Class:</strong> {docSpec.grade.trim() || "—"}</td>
+                          <td className="border border-black/40 px-3 py-1.5 text-right"><strong>Total Marks:</strong> {docSpec.totalMarks}</td>
+                        </tr>
+                      </tbody>
+                    </table>
+
+                    <table className="w-full border-collapse mt-3 text-sm">
+                      <thead>
+                        <tr>
+                          <th className="border border-black/40 px-3 py-1.5 text-left font-semibold">Student Name</th>
+                          <th className="border border-black/40 px-3 py-1.5 text-left font-semibold">Roll Number</th>
+                          <th className="border border-black/40 px-3 py-1.5 text-left font-semibold">Signature</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td className="border border-black/40 px-3 py-4" />
+                          <td className="border border-black/40 px-3 py-4" />
+                          <td className="border border-black/40 px-3 py-4" />
+                        </tr>
+                      </tbody>
+                    </table>
                   </div>
                 )}
                 <Markdown content={paper} />
-                <p className="mt-10 pt-3 border-t border-black/10 text-[11px] italic text-black/50">Made with Rabee&apos;s AI</p>
+                <p className="text-center font-bold mt-8 mb-2">***** END OF QUESTION PAPER *****</p>
+                <p className="mt-6 pt-3 border-t border-black/10 text-[11px] italic text-black/50">Made with Rabee&apos;s AI</p>
               </div>
 
               {/* Answer key — viewable below the download button */}
