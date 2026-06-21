@@ -1,9 +1,10 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { createClient as createAdminClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 import { getProfile } from "@/lib/auth";
-import { getCourse } from "@/lib/courses";
+import { getCourse, type Course } from "@/lib/courses";
 
 export interface EnrollResult {
   ok: boolean;
@@ -13,25 +14,39 @@ export interface EnrollResult {
 
 // Find or create the subject for a given course slug (keeps the DB in sync with
 // the static course catalog so enrollments always link to a real subject row).
+// Reading is allowed for everyone; creating a missing subject requires the
+// service role because RLS restricts subject inserts to admins. We therefore
+// build the new row from the authoritative catalog (never client input), which
+// also covers special courses (e.g. AI Mastery) that may not be pre-seeded.
 async function resolveSubjectId(
   supabase: Awaited<ReturnType<typeof createClient>>,
-  course: { slug: string; name: string; level: string; lessons: number; regularPrice: number; weekendPrice: number },
+  catalog: Course,
 ): Promise<string | null> {
   const { data: existing } = await supabase
-    .from("subjects").select("id").eq("slug", course.slug).maybeSingle();
+    .from("subjects").select("id").eq("slug", catalog.slug).maybeSingle();
   if (existing) return existing.id;
 
-  const { data: created } = await supabase
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!supabaseUrl || !serviceKey) return null;
+
+  const admin = createAdminClient(supabaseUrl, serviceKey, {
+    auth: { autoRefreshToken: false, persistSession: false },
+  });
+  const { data: created } = await admin
     .from("subjects")
-    .insert({
-      slug: course.slug,
-      name: course.name,
-      level: course.level,
-      lessons: course.lessons,
-      regular_price: course.regularPrice,
-      weekend_price: course.weekendPrice,
-      is_active: true,
-    })
+    .upsert(
+      {
+        slug: catalog.slug,
+        name: catalog.name,
+        level: catalog.level,
+        lessons: catalog.lessons,
+        regular_price: catalog.regularPrice,
+        weekend_price: catalog.weekendPrice,
+        is_active: true,
+      },
+      { onConflict: "slug" },
+    )
     .select("id")
     .maybeSingle();
   return created?.id ?? null;
@@ -56,9 +71,10 @@ export async function submitEnrollment(formData: FormData): Promise<EnrollResult
   const amount = Number(formData.get("amount") ?? 0) || 0;
 
   const catalog = getCourse(course.slug);
-  const isFree = Boolean(catalog?.free);
+  if (!catalog) return { ok: false, error: "Could not resolve the selected course." };
+  const isFree = Boolean(catalog.free);
 
-  const subjectId = await resolveSubjectId(supabase, course);
+  const subjectId = await resolveSubjectId(supabase, catalog);
   if (!subjectId) return { ok: false, error: "Could not resolve the selected course." };
 
   // Seat limit (e.g. AI Mastery — 30 seats).

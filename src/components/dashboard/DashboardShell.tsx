@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import EnforceTheme from "@/components/EnforceTheme";
 import NotificationBell from "@/components/dashboard/NotificationBell";
+import MessagesBadge from "@/components/dashboard/MessagesBadge";
 import AnimatedBackground from "@/components/AnimatedBackground";
 import ThemeToggle from "@/components/ThemeToggle";
 
@@ -72,6 +73,7 @@ export default function DashboardShell({
               >
                 <span className="w-4 h-4 shrink-0 flex items-center justify-center">{item.icon}</span>
                 {item.label}
+                {item.href === "/chat" && <MessagesBadge />}
               </Link>
             );
           })}

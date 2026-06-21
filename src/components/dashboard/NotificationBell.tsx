@@ -1,13 +1,16 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Bell, Check } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { playPing } from "@/lib/ping";
 
 interface Note { id: string; title: string; body: string | null; is_read: boolean; created_at: string }
 
 export default function NotificationBell() {
   const supabase = createClient();
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [notes, setNotes] = useState<Note[]>([]);
   const [uid, setUid] = useState<string | null>(null);
@@ -36,7 +39,13 @@ export default function NotificationBell() {
         .channel(`notes:${user.id}`)
         .on("postgres_changes",
           { event: "INSERT", schema: "public", table: "notifications", filter: `user_id=eq.${user.id}` },
-          (payload) => setNotes((prev) => [payload.new as Note, ...prev]))
+          (payload) => {
+            setNotes((prev) => [payload.new as Note, ...prev]);
+            // Audible chime + refresh the current dashboard data so any
+            // server-rendered panels reflect the change immediately.
+            playPing();
+            router.refresh();
+          })
         .subscribe();
     });
     return () => { if (channel) supabase.removeChannel(channel); };
