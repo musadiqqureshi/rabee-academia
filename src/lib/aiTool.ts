@@ -3,8 +3,10 @@ import { getProfile } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { aiConfigured, chatComplete } from "@/lib/ai";
 
-// All Rabee's AI tools run on this free OpenRouter model.
-export const TOOL_MODEL = "meta-llama/llama-3.3-70b-instruct:free";
+// Model used by all Rabee's AI tools (Paper Maker, Essay Grader, Lesson Plan,
+// Notes, Planner, Quiz). Independent of the dashboard's AI_MODEL — set
+// AI_TOOLS_MODEL to override without code changes.
+export const TOOL_MODEL = process.env.AI_TOOLS_MODEL ?? "meta-llama/llama-3.3-70b-instruct:free";
 
 type GuardResult = { error: NextResponse } | { ok: true; pro: boolean };
 
