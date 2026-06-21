@@ -8,19 +8,22 @@ import { ArrowRight, CheckCircle2, CalendarDays, Clock } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import EnforceTheme from "@/components/EnforceTheme";
-import { courses, LEVELS, formatPrice } from "@/lib/courses";
+import { formatPrice, levelsFor } from "@/lib/courses";
+import { useCatalog } from "@/hooks/useCatalog";
 
 function PricingContent() {
   const searchParams = useSearchParams();
   const highlight = searchParams.get("subject");
 
+  const { catalog } = useCatalog();
   const [activeLevel, setActiveLevel] = useState<string>("All");
   const [classType, setClassType] = useState<"regular" | "weekend">("regular");
 
+  const LEVELS = levelsFor(catalog);
   const filtered =
     activeLevel === "All"
-      ? courses
-      : courses.filter((c) => c.level === activeLevel);
+      ? catalog
+      : catalog.filter((c) => c.level === activeLevel);
 
   return (
     <div className="min-h-screen bg-background text-foreground">

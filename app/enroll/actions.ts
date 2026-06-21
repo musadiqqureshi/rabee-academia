@@ -12,20 +12,30 @@ export interface EnrollResult {
   enrollmentId?: string;
 }
 
-// Find or create the subject for a given course slug (keeps the DB in sync with
-// the static course catalog so enrollments always link to a real subject row).
-// Reading is allowed for everyone; creating a missing subject requires the
-// service role because RLS restricts subject inserts to admins. We therefore
-// build the new row from the authoritative catalog (never client input), which
-// also covers special courses (e.g. AI Mastery) that may not be pre-seeded.
-async function resolveSubjectId(
-  supabase: Awaited<ReturnType<typeof createClient>>,
-  catalog: Course,
-): Promise<string | null> {
-  const { data: existing } = await supabase
-    .from("subjects").select("id").eq("slug", catalog.slug).maybeSingle();
-  if (existing) return existing.id;
+interface SubjectRecord {
+  id: string;
+  name: string;
+  regular_price: number;
+  weekend_price: number;
+}
 
+const SUBJECT_COLS = "id, name, regular_price, weekend_price";
+
+// Resolve the subject row for a course slug. Admin-managed subjects already live
+// in the DB (public-readable), so we return them directly. If a slug from the
+// static catalog isn't seeded yet (e.g. AI Mastery), we create it from the
+// authoritative catalog using the service role — RLS restricts subject inserts
+// to admins, and we never trust client input for the new row's fields.
+async function resolveSubject(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  slug: string,
+  staticCourse: Course | null,
+): Promise<SubjectRecord | null> {
+  const { data: existing } = await supabase
+    .from("subjects").select(SUBJECT_COLS).eq("slug", slug).maybeSingle();
+  if (existing) return existing as SubjectRecord;
+
+  if (!staticCourse) return null;
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!supabaseUrl || !serviceKey) return null;
@@ -37,62 +47,71 @@ async function resolveSubjectId(
     .from("subjects")
     .upsert(
       {
-        slug: catalog.slug,
-        name: catalog.name,
-        level: catalog.level,
-        lessons: catalog.lessons,
-        regular_price: catalog.regularPrice,
-        weekend_price: catalog.weekendPrice,
+        slug: staticCourse.slug,
+        name: staticCourse.name,
+        level: staticCourse.level,
+        lessons: staticCourse.lessons,
+        regular_price: staticCourse.regularPrice,
+        weekend_price: staticCourse.weekendPrice,
         is_active: true,
       },
       { onConflict: "slug" },
     )
-    .select("id")
+    .select(SUBJECT_COLS)
     .maybeSingle();
-  return created?.id ?? null;
+  return (created as SubjectRecord) ?? null;
 }
 
 export async function submitEnrollment(formData: FormData): Promise<EnrollResult> {
   const profile = await getProfile();
   if (!profile) return { ok: false, error: "Please sign in to enrol." };
 
+  // Only students enrol. Staff accounts get a clear message instead of a row.
+  if (profile.role !== "student") {
+    const who = profile.role === "teacher" ? "a teacher" : "an admin";
+    return { ok: false, error: `You're signed in as ${who} — only students can enrol in courses. Please use a student account.` };
+  }
+
   const supabase = await createClient();
 
-  const course = {
-    slug: String(formData.get("slug") ?? ""),
-    name: String(formData.get("course_name") ?? ""),
-    level: String(formData.get("level") ?? ""),
-    lessons: Number(formData.get("lessons") ?? 0) || 0,
-    regularPrice: Number(formData.get("regular_price") ?? 0) || 0,
-    weekendPrice: Number(formData.get("weekend_price") ?? 0) || 0,
-  };
+  const slug = String(formData.get("slug") ?? "");
   const classType = (String(formData.get("type") ?? "regular") as "regular" | "weekend");
   const payMethod = String(formData.get("pay_method") ?? "iban") as "assanpay" | "iban";
-  const amount = Number(formData.get("amount") ?? 0) || 0;
 
-  const catalog = getCourse(course.slug);
-  if (!catalog) return { ok: false, error: "Could not resolve the selected course." };
-  const isFree = Boolean(catalog.free);
+  const staticCourse = getCourse(slug);
+  const subject = await resolveSubject(supabase, slug, staticCourse);
+  if (!subject) return { ok: false, error: "Could not resolve the selected course." };
+  const subjectId = subject.id;
 
-  const subjectId = await resolveSubjectId(supabase, catalog);
-  if (!subjectId) return { ok: false, error: "Could not resolve the selected course." };
+  // Special flags (free / seat-limited) only exist on the static catalog.
+  const isFree = Boolean(staticCourse?.free);
+  // Price is taken from the subject row, never from client input.
+  const amount = classType === "weekend" ? subject.weekend_price : subject.regular_price;
 
   // Seat limit (e.g. AI Mastery — 30 seats).
-  if (catalog?.seatLimit) {
+  if (staticCourse?.seatLimit) {
     const { count } = await supabase
       .from("enrollments")
       .select("id", { count: "exact", head: true })
       .eq("subject_id", subjectId)
       .in("status", ["pending", "approved"]);
-    if ((count ?? 0) >= catalog.seatLimit) {
+    if ((count ?? 0) >= staticCourse.seatLimit) {
       return { ok: false, error: "Sorry, all seats for this course are full." };
     }
   }
 
-  // Prevent duplicate enrolment in the same subject.
-  const { data: dupe } = await supabase
-    .from("enrollments").select("id").eq("student_id", profile.id).eq("subject_id", subjectId).maybeSingle();
-  if (dupe) return { ok: false, error: "You are already enrolled in this course." };
+  // One enrolment per (student, subject) is enforced by a unique constraint.
+  // Block only when an active one exists; a previously rejected/cancelled row
+  // is reactivated below so revoked students can enrol again.
+  const { data: existing } = await supabase
+    .from("enrollments").select("id, status").eq("student_id", profile.id).eq("subject_id", subjectId).maybeSingle();
+  let reEnrollId: string | null = null;
+  if (existing) {
+    if (existing.status === "pending" || existing.status === "approved") {
+      return { ok: false, error: "You are already enrolled in this course." };
+    }
+    reEnrollId = existing.id;
+  }
 
   // 20% discount on the student's first-ever enrolment (paid courses only).
   let finalAmount = amount;
@@ -102,20 +121,31 @@ export async function submitEnrollment(formData: FormData): Promise<EnrollResult
     if ((priorCount ?? 0) === 0) finalAmount = Math.round(amount * 0.8);
   }
 
-  const { data: enrollment, error: enrollErr } = await supabase
-    .from("enrollments")
-    .insert({
-      student_id: profile.id,
-      subject_id: subjectId,
-      class_type: classType,
-      status: "pending",
-      student_name: String(formData.get("full_name") ?? profile.full_name ?? ""),
-      student_email: String(formData.get("email") ?? profile.email ?? ""),
-      student_phone: String(formData.get("phone") ?? ""),
-      payment_method: isFree ? null : payMethod,
-    })
-    .select("id")
-    .single();
+  const row = {
+    student_id: profile.id,
+    subject_id: subjectId,
+    class_type: classType,
+    status: "pending" as const,
+    student_name: String(formData.get("full_name") ?? profile.full_name ?? ""),
+    student_email: String(formData.get("email") ?? profile.email ?? ""),
+    student_phone: String(formData.get("phone") ?? ""),
+    payment_method: isFree ? null : payMethod,
+  };
+
+  // Reactivate a revoked/rejected enrolment (the unique constraint forbids a
+  // second row), otherwise create a fresh one.
+  const { data: enrollment, error: enrollErr } = reEnrollId
+    ? await supabase
+        .from("enrollments")
+        .update({ ...row, batch_id: null, teacher_id: null, meet_link: null, approved_by: null, approved_at: null, updated_at: new Date().toISOString() })
+        .eq("id", reEnrollId)
+        .select("id")
+        .single()
+    : await supabase
+        .from("enrollments")
+        .insert(row)
+        .select("id")
+        .single();
   if (enrollErr || !enrollment) return { ok: false, error: enrollErr?.message ?? "Enrolment failed." };
 
   // Upload the bank-transfer receipt, if provided.
@@ -160,7 +190,7 @@ export async function submitEnrollment(formData: FormData): Promise<EnrollResult
     enrollment_id: enrollment.id,
     subject_id: subjectId,
     category: "registration",
-    description: `${course.name} — ${classType} classes${finalAmount < amount ? " (20% first-enrolment discount)" : ""}`,
+    description: `${subject.name} — ${classType} classes${finalAmount < amount ? " (20% first-enrolment discount)" : ""}`,
     amount_pkr: finalAmount,
     status: "issued",
     due_date: new Date(Date.now() + 3 * 86400000).toISOString().slice(0, 10),

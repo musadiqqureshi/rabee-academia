@@ -236,3 +236,89 @@ export function getCourse(slug: string) {
 export function formatPrice(pkr: number) {
   return `PKR ${pkr.toLocaleString("en-PK")}`;
 }
+
+// ---------------------------------------------------------------------------
+// DB-backed catalog. Admins manage subjects in the portal; the public pages
+// render those rows. The static catalog above supplies visual metadata (icon,
+// gradient, marketing features) that the DB doesn't store — we merge by slug
+// and fall back to sensible defaults for admin-added subjects.
+// ---------------------------------------------------------------------------
+
+export interface SubjectRow {
+  slug: string;
+  name: string;
+  level: string | null;
+  regular_price: number;
+  weekend_price: number;
+  lessons: number | null;
+  description: string | null;
+  is_active?: boolean;
+}
+
+const FALLBACK_GRADIENTS = [
+  "from-indigo-600 via-blue-500 to-indigo-700",
+  "from-emerald-500 via-teal-400 to-emerald-600",
+  "from-rose-500 via-pink-500 to-red-600",
+  "from-violet-600 via-purple-500 to-violet-700",
+  "from-orange-500 via-amber-400 to-orange-600",
+  "from-cyan-500 via-teal-400 to-cyan-600",
+  "from-purple-600 via-violet-500 to-purple-700",
+  "from-sky-500 via-blue-400 to-sky-600",
+];
+
+const DEFAULT_FEATURES = [
+  "Live Google Meet classes",
+  "AI study notes",
+  "Doubt-clearing sessions",
+  "Exam preparation",
+];
+
+function pickGradient(slug: string): string {
+  let h = 0;
+  for (let i = 0; i < slug.length; i++) h = (h * 31 + slug.charCodeAt(i)) >>> 0;
+  return FALLBACK_GRADIENTS[h % FALLBACK_GRADIENTS.length];
+}
+
+// Map a DB subject row to a Course, layering static visuals when the slug is
+// known and inventing tasteful defaults (icon, gradient, features) otherwise.
+export function subjectToCourse(row: SubjectRow): Course {
+  const base = getCourse(row.slug);
+  return {
+    slug: row.slug,
+    name: row.name,
+    level: row.level || base?.level || "General",
+    lessons: row.lessons ?? base?.lessons ?? 0,
+    regularPrice: row.regular_price,
+    weekendPrice: row.weekend_price,
+    description: row.description || base?.description || "",
+    icon: base?.icon ?? BookOpen,
+    gradient: base?.gradient ?? pickGradient(row.slug),
+    features: base?.features ?? DEFAULT_FEATURES,
+    free: base?.free,
+    badge: base?.badge,
+    special: base?.special,
+    comingSoon: base?.comingSoon,
+    seatLimit: base?.seatLimit,
+    duration: base?.duration,
+    schedule: base?.schedule,
+    startDate: base?.startDate,
+  };
+}
+
+// Order DB-derived courses to match the curated static order, with any
+// admin-added subjects appended alphabetically.
+export function sortCatalog(items: Course[]): Course[] {
+  const order = new Map(courses.map((c, i) => [c.slug, i]));
+  return [...items].sort(
+    (a, b) =>
+      (order.get(a.slug) ?? 999) - (order.get(b.slug) ?? 999) ||
+      a.name.localeCompare(b.name),
+  );
+}
+
+// Distinct level filters present in a catalog, prefixed with "All".
+export function levelsFor(items: Course[]): string[] {
+  const seen: string[] = [];
+  for (const c of items) if (c.level && !seen.includes(c.level)) seen.push(c.level);
+  return ["All", ...seen];
+}

@@ -4,11 +4,11 @@ import React from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
-import { courses } from "@/lib/courses";
-
-const featured = courses.slice(0, 6);
+import { useCatalog } from "@/hooks/useCatalog";
 
 export default function SubjectsSection() {
+  const { catalog } = useCatalog();
+  const featured = catalog.slice(0, 6);
   return (
     <section className="py-20" id="subjects">
       <div className="container mx-auto px-4 md:px-6">

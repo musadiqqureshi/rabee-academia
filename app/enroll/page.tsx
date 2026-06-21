@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import EnforceTheme from "@/components/EnforceTheme";
-import { getCourse, formatPrice } from "@/lib/courses";
+import { getCourse, formatPrice, subjectToCourse, type Course } from "@/lib/courses";
 import { createClient } from "@/lib/supabase/client";
 import { submitEnrollment } from "./actions";
 import { Button } from "@/components/ui/button";
@@ -34,8 +34,9 @@ function EnrollContent() {
   const router = useRouter();
   const slug = params.get("subject") ?? "";
   const type = (params.get("type") ?? "regular") as "regular" | "weekend";
-  const course = getCourse(slug);
 
+  const [course, setCourse] = useState<Course | null>(() => getCourse(slug));
+  const [role, setRole] = useState<string | null>(null);
   const [authChecked, setAuthChecked] = useState(false);
   const [step, setStep] = useState<Step>("confirm");
   const [payMethod, setPayMethod] = useState<PayMethod>(null);
@@ -58,12 +59,45 @@ function EnrollContent() {
       }
       setEmail(user.email ?? "");
       const { data: profile } = await supabase
-        .from("profiles").select("full_name, phone").eq("id", user.id).maybeSingle();
+        .from("profiles").select("full_name, phone, role").eq("id", user.id).maybeSingle();
       if (profile?.full_name) setFullName(profile.full_name);
       if (profile?.phone) setPhone(profile.phone);
+      setRole(profile?.role ?? "student");
+      // Admin-managed subjects aren't in the static catalog — resolve from DB.
+      if (!getCourse(slug)) {
+        const { data: sub } = await supabase
+          .from("subjects")
+          .select("slug, name, level, regular_price, weekend_price, lessons, description, is_active")
+          .eq("slug", slug).eq("is_active", true).maybeSingle();
+        if (sub) setCourse(subjectToCourse(sub));
+      }
       setAuthChecked(true);
     });
   }, [slug, type, router]);
+
+  if (!authChecked) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <EnforceTheme mode="site" />
+        <Loader2 className="w-6 h-6 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  // Staff cannot enrol — show a clear message instead of the funnel.
+  if (role && role !== "student") {
+    const who = role === "teacher" ? "a teacher" : "an admin";
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center text-center px-4">
+        <EnforceTheme mode="site" />
+        <div className="max-w-sm">
+          <p className="text-lg font-semibold mb-2">You&apos;re signed in as {who}.</p>
+          <p className="text-sm text-muted-foreground mb-4">Only student accounts can enrol in courses. Head to your dashboard to manage the academy.</p>
+          <Link href="/dashboard" className="text-primary underline text-sm">Go to dashboard</Link>
+        </div>
+      </div>
+    );
+  }
 
   if (!course) {
     return (
@@ -86,15 +120,6 @@ function EnrollContent() {
           <p className="text-sm text-muted-foreground mb-3">This launching offer isn&apos;t open for enrollment yet. Stay tuned!</p>
           <Link href="/pricing" className="text-primary underline text-sm">Browse other courses</Link>
         </div>
-      </div>
-    );
-  }
-
-  if (!authChecked) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <EnforceTheme mode="site" />
-        <Loader2 className="w-6 h-6 animate-spin text-primary" />
       </div>
     );
   }

@@ -30,4 +30,40 @@ export async function createSubject(formData: FormData) {
   if (error) throw new Error(error.message);
 
   revalidatePath("/dashboard/admin/subjects");
+  revalidatePath("/pricing");
+}
+
+async function requireStaff() {
+  const profile = await getProfile();
+  if (!profile || !["admin", "super_admin"].includes(profile.role)) throw new Error("Not authorized");
+}
+
+// Delete a subject. Hard-delete when nothing references it; if enrollments or
+// batches still point to it, fall back to deactivating so the catalogue stays
+// consistent (it just disappears from the public pages).
+export async function deleteSubject(formData: FormData) {
+  await requireStaff();
+  const supabase = await createClient();
+  const id = String(formData.get("subject_id") ?? "");
+  if (!id) throw new Error("Missing subject");
+
+  const { error } = await supabase.from("subjects").delete().eq("id", id);
+  if (error) {
+    await supabase.from("subjects").update({ is_active: false }).eq("id", id);
+  }
+  revalidatePath("/dashboard/admin/subjects");
+  revalidatePath("/pricing");
+}
+
+// Toggle a subject's visibility on the public pages.
+export async function setSubjectActive(formData: FormData) {
+  await requireStaff();
+  const supabase = await createClient();
+  const id = String(formData.get("subject_id") ?? "");
+  const active = String(formData.get("active") ?? "") === "true";
+  if (!id) throw new Error("Missing subject");
+
+  await supabase.from("subjects").update({ is_active: active }).eq("id", id);
+  revalidatePath("/dashboard/admin/subjects");
+  revalidatePath("/pricing");
 }
