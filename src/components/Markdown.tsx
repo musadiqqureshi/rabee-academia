@@ -1,23 +1,54 @@
 import React from "react";
+import katex from "katex";
 
-// Minimal, safe markdown renderer (no external deps). Handles headings, bold,
-// italic, inline code, code blocks, bullet/numbered lists, GFM tables and
-// paragraphs — enough to render AI answers cleanly.
+// Minimal, safe markdown renderer (no heavy deps). Handles headings, bold,
+// italic, inline code, code blocks, bullet/numbered lists, GFM tables, LaTeX
+// math (KaTeX) and paragraphs — enough to render AI answers cleanly.
+
+// Render a LaTeX string to KaTeX HTML. throwOnError keeps a bad expression from
+// crashing the whole answer; it falls back to the raw TeX instead.
+function mathHtml(tex: string, display: boolean): string {
+  try {
+    return katex.renderToString(tex.trim(), {
+      displayMode: display,
+      throwOnError: false,
+      output: "html",
+    });
+  } catch {
+    return tex;
+  }
+}
+
+function MathSpan({ tex, display }: { tex: string; display: boolean }) {
+  const html = mathHtml(tex, display);
+  return display ? (
+    <div className="my-2 overflow-x-auto" dangerouslySetInnerHTML={{ __html: html }} />
+  ) : (
+    <span dangerouslySetInnerHTML={{ __html: html }} />
+  );
+}
 
 function renderInline(text: string, keyBase: string): React.ReactNode[] {
   const nodes: React.ReactNode[] = [];
-  const regex = /(\*\*[^*]+\*\*|\*[^*]+\*|`[^`]+`)/g;
+  // Order matters: match inline math (\(…\) and $$…$$) before other tokens so
+  // markdown characters inside the TeX are not mis-parsed.
+  const regex = /(\\\([\s\S]+?\\\)|\$\$[\s\S]+?\$\$|\*\*[^*]+\*\*|\*[^*]+\*|`[^`]+`)/g;
   const parts = text.split(regex);
   parts.forEach((p, i) => {
     if (!p) return;
-    if (p.startsWith("**") && p.endsWith("**")) {
-      nodes.push(<strong key={`${keyBase}-${i}`}>{p.slice(2, -2)}</strong>);
+    const key = `${keyBase}-${i}`;
+    if (p.startsWith("\\(") && p.endsWith("\\)")) {
+      nodes.push(<MathSpan key={key} tex={p.slice(2, -2)} display={false} />);
+    } else if (p.startsWith("$$") && p.endsWith("$$")) {
+      nodes.push(<MathSpan key={key} tex={p.slice(2, -2)} display={false} />);
+    } else if (p.startsWith("**") && p.endsWith("**")) {
+      nodes.push(<strong key={key}>{p.slice(2, -2)}</strong>);
     } else if (p.startsWith("*") && p.endsWith("*")) {
-      nodes.push(<em key={`${keyBase}-${i}`}>{p.slice(1, -1)}</em>);
+      nodes.push(<em key={key}>{p.slice(1, -1)}</em>);
     } else if (p.startsWith("`") && p.endsWith("`")) {
-      nodes.push(<code key={`${keyBase}-${i}`} className="px-1 py-0.5 rounded bg-foreground/10 text-[0.85em] font-mono">{p.slice(1, -1)}</code>);
+      nodes.push(<code key={key} className="px-1 py-0.5 rounded bg-foreground/10 text-[0.85em] font-mono">{p.slice(1, -1)}</code>);
     } else {
-      nodes.push(<React.Fragment key={`${keyBase}-${i}`}>{p}</React.Fragment>);
+      nodes.push(<React.Fragment key={key}>{p}</React.Fragment>);
     }
   });
   return nodes;
@@ -34,6 +65,8 @@ export default function Markdown({ content }: { content: string }) {
   let list: { ordered: boolean; items: string[] } | null = null;
   let code: string[] | null = null;
   let table: string[] | null = null;
+  // Display-math accumulator. `close` is the delimiter that ends the block.
+  let math: { lines: string[]; close: string } | null = null;
 
   const flushList = (key: string) => {
     if (!list) return;
@@ -72,6 +105,38 @@ export default function Markdown({ content }: { content: string }) {
 
   lines.forEach((raw, idx) => {
     const line = raw.trimEnd();
+    const trimmed = line.trim();
+
+    // Display math block (\[ … \] or $$ … $$), possibly spanning many lines.
+    if (math) {
+      if (trimmed === math.close || trimmed.endsWith(math.close)) {
+        const tail = trimmed === math.close ? "" : trimmed.slice(0, -math.close.length);
+        if (tail) math.lines.push(tail);
+        blocks.push(<MathSpan key={`math-${idx}`} tex={math.lines.join("\n")} display />);
+        math = null;
+      } else {
+        math.lines.push(raw);
+      }
+      return;
+    }
+    // One-line display math, e.g. "\[ … \]" or "$$ … $$".
+    const oneLine = /^\\\[([\s\S]*)\\\]$/.exec(trimmed) || /^\$\$([\s\S]+)\$\$$/.exec(trimmed);
+    if (oneLine && oneLine[1].trim()) {
+      flushList(`l-${idx}`); flushTable(`t-${idx}`);
+      blocks.push(<MathSpan key={`math-${idx}`} tex={oneLine[1]} display />);
+      return;
+    }
+    // Opening of a multi-line display-math block.
+    if (trimmed === "\\[" || trimmed.startsWith("\\[")) {
+      flushList(`l-${idx}`); flushTable(`t-${idx}`);
+      math = { lines: trimmed === "\\[" ? [] : [trimmed.slice(2)], close: "\\]" };
+      return;
+    }
+    if (trimmed === "$$") {
+      flushList(`l-${idx}`); flushTable(`t-${idx}`);
+      math = { lines: [], close: "$$" };
+      return;
+    }
 
     // Code fences
     if (line.trim().startsWith("```")) {
@@ -114,6 +179,8 @@ export default function Markdown({ content }: { content: string }) {
   });
 
   flushList("l-end");
+  const mathTail = math as { lines: string[]; close: string } | null;
+  if (mathTail && mathTail.lines.length) blocks.push(<MathSpan key="math-end" tex={mathTail.lines.join("\n")} display />);
   const tableTail = table as string[] | null;
   if (tableTail) flushTable("t-end");
   const codeTail = code as string[] | null;
