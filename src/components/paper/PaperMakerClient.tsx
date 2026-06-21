@@ -25,6 +25,7 @@ export default function PaperMakerClient() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [paper, setPaper] = useState<string | null>(null);
+  const [docSpec, setDocSpec] = useState<Spec | null>(null);
   const [answerKey, setAnswerKey] = useState<string>("");
   const [showKey, setShowKey] = useState(false);
   const [upgrade, setUpgrade] = useState(false);
@@ -49,6 +50,7 @@ export default function PaperMakerClient() {
       if (res.status === 402) { setUpgrade(true); return; }
       if (!res.ok) { setError(json.error ?? "Something went wrong."); return; }
       setPaper(json.paper ?? "");
+      setDocSpec(spec);
       setAnswerKey(json.key ?? "");
       setShowKey(false);
       setTimeout(() => document.getElementById("paper-result")?.scrollIntoView({ behavior: "smooth" }), 50);
@@ -148,6 +150,21 @@ export default function PaperMakerClient() {
 
               {/* Printable document */}
               <div id="paper-print-area" className="bg-white text-black rounded-xl border border-border p-8 shadow-sm">
+                {docSpec && (
+                  <div className="mb-6">
+                    <div className="text-center space-y-0.5">
+                      <h1 className="text-2xl font-extrabold tracking-tight">{docSpec.institution.trim() || "Rabee Academia"}</h1>
+                      <p className="text-base font-semibold">{docSpec.examTitle.trim() || `${docSpec.subject} Examination`}</p>
+                      <p className="text-sm">{docSpec.subject}{docSpec.grade ? ` — ${docSpec.grade}` : ""}</p>
+                      {docSpec.topics.trim() && <p className="text-xs text-black/60">Topic: {docSpec.topics}</p>}
+                    </div>
+                    <div className="mt-4 flex items-center justify-between border-y-2 border-black/80 py-1.5 text-sm font-semibold">
+                      <span>Time Allowed: {docSpec.timeAllowed.trim() || "____"}</span>
+                      <span>Name: ______________________</span>
+                      <span>Total Marks: {docSpec.totalMarks}</span>
+                    </div>
+                  </div>
+                )}
                 <Markdown content={paper} />
                 <p className="mt-10 pt-3 border-t border-black/10 text-[11px] italic text-black/50">Made with Rabee&apos;s AI</p>
               </div>

@@ -30,9 +30,9 @@ function MathSpan({ tex, display }: { tex: string; display: boolean }) {
 
 function renderInline(text: string, keyBase: string): React.ReactNode[] {
   const nodes: React.ReactNode[] = [];
-  // Order matters: match inline math (\(…\) and $$…$$) before other tokens so
-  // markdown characters inside the TeX are not mis-parsed.
-  const regex = /(\\\([\s\S]+?\\\)|\$\$[\s\S]+?\$\$|\*\*[^*]+\*\*|\*[^*]+\*|`[^`]+`)/g;
+  // Order matters: match inline math (\(…\), $$…$$, then single $…$) before
+  // other tokens so markdown characters inside the TeX are not mis-parsed.
+  const regex = /(\\\([\s\S]+?\\\)|\$\$[\s\S]+?\$\$|\$[^$\n]+?\$|\*\*[^*]+\*\*|\*[^*]+\*|`[^`]+`)/g;
   const parts = text.split(regex);
   parts.forEach((p, i) => {
     if (!p) return;
@@ -41,6 +41,8 @@ function renderInline(text: string, keyBase: string): React.ReactNode[] {
       nodes.push(<MathSpan key={key} tex={p.slice(2, -2)} display={false} />);
     } else if (p.startsWith("$$") && p.endsWith("$$")) {
       nodes.push(<MathSpan key={key} tex={p.slice(2, -2)} display={false} />);
+    } else if (p.length > 1 && p.startsWith("$") && p.endsWith("$")) {
+      nodes.push(<MathSpan key={key} tex={p.slice(1, -1)} display={false} />);
     } else if (p.startsWith("**") && p.endsWith("**")) {
       nodes.push(<strong key={key}>{p.slice(2, -2)}</strong>);
     } else if (p.startsWith("*") && p.endsWith("*")) {
@@ -106,6 +108,10 @@ export default function Markdown({ content }: { content: string }) {
   lines.forEach((raw, idx) => {
     const line = raw.trimEnd();
     const trimmed = line.trim();
+
+    // Ignore stray block-level HTML the model sometimes emits (e.g. a
+    // <div align="center"> wrapper) — we render markdown, not HTML.
+    if (/^<\/?(div|center|span|p|br)\b[^>]*>$/i.test(trimmed)) return;
 
     // Display math block (\[ … \] or $$ … $$), possibly spanning many lines.
     if (math) {
