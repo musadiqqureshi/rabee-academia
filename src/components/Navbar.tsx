@@ -43,6 +43,7 @@ export default function Navbar() {
     { name: "Programs", href: "/#programs" },
     { name: "Teachers", href: "/#teachers" },
     { name: "Pricing",  href: "/pricing" },
+    { name: "AI Tools", href: "/products" },
     { name: "Reviews",  href: "/#reviews" },
     { name: "Contact",  href: "/#contact" },
   ];
