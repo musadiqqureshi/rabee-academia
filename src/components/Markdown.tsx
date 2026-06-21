@@ -69,6 +69,9 @@ export default function Markdown({ content }: { content: string }) {
   let table: string[] | null = null;
   // Display-math accumulator. `close` is the delimiter that ends the block.
   let math: { lines: string[]; close: string } | null = null;
+  // Soft-wrap paragraph accumulator: consecutive plain text lines join into one
+  // paragraph (a blank line or any block starts a new one).
+  let para: string[] | null = null;
 
   const flushList = (key: string) => {
     if (!list) return;
@@ -105,6 +108,12 @@ export default function Markdown({ content }: { content: string }) {
     table = null;
   };
 
+  const flushPara = (key: string) => {
+    if (!para || para.length === 0) { para = null; return; }
+    blocks.push(<p key={key} className="my-2">{renderInline(para.join(" "), key)}</p>);
+    para = null;
+  };
+
   lines.forEach((raw, idx) => {
     const line = raw.trimEnd();
     const trimmed = line.trim();
@@ -128,18 +137,18 @@ export default function Markdown({ content }: { content: string }) {
     // One-line display math, e.g. "\[ … \]" or "$$ … $$".
     const oneLine = /^\\\[([\s\S]*)\\\]$/.exec(trimmed) || /^\$\$([\s\S]+)\$\$$/.exec(trimmed);
     if (oneLine && oneLine[1].trim()) {
-      flushList(`l-${idx}`); flushTable(`t-${idx}`);
+      flushPara(`p-${idx}`); flushList(`l-${idx}`); flushTable(`t-${idx}`);
       blocks.push(<MathSpan key={`math-${idx}`} tex={oneLine[1]} display />);
       return;
     }
     // Opening of a multi-line display-math block.
     if (trimmed === "\\[" || trimmed.startsWith("\\[")) {
-      flushList(`l-${idx}`); flushTable(`t-${idx}`);
+      flushPara(`p-${idx}`); flushList(`l-${idx}`); flushTable(`t-${idx}`);
       math = { lines: trimmed === "\\[" ? [] : [trimmed.slice(2)], close: "\\]" };
       return;
     }
     if (trimmed === "$$") {
-      flushList(`l-${idx}`); flushTable(`t-${idx}`);
+      flushPara(`p-${idx}`); flushList(`l-${idx}`); flushTable(`t-${idx}`);
       math = { lines: [], close: "$$" };
       return;
     }
@@ -149,14 +158,14 @@ export default function Markdown({ content }: { content: string }) {
       if (code) {
         blocks.push(<pre key={`code-${idx}`} className="my-2 p-3 rounded-lg bg-foreground/10 overflow-x-auto text-xs font-mono"><code>{code.join("\n")}</code></pre>);
         code = null;
-      } else { flushList(`l-${idx}`); flushTable(`t-${idx}`); code = []; }
+      } else { flushPara(`p-${idx}`); flushList(`l-${idx}`); flushTable(`t-${idx}`); code = []; }
       return;
     }
     if (code) { code.push(raw); return; }
 
     // Table rows (lines that look like | a | b |)
     if (/^\s*\|.*\|\s*$/.test(line)) {
-      flushList(`l-${idx}`);
+      flushPara(`p-${idx}`); flushList(`l-${idx}`);
       (table ??= []).push(line);
       return;
     }
@@ -167,23 +176,27 @@ export default function Markdown({ content }: { content: string }) {
     const numbered = /^\d+\.\s+(.*)$/.exec(line);
 
     if (h) {
-      flushList(`l-${idx}`);
+      flushPara(`p-${idx}`); flushList(`l-${idx}`);
       const sizes = ["text-lg", "text-base", "text-sm", "text-sm"];
       blocks.push(<p key={`h-${idx}`} className={`font-bold ${sizes[h[1].length - 1]} mt-3 mb-1`}>{renderInline(h[2], `h-${idx}`)}</p>);
     } else if (bullet) {
+      flushPara(`p-${idx}`);
       if (!list || list.ordered) { flushList(`l-${idx}`); list = { ordered: false, items: [] }; }
       list.items.push(bullet[1]);
     } else if (numbered) {
+      flushPara(`p-${idx}`);
       if (!list || !list.ordered) { flushList(`l-${idx}`); list = { ordered: true, items: [] }; }
       list.items.push(numbered[1]);
     } else if (line.trim() === "") {
-      flushList(`l-${idx}`);
+      flushPara(`p-${idx}`); flushList(`l-${idx}`);
     } else {
+      // Plain text — accumulate; consecutive lines become one paragraph.
       flushList(`l-${idx}`);
-      blocks.push(<p key={`p-${idx}`} className="my-1.5">{renderInline(line, `p-${idx}`)}</p>);
+      (para ??= []).push(line);
     }
   });
 
+  flushPara("p-end");
   flushList("l-end");
   const mathTail = math as { lines: string[]; close: string } | null;
   if (mathTail && mathTail.lines.length) blocks.push(<MathSpan key="math-end" tex={mathTail.lines.join("\n")} display />);
