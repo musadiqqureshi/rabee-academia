@@ -1,5 +1,5 @@
 import React from "react";
-import { Atom, Linkedin, Twitter, Facebook, Instagram } from "lucide-react";
+import { Atom, Facebook, Instagram, Phone } from "lucide-react";
 
 export default function Footer() {
   return (
@@ -15,10 +15,8 @@ export default function Footer() {
               A premium AI-powered educational platform delivering world-class tutoring for FSc, A/O Levels, BS & MS students.
             </p>
             <div className="flex gap-4">
-              <a href="#" className="text-muted-foreground hover:text-primary transition-colors"><Linkedin className="w-5 h-5" /></a>
-              <a href="#" className="text-muted-foreground hover:text-primary transition-colors"><Twitter className="w-5 h-5" /></a>
-              <a href="#" className="text-muted-foreground hover:text-primary transition-colors"><Facebook className="w-5 h-5" /></a>
-              <a href="#" className="text-muted-foreground hover:text-primary transition-colors"><Instagram className="w-5 h-5" /></a>
+              <a href="https://www.facebook.com/share/1EazecLuwr/?mibextid=wwXIfr" target="_blank" rel="noopener noreferrer" aria-label="Facebook" className="text-muted-foreground hover:text-primary transition-colors"><Facebook className="w-5 h-5" /></a>
+              <a href="https://www.instagram.com/rabeeacademia?igsh=bDJiZjY5Y3R3Mmxp&utm_source=qr" target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="text-muted-foreground hover:text-primary transition-colors"><Instagram className="w-5 h-5" /></a>
             </div>
           </div>
           
@@ -47,9 +45,13 @@ export default function Footer() {
           <div>
             <h4 className="font-bold text-foreground mb-4">Contact</h4>
             <ul className="space-y-2 text-sm text-muted-foreground">
-              <li>info@rabeeacademia.com</li>
-              <li>+92 300 0000000</li>
-              <li>Lahore, Pakistan</li>
+              <li>info@rabeeacademia.site</li>
+              <li>
+                <a href="tel:+923086994758" className="inline-flex items-center gap-1.5 hover:text-primary transition-colors">
+                  <Phone className="w-3.5 h-3.5" /> 0308 6994758
+                </a>
+              </li>
+              <li>Pakistan</li>
             </ul>
           </div>
         </div>

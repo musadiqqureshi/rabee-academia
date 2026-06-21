@@ -19,11 +19,13 @@ function PricingContent() {
   const [activeLevel, setActiveLevel] = useState<string>("All");
   const [classType, setClassType] = useState<"regular" | "weekend">("regular");
 
-  const LEVELS = levelsFor(catalog);
+  // AI Mastery is a weekend-only intensive — hide it from the Regular tab.
+  const visible = catalog.filter((c) => !(c.slug === "ai-mastery" && classType === "regular"));
+  const LEVELS = levelsFor(visible);
   const filtered =
     activeLevel === "All"
-      ? catalog
-      : catalog.filter((c) => c.level === activeLevel);
+      ? visible
+      : visible.filter((c) => c.level === activeLevel);
 
   return (
     <div className="min-h-screen bg-background text-foreground">

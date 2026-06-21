@@ -37,6 +37,7 @@ function EnrollContent() {
 
   const [course, setCourse] = useState<Course | null>(() => getCourse(slug));
   const [role, setRole] = useState<string | null>(null);
+  const [isFirstEnrollment, setIsFirstEnrollment] = useState(false);
   const [authChecked, setAuthChecked] = useState(false);
   const [step, setStep] = useState<Step>("confirm");
   const [payMethod, setPayMethod] = useState<PayMethod>(null);
@@ -63,6 +64,10 @@ function EnrollContent() {
       if (profile?.full_name) setFullName(profile.full_name);
       if (profile?.phone) setPhone(profile.phone);
       setRole(profile?.role ?? "student");
+      // First-ever enrolment gets 20% off — mirror the server so the invoice matches.
+      const { count } = await supabase
+        .from("enrollments").select("id", { count: "exact", head: true }).eq("student_id", user.id);
+      setIsFirstEnrollment((count ?? 0) === 0);
       // Admin-managed subjects aren't in the static catalog — resolve from DB.
       if (!getCourse(slug)) {
         const { data: sub } = await supabase
@@ -125,6 +130,8 @@ function EnrollContent() {
   }
 
   const price = type === "regular" ? course.regularPrice : course.weekendPrice;
+  const hasDiscount = !course.free && isFirstEnrollment;
+  const payable = hasDiscount ? Math.round(price * 0.8) : price;
   const Icon = course.icon;
   const steps: Step[] = ["confirm", "details", "payment", "success"];
   const stepLabel: Record<Step, string> = { confirm: "Review", details: "Your Details", payment: "Payment", success: "Confirmed" };
@@ -232,8 +239,14 @@ function EnrollContent() {
                 </div>
                 <div className="border-t border-border pt-4 flex items-center justify-between">
                   <span className="text-sm text-muted-foreground">Monthly Fee</span>
-                  <span className="text-2xl font-extrabold">{formatPrice(price)}</span>
+                  <span className="text-right">
+                    {hasDiscount && <span className="block text-xs text-muted-foreground line-through">{formatPrice(price)}</span>}
+                    <span className="text-2xl font-extrabold">{formatPrice(payable)}</span>
+                  </span>
                 </div>
+                {hasDiscount && (
+                  <p className="text-[11px] text-emerald-600 font-semibold text-right -mt-2">🎉 20% first-course discount applied</p>
+                )}
               </div>
               <Button onClick={() => setStep("details")} className="w-full py-3 text-sm font-bold">
                 Continue <ArrowRight className="w-4 h-4 ml-1" />
@@ -252,7 +265,10 @@ function EnrollContent() {
                 <div className="space-y-1.5"><Label htmlFor="phone">Phone / WhatsApp</Label><Input id="phone" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+92 300 1234567" required /></div>
                 <div className="pt-2 border-t border-border flex items-center justify-between">
                   <span className="text-sm text-muted-foreground">Total due</span>
-                  <span className="font-extrabold">{formatPrice(price)}<span className="text-xs text-muted-foreground font-normal">/mo</span></span>
+                  <span className="font-extrabold">
+                    {hasDiscount && <span className="text-xs text-muted-foreground font-normal line-through mr-2">{formatPrice(price)}</span>}
+                    {formatPrice(payable)}<span className="text-xs text-muted-foreground font-normal">/mo</span>
+                  </span>
                 </div>
                 <Button type="submit" className="w-full font-bold">Proceed to Payment <ArrowRight className="w-4 h-4 ml-1" /></Button>
               </form>
@@ -279,7 +295,10 @@ function EnrollContent() {
             <motion.div key="payment" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.2 }}>
               <button onClick={() => { setPayMethod(null); setStep("details"); }} className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-6"><ArrowLeft className="w-4 h-4" /> Back</button>
               <h1 className="text-2xl font-extrabold mb-2">Choose Payment Method</h1>
-              <p className="text-muted-foreground text-sm mb-6">Amount due: <strong className="text-foreground">{formatPrice(price)}/month</strong></p>
+              <p className="text-muted-foreground text-sm mb-6">
+                Amount due: <strong className="text-foreground">{formatPrice(payable)}/month</strong>
+                {hasDiscount && <span className="ml-2 text-xs text-emerald-600 font-semibold">(20% off — was {formatPrice(price)})</span>}
+              </p>
 
               {!payMethod && (
                 <div className="grid sm:grid-cols-2 gap-4">
@@ -288,10 +307,11 @@ function EnrollContent() {
                     <div className="w-12 h-12 rounded-xl bg-primary/15 flex items-center justify-center text-primary"><Building2 className="w-6 h-6" /></div>
                     <div className="text-center"><p className="font-bold text-sm">Bank Transfer</p><p className="text-xs text-muted-foreground mt-0.5">Meezan Bank · upload screenshot</p></div>
                   </button>
-                  <button onClick={() => setPayMethod("assanpay")} className="flex flex-col items-center gap-3 p-6 rounded-2xl border-2 border-border hover:border-accent bg-card transition-all group">
-                    <div className="w-12 h-12 rounded-xl bg-accent/15 flex items-center justify-center text-accent"><CreditCard className="w-6 h-6" /></div>
-                    <div className="text-center"><p className="font-bold text-sm">Online Payment</p><p className="text-xs text-muted-foreground mt-0.5">Pay via AssanPay</p></div>
-                  </button>
+                  <div aria-disabled className="relative flex flex-col items-center gap-3 p-6 rounded-2xl border-2 border-dashed border-border bg-muted/30 opacity-70 cursor-not-allowed select-none">
+                    <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 inline-flex items-center px-2 py-0.5 rounded-full bg-muted text-muted-foreground text-[10px] font-bold uppercase tracking-wide">Coming soon</span>
+                    <div className="w-12 h-12 rounded-xl bg-muted flex items-center justify-center text-muted-foreground"><CreditCard className="w-6 h-6" /></div>
+                    <div className="text-center"><p className="font-bold text-sm text-muted-foreground">Online Payment</p><p className="text-xs text-muted-foreground mt-0.5">AssanPay — currently unavailable</p></div>
+                  </div>
                 </div>
               )}
 
@@ -327,7 +347,13 @@ function EnrollContent() {
                       <div className="flex justify-between"><span className="text-muted-foreground">Student</span><span className="font-medium">{fullName || "—"}</span></div>
                       <div className="flex justify-between"><span className="text-muted-foreground">Course</span><span className="font-medium">{course.name}</span></div>
                       <div className="flex justify-between"><span className="text-muted-foreground">Class type</span><span className="font-medium capitalize">{type}</span></div>
-                      <div className="flex justify-between border-t border-border pt-2 mt-1 font-bold text-base"><span>Amount Due</span><span>{formatPrice(price)}</span></div>
+                      {hasDiscount && (
+                        <>
+                          <div className="flex justify-between"><span className="text-muted-foreground">Course fee</span><span>{formatPrice(price)}</span></div>
+                          <div className="flex justify-between text-emerald-600 font-medium"><span>First-course discount (20%)</span><span>−{formatPrice(price - payable)}</span></div>
+                        </>
+                      )}
+                      <div className="flex justify-between border-t border-border pt-2 mt-1 font-bold text-base"><span>Amount Due</span><span>{formatPrice(payable)}</span></div>
                     </div>
                   </div>
 
