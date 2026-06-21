@@ -189,7 +189,7 @@ export default function PaperMakerClient() {
               <p className="text-3xl font-extrabold">PKR 3,000<span className="text-sm font-medium text-muted-foreground">/month</span></p>
               <p className="text-xs text-muted-foreground mt-1">Unlimited papers · priority generation</p>
             </div>
-            <Link href="/pricing#ai-pro" className="block w-full py-2.5 rounded-lg bg-gradient-to-r from-primary to-accent text-white text-sm font-bold hover:opacity-90">Upgrade to Pro</Link>
+            <Link href="/products/pro" className="block w-full py-2.5 rounded-lg bg-gradient-to-r from-primary to-accent text-white text-sm font-bold hover:opacity-90">Upgrade to Pro</Link>
             <button onClick={() => setUpgrade(false)} className="mt-2 text-xs text-muted-foreground hover:text-foreground">Maybe later</button>
           </div>
         </div>
