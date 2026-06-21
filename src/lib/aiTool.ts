@@ -4,19 +4,18 @@ import { createClient } from "@/lib/supabase/server";
 import { aiConfigured, chatComplete } from "@/lib/ai";
 
 // Models used by all Rabee's AI tools (Paper Maker, Essay Grader, Lesson Plan,
-// Notes, Planner, Quiz). Independent of the dashboard's AI_MODEL.
-// AI_TOOLS_MODEL may be a comma-separated list — they're tried in order, so if
-// the first (free) model is rate-limited (429) we fall back to the next.
-const DEFAULT_TOOL_MODELS = [
-  "meta-llama/llama-3.3-70b-instruct:free",
+// Notes, Planner, Quiz). By default the tools use the SAME model as the
+// dashboard (AI_MODEL), with a few free fallbacks tried only if the primary is
+// rate-limited (429) or fails. Set AI_TOOLS_MODEL (comma-separated) to override.
+const FALLBACK_MODELS = [
   "google/gemini-2.0-flash-exp:free",
   "qwen/qwen-2.5-72b-instruct:free",
   "mistralai/mistral-nemo:free",
 ];
 
-export const TOOL_MODELS = (process.env.AI_TOOLS_MODEL
+export const TOOL_MODELS = process.env.AI_TOOLS_MODEL
   ? process.env.AI_TOOLS_MODEL.split(",").map((s) => s.trim()).filter(Boolean)
-  : DEFAULT_TOOL_MODELS);
+  : [process.env.AI_MODEL ?? "cohere/north-mini-code:free", ...FALLBACK_MODELS];
 
 // First choice (kept for any single-model callers).
 export const TOOL_MODEL = TOOL_MODELS[0];
