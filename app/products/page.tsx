@@ -48,9 +48,12 @@ export default function ProductsPage() {
           <Link href="/products/humanizer" className="group relative block rounded-3xl border-2 border-fuchsia-400/50 bg-card overflow-hidden shadow-[0_0_45px_rgba(217,70,239,0.45)]">
             <div className="absolute inset-0 bg-gradient-to-br from-violet-600/10 via-fuchsia-500/10 to-transparent" />
             <div className="relative p-7 flex flex-col items-center text-center">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gradient-to-r from-emerald-500 to-green-600 text-white text-[11px] font-extrabold uppercase tracking-wide shadow mb-4 animate-pulse">
-                <ShieldCheck className="w-3.5 h-3.5" /> 100% Guaranteed
-              </span>
+              <div className="flex items-center justify-center gap-2 mb-4 flex-wrap">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gradient-to-r from-emerald-500 to-green-600 text-white text-[11px] font-extrabold uppercase tracking-wide shadow animate-pulse">
+                  <ShieldCheck className="w-3.5 h-3.5" /> 100% Guaranteed
+                </span>
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-400/20 text-amber-600 text-[11px] font-bold uppercase tracking-wide border border-amber-400/40">🧪 Under testing</span>
+              </div>
               <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-violet-600 to-fuchsia-600 grid place-items-center text-white shadow-lg mb-4">
                 <Wand2 className="w-8 h-8" />
               </div>

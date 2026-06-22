@@ -56,6 +56,9 @@ export default function HumanizerClient() {
       }`}</style>
 
       <form onSubmit={run} className="no-print space-y-3">
+        <div className="flex items-center gap-2 rounded-lg border border-amber-400/40 bg-amber-400/10 px-3 py-2 text-[11px] font-semibold text-amber-700 dark:text-amber-400">
+          🧪 This tool is under testing — results may vary while we improve it.
+        </div>
         <EnrolPerk />
         <div>
           <div className="flex items-center justify-between mb-1.5">
