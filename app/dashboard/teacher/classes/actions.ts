@@ -3,6 +3,10 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getProfile } from "@/lib/auth";
+import { notifyMany } from "@/lib/notify";
+
+const LINK_TITLE = "Your class link is ready 🎥";
+const LINK_BODY = "Your teacher added a class link. Open your portal to join the class.";
 
 // Set the Google Meet link for a batch. Teachers may edit their own batches;
 // admins may edit any (RLS enforces this on the update).
@@ -17,6 +21,13 @@ export async function setBatchMeetLink(formData: FormData) {
 
   const { error } = await supabase.from("batches").update({ meet_link: link }).eq("id", batchId);
   if (error) throw new Error(error.message);
+
+  // Notify every approved student in this batch that their class link is up.
+  if (link) {
+    const { data: students } = await supabase
+      .from("enrollments").select("student_id").eq("batch_id", batchId).eq("status", "approved");
+    await notifyMany((students ?? []).map((s) => s.student_id as string), LINK_TITLE, LINK_BODY);
+  }
 
   revalidatePath("/dashboard/teacher/classes");
   revalidatePath("/dashboard/admin/classes");
@@ -36,6 +47,13 @@ export async function setEnrollmentMeetLink(formData: FormData) {
 
   const { error } = await supabase.from("enrollments").update({ meet_link: link }).eq("id", enrollmentId);
   if (error) throw new Error(error.message);
+
+  // Notify the student that their personal class link is ready.
+  if (link) {
+    const { data: enr } = await supabase
+      .from("enrollments").select("student_id").eq("id", enrollmentId).maybeSingle();
+    if (enr?.student_id) await notifyMany([enr.student_id as string], LINK_TITLE, LINK_BODY);
+  }
 
   revalidatePath("/dashboard/teacher/classes");
   revalidatePath("/dashboard/admin/classes");
