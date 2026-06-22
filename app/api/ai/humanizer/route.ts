@@ -4,45 +4,45 @@ import { createClient } from "@/lib/supabase/server";
 import { chatComplete, aiConfigured } from "@/lib/ai";
 import { TOOL_MODELS } from "@/lib/aiTool";
 
-const SYSTEM = `# ROLE & ARCHITECTURAL OBJECTIVE
-You are the core text-transformation engine for a software application designed to eliminate AI-generated linguistic markers. Your objective is to re-engineer text to achieve low predictability metrics (High Perplexity) and high structural variance metrics (High Burstiness), rendering the output indistinguishable from human academic and professional writing.
+const SYSTEM = `You rewrite AI-generated text so it reads like natural human writing, keeping the SAME meaning, tone, and length.
 
-# OPERATIONAL EXECUTION PIPELINE
-For every input text, you must execute these four processing passes internally before returning the final payload:
+Apply these silently (never mention them):
+- LENGTH: the rewrite must match the input's length — about the same word count, and NEVER longer than the input. Do NOT add ideas, examples, sentences, or padding. Do NOT summarise or drop content. If unsure, keep it the same length rather than longer.
+- TONE: preserve the original tone, register, and meaning. Change only the wording and sentence rhythm.
+- Remove robotic AI phrasing. Never use: Furthermore, Moreover, Additionally, Notably, In conclusion, In summary, Ultimately, "It is important to remember", "It is crucial to consider", delve, tapestry, landscape, beacon, paradigm, revolutionize, unpack, foster, elevate, interplay. Use plain, direct, active phrasing.
+- Vary sentence length naturally (mix short and long); prefer active voice and direct assertions over hedging like "It can be argued that".
+- Keep all original Markdown, headings, and citations ([1], (Smith, 2023)). Keep sentences flowing within paragraphs; separate paragraphs only with a blank line (never one sentence per line); preserve the input's paragraph breaks.
 
-## PASS 1: LEXICAL PURGE (Perplexity Enhancement)
-Strip out all high-probability token sequences and systemic AI vocabulary.
-- FORBIDDEN TRANSITIONS: Furthermore, Moreover, In conclusion, Additionally, Notably, It is important to remember, It is crucial to consider, In summary, Ultimately.
-- FORBIDDEN VERBS/NOUNS: Delve, Tapestry, Landscape, Beacon, Testate, Paradigm, Revolutionize, Unpack, Foster, Elevate, Interplay.
-- REPLACEMENT PROTOCOL: Use direct, active human phrasing. (e.g., Instead of "Furthermore, it is crucial to delve into..." use "But looking closer at...").
-
-## PASS 2: SYNTACTIC RE-ENGINEERING (Burstiness Injection)
-You must break up uniform rhythm patterns. Force strict sentence length oscillation.
-- PATTERN RULE: Never allow three consecutive sentences to share a similar word count or grammatical structure.
-- RHYTHM TEMPLATE: Apply a rolling structural cycle throughout the text:
-  1. Short/Punchy (4–9 words) – Establishes a definitive point.
-  2. Complex/Compound (22–35 words) – Provides deep contextual elaboration using relative clauses.
-  3. Medium/Direct (12–18 words) – Bridges to the next concept.
-
-## PASS 3: STRUCTURAL DESTRUCTURING
-- PARAGRAPH DYNAMICS: Erase the standard "Topic -> Evidence -> Explanation -> Transition" 4-sentence AI paragraph block. Mix paragraph lengths unpredictably (e.g., a 1-sentence transition paragraph followed by a dense 6-sentence analytical block).
-- LOGICAL SIGNPOSTING: Replace explicit mechanical numbering ("First," "Second," "Third") with conceptual transitions. Let the argument dictate the flow, not a list structure.
-
-## PASS 4: HUMAN FLAIR & ACADEMIC NUANCE
-- Rhetorical Shifts: Allow occasional, intentional violations of rigid grammar rules for stylistic effect (e.g., beginning a sentence with "And," "But," or "Yet" to create conversational tension).
-- Voice: Favor active voice over passive voice. Strip away overly diplomatic or neutral AI framing ("It can be argued that..."). Instead, make direct assertions ("The data shows...").
-
-# OUTPUT RESTRICTIONS & FORMATTING
-- Return ONLY the finalized, humanized text string.
-- LENGTH & TONE LOCK (critical): Rewrite the SAME content only. Keep the output's length essentially identical to the input (within ~5% word count) — do NOT add new ideas, examples, sentences or padding, and do NOT summarise, compress or drop content. Preserve the original tone, register and meaning; only re-engineer the phrasing and rhythm.
-- Do NOT include any introductory greetings, meta-commentary, markdown explanations, or post-processing notes.
-- Maintain all original Markdown formatting, headers, or citation brackets ([1], (Smith, 2023)) exactly where they belong in the text flow.`;
+OUTPUT FORMAT — follow EXACTLY:
+- Do any thinking silently. Output ONLY the final rewritten text, wrapped between the markers <<<OUTPUT>>> and <<<END>>>, with nothing else inside or outside the markers.
+- Do NOT write any reasoning, analysis, steps, word counts, or notes anywhere.
+Example:
+<<<OUTPUT>>>
+the rewritten text here
+<<<END>>>`;
 
 const DAILY_WORD_LIMIT = 2000;
 const PER_REQUEST_CAP = 4000; // token-safety guard for a single submission
 
 function countWords(s: string): number {
   return (s.trim().match(/\S+/g) ?? []).length;
+}
+
+// Pull only the final text out of the model reply, hiding any reasoning the
+// model may have produced before the <<<OUTPUT>>> marker.
+function extractOutput(raw: string): string {
+  const start = raw.indexOf("<<<OUTPUT>>>");
+  const end = raw.indexOf("<<<END>>>");
+  let out = raw;
+  if (start !== -1) {
+    out = end !== -1 && end > start ? raw.slice(start + 11, end) : raw.slice(start + 11);
+  }
+  return out
+    .trim()
+    .replace(/<<<\/?(OUTPUT|END)>>>/g, "")
+    .replace(/^(here(?:'s| is)[^\n]*:?|sure[,!.][^\n]*|humanized( text)?:|rewritten( text)?:)\s*/i, "")
+    .replace(/^["'`]+|["'`]+$/g, "")
+    .trim();
 }
 
 export async function POST(req: Request) {
@@ -79,8 +79,26 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Not allowed." }, { status: 403 });
   }
 
+  // Keep the model's output budget close to the input so it can't run long.
+  const maxTokens = Math.min(4000, Math.max(400, Math.round(words * 2.2) + 200));
+
   try {
-    const out = await chatComplete(SYSTEM, [{ role: "user", content: text }], { maxTokens: 4000, models: TOOL_MODELS });
+    const raw = await chatComplete(SYSTEM, [{ role: "user", content: text }], { maxTokens, models: TOOL_MODELS });
+    let out = extractOutput(raw);
+
+    // If the rewrite came back noticeably longer than the input, ask once more
+    // to bring it back to the original length.
+    if (countWords(out) > words * 1.25) {
+      const raw2 = await chatComplete(
+        `${SYSTEM}\n\nIMPORTANT: your previous rewrite was too long. The rewrite MUST be no longer than the original (about ${words} words).`,
+        [{ role: "user", content: text }],
+        { maxTokens, models: TOOL_MODELS },
+      );
+      const out2 = extractOutput(raw2);
+      if (out2 && countWords(out2) < countWords(out)) out = out2;
+    }
+
+    if (!out) return NextResponse.json({ error: "Could not humanize that text. Please try again." }, { status: 502 });
     return NextResponse.json({ text: out, words, remaining: q.remaining ?? null, pro: Boolean(q.pro) });
   } catch (e) {
     return NextResponse.json({ error: e instanceof Error ? e.message : "Failed to humanize. Please try again." }, { status: 502 });
