@@ -8,7 +8,8 @@ import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import EnforceTheme from "@/components/EnforceTheme";
 import NotificationBell from "@/components/dashboard/NotificationBell";
-import MessagesBadge from "@/components/dashboard/MessagesBadge";
+import SectionBadge from "@/components/dashboard/SectionBadge";
+import WhatsAppCommunityPopup from "@/components/WhatsAppCommunityPopup";
 import AnimatedBackground from "@/components/AnimatedBackground";
 import ThemeToggle from "@/components/ThemeToggle";
 
@@ -40,6 +41,7 @@ export default function DashboardShell({
     <div className="min-h-screen text-foreground flex relative">
       <EnforceTheme mode="site" />
       <AnimatedBackground />
+      <WhatsAppCommunityPopup />
       {/* Sidebar */}
       <aside
         className={`fixed inset-y-0 left-0 z-40 w-64 bg-sidebar/95 backdrop-blur-xl border-r border-sidebar-border flex flex-col transition-transform lg:static lg:translate-x-0 ${
@@ -73,7 +75,7 @@ export default function DashboardShell({
               >
                 <span className="w-4 h-4 shrink-0 flex items-center justify-center">{item.icon}</span>
                 {item.label}
-                {item.href === "/chat" && <MessagesBadge />}
+                {item.href && <SectionBadge href={item.href} />}
               </Link>
             );
           })}

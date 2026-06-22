@@ -3,6 +3,7 @@ import Navbar from "@/components/Navbar";
 import AnimatedBackground from "@/components/AnimatedBackground";
 import EnforceTheme from "@/components/EnforceTheme";
 import RabeeAIWidget from "@/components/RabeeAIWidget";
+import WhatsAppCommunityPopup from "@/components/WhatsAppCommunityPopup";
 import HeroSection from "@/components/HeroSection";
 import StatsSection from "@/components/StatsSection";
 import PartnersMarquee from "@/components/PartnersMarquee";
@@ -67,6 +68,7 @@ export default async function HomePage() {
       <CTASection />
       <Footer />
       <RabeeAIWidget />
+      <WhatsAppCommunityPopup />
     </div>
   );
 }
