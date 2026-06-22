@@ -2,7 +2,18 @@ import { NextResponse } from "next/server";
 import { getProfile } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { chatComplete, aiConfigured } from "@/lib/ai";
-import { TOOL_MODELS } from "@/lib/aiTool";
+
+// The Humanizer must run on a NON-reasoning, instruction-following model — a
+// reasoning model (like some defaults) "thinks out loud" and leaks its analysis
+// instead of returning the rewrite. This list is independent of AI_MODEL.
+// Override with AI_HUMANIZER_MODEL (comma-separated = 429 fallback chain).
+const HUMANIZER_MODELS = process.env.AI_HUMANIZER_MODEL
+  ? process.env.AI_HUMANIZER_MODEL.split(",").map((s) => s.trim()).filter(Boolean)
+  : [
+      "meta-llama/llama-3.3-70b-instruct:free",
+      "google/gemini-2.0-flash-exp:free",
+      "mistralai/mistral-nemo:free",
+    ];
 
 const SYSTEM = `# ROLE & ARCHITECTURAL OBJECTIVE
 You are the core text-transformation engine for a software application designed to eliminate AI-generated linguistic markers. Your objective is to re-engineer text to achieve low predictability metrics (High Perplexity) and high structural variance metrics (High Burstiness), rendering the output indistinguishable from human academic and professional writing.
@@ -80,7 +91,7 @@ export async function POST(req: Request) {
   }
 
   try {
-    const out = await chatComplete(SYSTEM, [{ role: "user", content: text }], { maxTokens: 4000, models: TOOL_MODELS });
+    const out = await chatComplete(SYSTEM, [{ role: "user", content: text }], { maxTokens: 4000, models: HUMANIZER_MODELS });
     return NextResponse.json({ text: out, words, remaining: q.remaining ?? null, pro: Boolean(q.pro) });
   } catch (e) {
     return NextResponse.json({ error: e instanceof Error ? e.message : "Failed to humanize. Please try again." }, { status: 502 });
