@@ -20,9 +20,13 @@ export async function POST(req: Request) {
 
   // Supabase sends { type, table, record, old_record }. Tolerate `new` too.
   const record = (payload.record ?? payload.new ?? null) as
-    | { user_id?: string; title?: string; body?: string | null }
+    | { user_id?: string; title?: string; body?: string | null; emailed?: boolean }
     | null;
   if (!record?.user_id) return NextResponse.json({ ok: true, skipped: true });
+
+  // The app already emails most notifications inline (and marks them emailed).
+  // Only handle rows that haven't been emailed yet (e.g. DB-trigger inserts).
+  if (record.emailed) return NextResponse.json({ ok: true, alreadyEmailed: true });
 
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;

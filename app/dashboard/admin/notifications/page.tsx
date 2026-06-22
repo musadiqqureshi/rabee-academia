@@ -8,8 +8,8 @@ export default async function SuperAdminNotifications() {
   const supabase = await createClient();
 
   const { data: notifications } = await supabase
-    .from("notifications")
-    .select("id, title, body, recipient_role, created_at")
+    .from("notification_broadcasts")
+    .select("id, title, body, recipient_role, recipient_count, created_at")
     .order("created_at", { ascending: false })
     .limit(50);
 
@@ -40,10 +40,13 @@ export default async function SuperAdminNotifications() {
                 <div className="text-right shrink-0">
                   {n.recipient_role && (
                     <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-primary/15 text-primary capitalize">
-                      {n.recipient_role.replace("_", " ")}
+                      {n.recipient_role === "all" ? "Everyone" : `${n.recipient_role.replace("_", " ")}s`}
                     </span>
                   )}
                   <p className="text-xs text-muted-foreground mt-1">
+                    {n.recipient_count ?? 0} recipient{n.recipient_count === 1 ? "" : "s"}
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-0.5">
                     {new Date(n.created_at).toLocaleString()}
                   </p>
                 </div>

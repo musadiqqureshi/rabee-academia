@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient as createAdminClient } from "@supabase/supabase-js";
 import { getProfile } from "@/lib/auth";
+import { sendNotificationEmails } from "@/lib/email";
 
 // Super-admin / admin broadcast: insert an in-app notification for every user
 // of the chosen role and email each of them. Uses the service role to write
@@ -38,10 +39,24 @@ export async function POST(req: Request) {
   const { data: recipients, error } = await query;
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-  const rows = (recipients ?? []).map((r) => ({ user_id: r.id, title, body: message }));
+  const people = recipients ?? [];
+
+  // Email everyone directly so delivery doesn't depend on the optional webhook.
+  const emailedCount = await sendNotificationEmails(people, title, message);
+  const emailed = emailedCount > 0;
+
+  // Insert in-app notifications, marked emailed so the webhook won't re-send.
+  const rows = people.map((r) => ({ user_id: r.id, title, body: message, emailed }));
   if (rows.length > 0) await admin.from("notifications").insert(rows);
 
-  // Emails are sent automatically by the notifications INSERT webhook
-  // (app/api/hooks/notification), so we don't send them here too.
-  return NextResponse.json({ ok: true, count: rows.length });
+  // Log the broadcast so it shows in the admin "Sent Notifications" history.
+  await admin.from("notification_broadcasts").insert({
+    title,
+    body: message,
+    recipient_role: role,
+    recipient_count: rows.length,
+    sent_by: caller.id,
+  });
+
+  return NextResponse.json({ ok: true, count: rows.length, emailed: emailedCount });
 }

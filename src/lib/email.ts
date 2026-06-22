@@ -19,6 +19,23 @@ export async function sendEmail(opts: { to: string; subject: string; html: strin
   }
 }
 
+// Send the branded notification email to a list of recipients. Best-effort:
+// each send is independent and failures are swallowed so notifications never
+// break the calling code. Returns the number of emails that were accepted.
+export async function sendNotificationEmails(
+  recipients: { email?: string | null }[],
+  title: string,
+  body: string,
+): Promise<number> {
+  const html = notificationEmailHtml(title, body);
+  const targets = recipients.map((r) => r.email).filter((e): e is string => !!e);
+  if (targets.length === 0) return 0;
+  const results = await Promise.all(
+    targets.map((to) => sendEmail({ to, subject: title, html }).catch(() => false)),
+  );
+  return results.filter(Boolean).length;
+}
+
 // Branded notification email shell.
 export function notificationEmailHtml(title: string, body: string): string {
   const portal = "https://rabeeacademia.site/dashboard";
