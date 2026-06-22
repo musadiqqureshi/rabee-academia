@@ -2,7 +2,18 @@ import { NextResponse } from "next/server";
 import { getProfile } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { chatComplete, aiConfigured } from "@/lib/ai";
-import { TOOL_MODELS } from "@/lib/aiTool";
+
+// The Humanizer needs a non-reasoning, instruction-following model (reasoning
+// models "think out loud" and leak their analysis). It therefore uses its own
+// model list, independent of AI_MODEL. Override with AI_HUMANIZER_MODEL
+// (comma-separated = fallback chain on 429/failure).
+const HUMANIZER_MODELS = process.env.AI_HUMANIZER_MODEL
+  ? process.env.AI_HUMANIZER_MODEL.split(",").map((s) => s.trim()).filter(Boolean)
+  : [
+      "meta-llama/llama-3.3-70b-instruct:free",
+      "google/gemini-2.0-flash-exp:free",
+      "mistralai/mistral-nemo:free",
+    ];
 
 const SYSTEM = `You rewrite AI-generated text so it reads like natural human writing, keeping the SAME meaning, tone, and length.
 
@@ -79,11 +90,12 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Not allowed." }, { status: 403 });
   }
 
-  // Keep the model's output budget close to the input so it can't run long.
-  const maxTokens = Math.min(4000, Math.max(400, Math.round(words * 2.2) + 200));
+  // Give enough room to finish (a too-tight cap truncates the answer). Length
+  // is controlled by the prompt + the retry below, not by starving the budget.
+  const maxTokens = Math.min(4000, Math.max(800, Math.round(words * 4) + 400));
 
   try {
-    const raw = await chatComplete(SYSTEM, [{ role: "user", content: text }], { maxTokens, models: TOOL_MODELS });
+    const raw = await chatComplete(SYSTEM, [{ role: "user", content: text }], { maxTokens, models: HUMANIZER_MODELS });
     let out = extractOutput(raw);
 
     // If the rewrite came back noticeably longer than the input, ask once more
@@ -92,7 +104,7 @@ export async function POST(req: Request) {
       const raw2 = await chatComplete(
         `${SYSTEM}\n\nIMPORTANT: your previous rewrite was too long. The rewrite MUST be no longer than the original (about ${words} words).`,
         [{ role: "user", content: text }],
-        { maxTokens, models: TOOL_MODELS },
+        { maxTokens, models: HUMANIZER_MODELS },
       );
       const out2 = extractOutput(raw2);
       if (out2 && countWords(out2) < countWords(out)) out = out2;
