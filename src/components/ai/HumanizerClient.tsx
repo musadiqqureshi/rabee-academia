@@ -1,19 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Loader2, Sparkles, Printer, Copy, Check } from "lucide-react";
 import Markdown from "@/components/Markdown";
 import UpgradeModal from "@/components/ai/UpgradeModal";
 import EnrolPerk from "@/components/ai/EnrolPerk";
 
 const DAILY_LIMIT = 2000;
-const THINKING_PHASES = [
-  "Analyzing your text…",
-  "Detecting AI patterns…",
-  "Rewriting in a human voice…",
-  "Matching tone & length…",
-  "Final polish…",
-];
 
 export default function HumanizerClient() {
   const [text, setText] = useState("");
@@ -23,21 +16,12 @@ export default function HumanizerClient() {
   const [remaining, setRemaining] = useState<number | null>(null);
   const [upgrade, setUpgrade] = useState(false);
   const [copied, setCopied] = useState(false);
-  const [phase, setPhase] = useState(0);
 
   const words = (text.trim().match(/\S+/g) ?? []).length;
-
-  // Cycle the "thinking" phrases while a request is in flight.
-  useEffect(() => {
-    if (!loading) { setPhase(0); return; }
-    const id = setInterval(() => setPhase((p) => (p + 1) % THINKING_PHASES.length), 1400);
-    return () => clearInterval(id);
-  }, [loading]);
 
   async function run(e: React.FormEvent) {
     e.preventDefault();
     setError(null); setLoading(true); setResult(null);
-    setTimeout(() => document.getElementById("humanizer-result")?.scrollIntoView({ behavior: "smooth" }), 50);
     try {
       const res = await fetch("/api/ai/humanizer", {
         method: "POST", headers: { "Content-Type": "application/json" },
@@ -91,33 +75,6 @@ export default function HumanizerClient() {
       </form>
 
       <div id="humanizer-result" className="mt-6">
-        {loading && (
-          <div className="no-print rounded-2xl border border-primary/20 bg-card p-5">
-            <div className="flex items-center gap-3">
-              <span className="relative flex h-9 w-9 items-center justify-center">
-                <span className="absolute inline-flex h-full w-full rounded-full bg-primary/30 animate-ping" />
-                <span className="relative inline-flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-primary to-accent text-white"><Sparkles className="w-4 h-4" /></span>
-              </span>
-              <div>
-                <p className="text-sm font-semibold flex items-center gap-1.5">
-                  {THINKING_PHASES[phase]}
-                  <span className="inline-flex gap-0.5 items-end pb-0.5">
-                    <span className="w-1 h-1 rounded-full bg-foreground/70 animate-bounce [animation-delay:-0.3s]" />
-                    <span className="w-1 h-1 rounded-full bg-foreground/70 animate-bounce [animation-delay:-0.15s]" />
-                    <span className="w-1 h-1 rounded-full bg-foreground/70 animate-bounce" />
-                  </span>
-                </p>
-                <p className="text-xs text-muted-foreground">Rabee&apos;s AI is thinking…</p>
-              </div>
-            </div>
-            <div className="mt-4 space-y-2">
-              <div className="h-2.5 rounded bg-muted/70 animate-pulse w-full" />
-              <div className="h-2.5 rounded bg-muted/70 animate-pulse w-11/12" />
-              <div className="h-2.5 rounded bg-muted/70 animate-pulse w-9/12" />
-              <div className="h-2.5 rounded bg-muted/70 animate-pulse w-10/12" />
-            </div>
-          </div>
-        )}
         {result && (
           <div className="space-y-3">
             <div className="no-print flex items-center justify-between gap-3">
