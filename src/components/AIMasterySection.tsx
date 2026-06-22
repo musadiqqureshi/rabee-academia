@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Sparkles, Calendar, Users, ArrowRight, CheckCircle2, Briefcase } from "lucide-react";
+import { Sparkles, Calendar, Users, ArrowRight, CheckCircle2 } from "lucide-react";
 import { getCourse } from "@/lib/courses";
 
 export default function AIMasterySection({ seatsTaken = 0 }: { seatsTaken?: number }) {
@@ -42,23 +42,6 @@ export default function AIMasterySection({ seatsTaken = 0 }: { seatsTaken?: numb
                     </li>
                   ))}
                 </ul>
-
-                {/* Internship offer */}
-                <div className="mt-5 rounded-xl border border-amber-400/40 bg-amber-400/10 p-4">
-                  <div className="flex items-start gap-2.5">
-                    <Briefcase className="w-4 h-4 text-amber-600 mt-0.5 shrink-0" />
-                    <p className="text-xs leading-relaxed text-foreground/80">
-                      <strong className="text-foreground">🚀 Internship opportunity:</strong> We&apos;ll select{" "}
-                      <strong className="text-foreground">7 students</strong> for a{" "}
-                      <strong className="text-foreground">free 1-month internship</strong> at our software agency{" "}
-                      <a href="https://tech-solutions.site" target="_blank" rel="noopener noreferrer" className="text-primary font-semibold hover:underline">
-                        Tech Solutions Pakistan
-                      </a>{" "}
-                      — and afterwards choose{" "}
-                      <strong className="text-foreground">3 of them for future roles</strong>.
-                    </p>
-                  </div>
-                </div>
               </div>
 
               <div className="text-center shrink-0">

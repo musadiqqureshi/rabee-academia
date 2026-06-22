@@ -35,7 +35,7 @@ export const courses: Course[] = [
     weekendPrice: 0,
     icon: Sparkles,
     gradient: "from-fuchsia-600 via-purple-600 to-indigo-600",
-    description: "Rabee's AI Mastery is a hands-on, 2-week weekend bootcamp that turns you into a confident, job-ready AI user and builder. You'll master practical AI tools, prompt engineering, workflow automation and build real AI-powered projects — the exact skills modern software teams hire for. No prior coding experience needed: we start from the basics and take you all the way to shipping your own AI projects. Free launching offer, weekends only, limited to 30 seats. Starts July 2026.",
+    description: "A free 2-week weekend bootcamp on practical AI — tools, prompt engineering and automation. Limited to 30 seats. Starts July 2026.",
     features: ["2-week intensive (weekends)", "Starts July 2026", "Hands-on AI projects", "Prompt engineering", "Certificate of completion"],
     free: true,
     special: true,

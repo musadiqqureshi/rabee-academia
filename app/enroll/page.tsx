@@ -6,7 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowRight, ArrowLeft, CheckCircle2, CreditCard,
-  Building2, Upload, Loader2, Clock, CalendarDays, Star, Copy,
+  Building2, Upload, Loader2, Clock, CalendarDays, Star, Copy, Briefcase,
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import EnforceTheme from "@/components/EnforceTheme";
@@ -279,6 +279,28 @@ function EnrollContent() {
           {step === "payment" && course.free && (
             <motion.div key="free" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.2 }}>
               <button onClick={() => setStep("details")} className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-6"><ArrowLeft className="w-4 h-4" /> Back</button>
+
+              {course.slug === "ai-mastery" && (
+                <div className="bg-card border border-border rounded-2xl p-6 mb-4 text-left">
+                  <h2 className="text-lg font-bold mb-2">About this course</h2>
+                  <p className="text-sm text-muted-foreground leading-relaxed mb-4">
+                    Rabee&apos;s AI Mastery is a hands-on, 2-week weekend bootcamp that turns you into a confident, job-ready AI user and builder. You&apos;ll master practical AI tools, prompt engineering, workflow automation and build real AI-powered projects — the exact skills modern software teams hire for. No prior coding experience needed: we start from the basics and take you all the way to shipping your own AI projects.
+                  </p>
+                  <div className="rounded-xl border border-amber-400/40 bg-amber-400/10 p-4">
+                    <div className="flex items-start gap-2.5">
+                      <Briefcase className="w-4 h-4 text-amber-600 mt-0.5 shrink-0" />
+                      <p className="text-xs leading-relaxed text-foreground/80">
+                        <strong className="text-foreground">🚀 Internship opportunity:</strong> We&apos;ll select{" "}
+                        <strong className="text-foreground">7 students</strong> for a{" "}
+                        <strong className="text-foreground">free 1-month internship</strong> at our software agency{" "}
+                        <a href="https://tech-solutions.site" target="_blank" rel="noopener noreferrer" className="text-primary font-semibold hover:underline">Tech Solutions Pakistan</a>{" "}
+                        — and afterwards choose <strong className="text-foreground">3 of them for future roles</strong>.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               <div className="bg-card border border-border rounded-2xl p-6 text-center">
                 <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-fuchsia-500 to-purple-600 text-white grid place-items-center mx-auto mb-4"><CheckCircle2 className="w-7 h-7" /></div>
                 <h1 className="text-2xl font-extrabold mb-1">Reserve your free seat</h1>
