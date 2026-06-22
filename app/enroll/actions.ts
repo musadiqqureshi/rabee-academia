@@ -88,14 +88,11 @@ export async function submitEnrollment(formData: FormData): Promise<EnrollResult
   // Price is taken from the subject row, never from client input.
   const amount = classType === "weekend" ? subject.weekend_price : subject.regular_price;
 
-  // Seat limit (e.g. AI Mastery — 30 seats).
+  // Seat limit (e.g. AI Mastery — 30 seats). Use the SECURITY DEFINER RPC so
+  // the count is accurate regardless of the caller's RLS view.
   if (staticCourse?.seatLimit) {
-    const { count } = await supabase
-      .from("enrollments")
-      .select("id", { count: "exact", head: true })
-      .eq("subject_id", subjectId)
-      .in("status", ["pending", "approved"]);
-    if ((count ?? 0) >= staticCourse.seatLimit) {
+    const { data: taken } = await supabase.rpc("subject_enrolled_count", { p_subject: subjectId });
+    if (Number(taken ?? 0) >= staticCourse.seatLimit) {
       return { ok: false, error: "Sorry, all seats for this course are full." };
     }
   }

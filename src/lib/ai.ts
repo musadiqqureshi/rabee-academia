@@ -19,10 +19,20 @@ export function aiConfigured(): boolean {
   return Boolean((process.env.AI_BASE_URL && process.env.AI_API_KEY) || process.env.ANTHROPIC_API_KEY);
 }
 
+// Removes chain-of-thought wrappers some reasoning models leak into the text.
+function stripReasoning(s: string): string {
+  return s
+    .replace(/<think>[\s\S]*?<\/think>/gi, "")
+    .replace(/<thinking>[\s\S]*?<\/thinking>/gi, "")
+    .replace(/<reasoning>[\s\S]*?<\/reasoning>/gi, "")
+    .replace(/^\s*<think>[\s\S]*$/i, "") // unclosed think block -> drop
+    .trim();
+}
+
 export async function chatComplete(
   system: string,
   messages: ChatMessage[],
-  opts: { maxTokens?: number; model?: string; models?: string[] } = {},
+  opts: { maxTokens?: number; model?: string; models?: string[]; contentOnly?: boolean } = {},
 ): Promise<string> {
   const maxTokens = opts.maxTokens ?? 2000;
   const baseUrl = process.env.AI_BASE_URL;
@@ -64,8 +74,10 @@ export async function chatComplete(
         }
         const json = await res.json();
         const msg = json?.choices?.[0]?.message ?? {};
-        // Some reasoning models put the answer in `content`; fall back to `reasoning`.
-        const text: string = msg.content || msg.reasoning || "";
+        // Prefer cleaned `content`. Only fall back to `reasoning` when the caller
+        // allows it (humanizer & similar tools must NEVER show chain-of-thought).
+        const content = stripReasoning(typeof msg.content === "string" ? msg.content : "");
+        const text = content || (opts.contentOnly ? "" : stripReasoning(typeof msg.reasoning === "string" ? msg.reasoning : ""));
         if (text) return text.trim();
         lastErr = "AI returned an empty response.";
       } catch (e) {

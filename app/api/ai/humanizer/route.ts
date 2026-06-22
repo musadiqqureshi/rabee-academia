@@ -80,7 +80,7 @@ export async function POST(req: Request) {
   }
 
   try {
-    const out = await chatComplete(SYSTEM, [{ role: "user", content: text }], { maxTokens: 4000, models: TOOL_MODELS });
+    const out = await chatComplete(SYSTEM, [{ role: "user", content: text }], { maxTokens: 4000, models: TOOL_MODELS, contentOnly: true });
     return NextResponse.json({ text: out, words, remaining: q.remaining ?? null, pro: Boolean(q.pro) });
   } catch (e) {
     return NextResponse.json({ error: e instanceof Error ? e.message : "Failed to humanize. Please try again." }, { status: 502 });

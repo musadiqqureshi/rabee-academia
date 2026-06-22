@@ -1,6 +1,7 @@
 import Link from "next/link";
-import { Sparkles, Calendar, Users, ArrowRight, CheckCircle2, Briefcase } from "lucide-react";
+import { Sparkles, Calendar, ArrowRight, CheckCircle2, Briefcase } from "lucide-react";
 import { getCourse } from "@/lib/courses";
+import MasterySeats from "@/components/MasterySeats";
 
 export default function AIMasterySection({ seatsTaken = 0 }: { seatsTaken?: number }) {
   const course = getCourse("ai-mastery");
@@ -33,7 +34,7 @@ export default function AIMasterySection({ seatsTaken = 0 }: { seatsTaken?: numb
                 <p className="text-sm text-muted-foreground mb-4 max-w-lg">{course.description}</p>
                 <div className="flex flex-wrap gap-4 text-sm">
                   <span className="inline-flex items-center gap-1.5"><Calendar className="w-4 h-4 text-primary" /> {course.duration} · {course.schedule}</span>
-                  <span className="inline-flex items-center gap-1.5"><Users className="w-4 h-4 text-primary" /> {left} of {limit} seats left</span>
+                  <MasterySeats limit={limit} initialLeft={left} />
                 </div>
                 <ul className="grid sm:grid-cols-2 gap-1.5 mt-4">
                   {course.features.map((f) => (

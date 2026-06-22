@@ -15,12 +15,8 @@ import { createClient } from "@/lib/supabase/server";
 async function getMasterySeats(): Promise<number> {
   try {
     const supabase = await createClient();
-    const { data: subj } = await supabase.from("subjects").select("id").eq("slug", "ai-mastery").maybeSingle();
-    if (!subj) return 0;
-    const { count } = await supabase
-      .from("enrollments").select("id", { count: "exact", head: true })
-      .eq("subject_id", subj.id).in("status", ["pending", "approved"]);
-    return count ?? 0;
+    const { data } = await supabase.rpc("ai_mastery_seats");
+    return Number(data ?? 0);
   } catch {
     return 0;
   }
