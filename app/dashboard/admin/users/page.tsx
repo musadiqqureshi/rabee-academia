@@ -1,7 +1,8 @@
 import { Users } from "lucide-react";
-import { requireRole } from "@/lib/auth";
+import { requireRole, getProfile } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import type { UserRole } from "@/lib/supabase/types";
+import UserRowActions from "./UserRowActions";
 
 const roleStyle: Record<string, string> = {
   super_admin: "bg-purple-500/15 text-purple-400",
@@ -12,6 +13,7 @@ const roleStyle: Record<string, string> = {
 
 export default async function SuperAdminUsers() {
   await requireRole("admin");
+  const me = await getProfile();
   const supabase = await createClient();
 
   const { data: users } = await supabase
@@ -40,6 +42,7 @@ export default async function SuperAdminUsers() {
                 <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Email</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Role</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Joined</th>
+                <th className="px-4 py-3 text-right text-xs font-medium text-muted-foreground uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
@@ -54,6 +57,9 @@ export default async function SuperAdminUsers() {
                   </td>
                   <td className="px-4 py-3 text-muted-foreground text-xs">
                     {new Date(u.created_at).toLocaleDateString()}
+                  </td>
+                  <td className="px-4 py-3">
+                    <UserRowActions id={u.id} role={u.role} isSelf={u.id === me?.id} />
                   </td>
                 </tr>
               ))}
