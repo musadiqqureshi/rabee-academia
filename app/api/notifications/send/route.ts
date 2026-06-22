@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient as createAdminClient } from "@supabase/supabase-js";
 import { getProfile } from "@/lib/auth";
-import { sendEmail, notificationEmailHtml } from "@/lib/email";
 
 // Super-admin / admin broadcast: insert an in-app notification for every user
 // of the chosen role and email each of them. Uses the service role to write
@@ -42,13 +41,7 @@ export async function POST(req: Request) {
   const rows = (recipients ?? []).map((r) => ({ user_id: r.id, title, body: message }));
   if (rows.length > 0) await admin.from("notifications").insert(rows);
 
-  // Fire emails (best effort, in parallel).
-  const html = notificationEmailHtml(title, message);
-  await Promise.allSettled(
-    (recipients ?? [])
-      .filter((r) => r.email)
-      .map((r) => sendEmail({ to: r.email as string, subject: title, html })),
-  );
-
+  // Emails are sent automatically by the notifications INSERT webhook
+  // (app/api/hooks/notification), so we don't send them here too.
   return NextResponse.json({ ok: true, count: rows.length });
 }

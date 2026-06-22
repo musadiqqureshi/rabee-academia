@@ -1,8 +1,10 @@
-import { sendEmail, notificationEmailHtml } from "@/lib/email";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 /**
- * Creates an in-app notification for a user and emails them a heads-up.
+ * Creates an in-app notification for a user. The notification email is sent
+ * automatically by the Supabase Database Webhook on `notifications` INSERT
+ * (see app/api/hooks/notification), so we only insert the row here — that keeps
+ * email handling in one place and avoids duplicate sends.
  * Best-effort: never throws (so it can't break the calling action).
  */
 export async function notifyUser(
@@ -13,10 +15,6 @@ export async function notifyUser(
 ): Promise<void> {
   try {
     await supabase.from("notifications").insert({ user_id: userId, title, body });
-    const { data } = await supabase.from("profiles").select("email").eq("id", userId).maybeSingle();
-    if (data?.email) {
-      await sendEmail({ to: data.email, subject: title, html: notificationEmailHtml(title, body) });
-    }
   } catch {
     /* notifications are non-critical */
   }
