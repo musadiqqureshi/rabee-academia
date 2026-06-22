@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { playPing } from "@/lib/ping";
@@ -33,6 +33,8 @@ export default function MessagesBadge() {
   const supabase = createClient();
   const pathname = usePathname();
   const [count, setCount] = useState(0);
+  const prevRef = useRef(0);
+  const initedRef = useRef(false);
 
   const onChat = pathname.endsWith("/chat");
 
@@ -40,45 +42,54 @@ export default function MessagesBadge() {
   useEffect(() => {
     if (onChat) {
       markSeen();
+      prevRef.current = 0;
       setCount(0);
     }
   }, [onChat]);
 
   useEffect(() => {
     let channel: ReturnType<typeof supabase.channel> | null = null;
+    let interval: ReturnType<typeof setInterval> | null = null;
     let uid: string | null = null;
 
-    supabase.auth.getUser().then(async ({ data: { user } }) => {
+    async function refresh() {
+      if (!uid) return;
+      if (window.location.pathname.endsWith("/chat")) { prevRef.current = 0; setCount(0); return; }
+      const { count: c } = await supabase
+        .from("messages")
+        .select("id", { count: "exact", head: true })
+        .neq("sender_id", uid)
+        .gt("created_at", getSeen());
+      const next = c ?? 0;
+      // Chime when the unread count rises (skip the very first load).
+      if (initedRef.current && next > prevRef.current) playPing();
+      prevRef.current = next;
+      initedRef.current = true;
+      setCount(next);
+    }
+
+    supabase.auth.getUser().then(({ data: { user } }) => {
       if (!user) return;
       uid = user.id;
-
-      if (!window.location.pathname.endsWith("/chat")) {
-        const { count: c } = await supabase
-          .from("messages")
-          .select("id", { count: "exact", head: true })
-          .neq("sender_id", uid)
-          .gt("created_at", getSeen());
-        setCount(c ?? 0);
-      }
-
+      refresh();
+      // Poll every 15s so it works even without Supabase Realtime enabled.
+      interval = setInterval(refresh, 15000);
       channel = supabase
-        .channel(`msg-badge:${uid}`)
+        .channel(`msg-badge:${user.id}`)
         .on(
           "postgres_changes",
           { event: "INSERT", schema: "public", table: "messages" },
-          (payload) => {
-            const m = payload.new as { sender_id: string };
-            if (!uid || m.sender_id === uid) return; // ignore my own messages
-            if (window.location.pathname.endsWith("/chat")) return; // already reading
-            setCount((n) => n + 1);
-            playPing();
-          },
+          () => refresh(),
         )
         .subscribe();
     });
 
+    const onFocus = () => refresh();
+    window.addEventListener("focus", onFocus);
     return () => {
       if (channel) supabase.removeChannel(channel);
+      if (interval) clearInterval(interval);
+      window.removeEventListener("focus", onFocus);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

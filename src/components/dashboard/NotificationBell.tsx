@@ -15,6 +15,8 @@ export default function NotificationBell() {
   const [notes, setNotes] = useState<Note[]>([]);
   const [uid, setUid] = useState<string | null>(null);
   const ref = useRef<HTMLDivElement>(null);
+  const lastTopRef = useRef<string | null>(null);
+  const initedRef = useRef(false);
 
   const unread = notes.filter((n) => !n.is_read).length;
 
@@ -25,30 +27,46 @@ export default function NotificationBell() {
       .eq("user_id", userId)
       .order("created_at", { ascending: false })
       .limit(20);
-    setNotes((data as Note[]) ?? []);
+    const list = (data as Note[]) ?? [];
+    const newestId = list[0]?.id ?? null;
+    // A brand-new notification arrived (top row changed after first load).
+    if (initedRef.current && newestId && newestId !== lastTopRef.current) {
+      playPing();
+      router.refresh();
+    }
+    lastTopRef.current = newestId;
+    initedRef.current = true;
+    setNotes(list);
   }
 
   useEffect(() => {
     let channel: ReturnType<typeof supabase.channel> | null = null;
+    let interval: ReturnType<typeof setInterval> | null = null;
+    let userId: string | null = null;
+
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (!user) return;
+      userId = user.id;
       setUid(user.id);
       load(user.id);
-      // Best-effort realtime (works if notifications is in the realtime publication).
+      // Poll every 15s so it works even without Supabase Realtime enabled.
+      interval = setInterval(() => load(user.id), 15000);
+      // Realtime (instant) when available — also routed through load().
       channel = supabase
         .channel(`notes:${user.id}`)
         .on("postgres_changes",
           { event: "INSERT", schema: "public", table: "notifications", filter: `user_id=eq.${user.id}` },
-          (payload) => {
-            setNotes((prev) => [payload.new as Note, ...prev]);
-            // Audible chime + refresh the current dashboard data so any
-            // server-rendered panels reflect the change immediately.
-            playPing();
-            router.refresh();
-          })
+          () => load(user.id))
         .subscribe();
     });
-    return () => { if (channel) supabase.removeChannel(channel); };
+    // Refresh immediately when the tab regains focus.
+    const onFocus = () => { if (userId) load(userId); };
+    window.addEventListener("focus", onFocus);
+    return () => {
+      if (channel) supabase.removeChannel(channel);
+      if (interval) clearInterval(interval);
+      window.removeEventListener("focus", onFocus);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
