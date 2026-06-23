@@ -5,6 +5,7 @@ import { createClient as createAdminClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 import { getProfile } from "@/lib/auth";
 import { getCourse, type Course } from "@/lib/courses";
+import { notifyAdmins } from "@/lib/notify";
 
 export interface EnrollResult {
   ok: boolean;
@@ -144,6 +145,14 @@ export async function submitEnrollment(formData: FormData): Promise<EnrollResult
         .select("id")
         .single();
   if (enrollErr || !enrollment) return { ok: false, error: enrollErr?.message ?? "Enrolment failed." };
+
+  // Email the academy team about the new enrolment (in-app + email via webhook).
+  const studentName = String(formData.get("full_name") ?? profile.full_name ?? profile.email ?? "A student");
+  const courseName = String(formData.get("course_name") ?? staticCourse?.name ?? "a course");
+  await notifyAdmins(
+    "New enrollment received",
+    `${studentName} enrolled in ${courseName} (${classType}). Verify the payment and approve it in the admin panel.`,
+  );
 
   // Upload the bank-transfer receipt, if provided.
   let receiptPath: string | null = null;

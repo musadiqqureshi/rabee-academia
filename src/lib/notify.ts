@@ -54,3 +54,18 @@ export async function notifyUser(
 export async function notifyMany(userIds: string[], title: string, body: string): Promise<void> {
   await dispatch(userIds, title, body);
 }
+
+/**
+ * Notify (and email) every admin / super-admin. Used for enrolments and other
+ * events the academy team should hear about. Best-effort.
+ */
+export async function notifyAdmins(title: string, body: string): Promise<void> {
+  const admin = adminClient();
+  if (!admin) return;
+  try {
+    const { data } = await admin.from("profiles").select("id").in("role", ["admin", "super_admin"]);
+    await dispatch((data ?? []).map((p) => p.id as string), title, body);
+  } catch {
+    /* non-critical */
+  }
+}
