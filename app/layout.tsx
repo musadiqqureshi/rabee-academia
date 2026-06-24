@@ -3,6 +3,7 @@ import "./globals.css";
 import "katex/dist/katex.min.css";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/toaster";
+import { courses } from "@/lib/courses";
 
 const SITE_URL = "https://rabeeacademia.site";
 const SITE_NAME = "Rabee Academia";
@@ -120,10 +121,31 @@ const jsonLd = {
         { "@type": "SiteNavigationElement", position: 2, name: "Pricing", url: `${SITE_URL}/pricing` },
         { "@type": "SiteNavigationElement", position: 3, name: "Book a Demo", url: `${SITE_URL}/demo` },
         { "@type": "SiteNavigationElement", position: 4, name: "Enroll", url: `${SITE_URL}/enroll` },
-        { "@type": "SiteNavigationElement", position: 5, name: "Sign in", url: `${SITE_URL}/login` },
-        { "@type": "SiteNavigationElement", position: 6, name: "Register", url: `${SITE_URL}/register` },
+        { "@type": "SiteNavigationElement", position: 5, name: "FAQ", url: `${SITE_URL}/faq` },
+        { "@type": "SiteNavigationElement", position: 6, name: "AI Tools", url: `${SITE_URL}/products` },
+        { "@type": "SiteNavigationElement", position: 7, name: "Sign in", url: `${SITE_URL}/login` },
       ],
     },
+    // Course catalogue — helps Google & AI assistants understand and recommend
+    // our specific courses (AEO/GEO).
+    ...courses.map((c) => ({
+      "@type": "Course",
+      name: c.name,
+      description: c.description,
+      provider: { "@id": `${SITE_URL}/#organization` },
+      educationalLevel: c.level,
+      ...(c.free
+        ? {}
+        : {
+            offers: {
+              "@type": "Offer",
+              price: c.regularPrice,
+              priceCurrency: "PKR",
+              category: "monthly",
+              url: `${SITE_URL}/pricing`,
+            },
+          }),
+    })),
   ],
 };
 

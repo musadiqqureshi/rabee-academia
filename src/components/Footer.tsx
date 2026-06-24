@@ -23,22 +23,22 @@ export default function Footer() {
           <div>
             <h4 className="font-bold text-foreground mb-4">Programs</h4>
             <ul className="space-y-2 text-sm text-muted-foreground">
-              <li><a href="#" className="hover:text-primary transition-colors">FSc Pre-Medical</a></li>
-              <li><a href="#" className="hover:text-primary transition-colors">FSc Pre-Engineering</a></li>
-              <li><a href="#" className="hover:text-primary transition-colors">A/O Levels</a></li>
-              <li><a href="#" className="hover:text-primary transition-colors">BS Programs</a></li>
-              <li><a href="#" className="hover:text-primary transition-colors">MS Programs</a></li>
+              <li><a href="/pricing" className="hover:text-primary transition-colors">FSc Pre-Medical</a></li>
+              <li><a href="/pricing" className="hover:text-primary transition-colors">FSc Pre-Engineering</a></li>
+              <li><a href="/pricing" className="hover:text-primary transition-colors">A/O Levels</a></li>
+              <li><a href="/pricing" className="hover:text-primary transition-colors">BS Programs</a></li>
+              <li><a href="/faq" className="hover:text-primary transition-colors">FAQ</a></li>
             </ul>
           </div>
 
           <div>
             <h4 className="font-bold text-foreground mb-4">Subjects</h4>
             <ul className="space-y-2 text-sm text-muted-foreground">
-              <li><a href="#" className="hover:text-primary transition-colors">Physics</a></li>
-              <li><a href="#" className="hover:text-primary transition-colors">Chemistry</a></li>
-              <li><a href="#" className="hover:text-primary transition-colors">Biology</a></li>
-              <li><a href="#" className="hover:text-primary transition-colors">Mathematics</a></li>
-              <li><a href="#" className="hover:text-primary transition-colors">Computer Science</a></li>
+              <li><a href="/pricing" className="hover:text-primary transition-colors">Physics</a></li>
+              <li><a href="/pricing" className="hover:text-primary transition-colors">Chemistry</a></li>
+              <li><a href="/pricing" className="hover:text-primary transition-colors">Biology</a></li>
+              <li><a href="/pricing" className="hover:text-primary transition-colors">Mathematics</a></li>
+              <li><a href="/products" className="hover:text-primary transition-colors">AI Tools</a></li>
             </ul>
           </div>
 
