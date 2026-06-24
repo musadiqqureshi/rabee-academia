@@ -39,6 +39,7 @@ export default function Footer() {
               <li><a href="/pricing" className="hover:text-primary transition-colors">Biology</a></li>
               <li><a href="/pricing" className="hover:text-primary transition-colors">Mathematics</a></li>
               <li><a href="/products" className="hover:text-primary transition-colors">AI Tools</a></li>
+              <li><a href="/ai-career-stack" className="hover:text-primary transition-colors">AI Career Stack</a></li>
             </ul>
           </div>
 

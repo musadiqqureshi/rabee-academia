@@ -72,6 +72,16 @@ export default function AIMasterySection({ seatsTaken = 0 }: { seatsTaken?: numb
                 )}
               </div>
             </div>
+
+            {/* Funnel into the paid AI Career Stack */}
+            <div className="mt-6 pt-5 border-t border-border flex flex-wrap items-center justify-between gap-3">
+              <p className="text-sm text-foreground/80">
+                Want <strong className="text-foreground">real skills for freelancing &amp; jobs</strong>? Explore our AI Career Stack.
+              </p>
+              <Link href="/ai-career-stack" className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary hover:underline">
+                Explore AI Career Stack <ArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
           </div>
         </div>
       </div>

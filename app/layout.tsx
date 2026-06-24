@@ -123,7 +123,8 @@ const jsonLd = {
         { "@type": "SiteNavigationElement", position: 4, name: "Enroll", url: `${SITE_URL}/enroll` },
         { "@type": "SiteNavigationElement", position: 5, name: "FAQ", url: `${SITE_URL}/faq` },
         { "@type": "SiteNavigationElement", position: 6, name: "AI Tools", url: `${SITE_URL}/products` },
-        { "@type": "SiteNavigationElement", position: 7, name: "Sign in", url: `${SITE_URL}/login` },
+        { "@type": "SiteNavigationElement", position: 7, name: "AI Career Stack", url: `${SITE_URL}/ai-career-stack` },
+        { "@type": "SiteNavigationElement", position: 8, name: "Sign in", url: `${SITE_URL}/login` },
       ],
     },
     // Course catalogue — helps Google & AI assistants understand and recommend
