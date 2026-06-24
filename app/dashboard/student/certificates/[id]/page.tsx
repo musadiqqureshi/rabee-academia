@@ -17,7 +17,7 @@ export default async function StudentCertificateView({ params }: { params: Promi
 
   const { data: enrollment } = await supabase
     .from("enrollments")
-    .select("id, batch_id, created_at, subjects:subject_id ( name, level )")
+    .select("id, batch_id, created_at, completed, subjects:subject_id ( name, level )")
     .eq("id", id)
     .eq("student_id", profile.id)
     .single();
@@ -26,7 +26,8 @@ export default async function StudentCertificateView({ params }: { params: Promi
   const subject = enrollment.subjects as unknown as { name: string; level: string } | null;
   const perf = await computeOverall(supabase as never, profile.id, enrollment.batch_id);
 
-  if (perf.overall < CERT_THRESHOLD) {
+  // Admin-marked completion always unlocks the certificate.
+  if (!enrollment.completed && perf.overall < CERT_THRESHOLD) {
     return (
       <div className="space-y-5 max-w-lg">
         <Link href="/dashboard/student/certificates" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">

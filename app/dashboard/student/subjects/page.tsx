@@ -10,12 +10,16 @@ export default async function StudentSubjects() {
   const supabase = await createClient();
 
   // Keep this query simple so a fragile nested join can never blank the page.
-  const { data: enrollments } = await supabase
+  const { data: allEnrollments } = await supabase
     .from("enrollments")
-    .select("id, status, class_type, created_at, batch_id, meet_link, subjects:subject_id ( name, level )")
+    .select("id, status, class_type, created_at, batch_id, meet_link, completed, subjects:subject_id ( name, level )")
     .eq("student_id", profile.id)
     .eq("status", "approved")
     .order("created_at", { ascending: false });
+
+  // Completed courses are hidden from the active list (they move to Certificates).
+  const enrollments = (allEnrollments ?? []).filter((e) => !e.completed);
+  const completedCount = (allEnrollments ?? []).length - enrollments.length;
 
   // Fetch teacher / meet link for the assigned batches separately (defensive).
   const batchIds = [...new Set((enrollments ?? []).map((e) => e.batch_id).filter(Boolean) as string[])];
@@ -35,7 +39,14 @@ export default async function StudentSubjects() {
     <div>
       <RealtimeRefresher tables={["enrollments"]} />
       <h1 className="text-2xl font-bold">My Subjects</h1>
-      <p className="text-sm text-muted-foreground mt-1">Your approved enrollments</p>
+      <p className="text-sm text-muted-foreground mt-1">Your active enrolled courses</p>
+
+      {completedCount > 0 && (
+        <div className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800 flex items-center justify-between gap-3 flex-wrap">
+          <span>🎓 You&apos;ve completed {completedCount} course{completedCount > 1 ? "s" : ""}.</span>
+          <a href="/dashboard/student/certificates" className="font-semibold underline">Get your certificate{completedCount > 1 ? "s" : ""}</a>
+        </div>
+      )}
 
       {(!enrollments || enrollments.length === 0) ? (
         <div className="mt-8 bg-card border border-card-border rounded-xl p-10 text-center">

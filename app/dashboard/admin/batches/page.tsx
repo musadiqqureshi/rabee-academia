@@ -1,7 +1,8 @@
-import { BookOpen } from "lucide-react";
+import { BookOpen, CheckCircle2 } from "lucide-react";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import AddBatchForm from "./AddBatchForm";
+import { markBatchComplete } from "./actions";
 
 export const dynamic = "force-dynamic";
 
@@ -15,7 +16,7 @@ export default async function AdminBatches() {
       id, class_type, start_date, end_date, max_students, is_active,
       subjects ( name, level ),
       profiles ( full_name ),
-      enrollments ( id )
+      enrollments ( id, status, completed )
     `)
     .order("start_date", { ascending: false });
 
@@ -52,13 +53,18 @@ export default async function AdminBatches() {
                 <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Start Date</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">End Date</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Status</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Completion</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
               {batches.map((b) => {
                 const subject = b.subjects as unknown as { name: string; level: string } | null;
                 const teacher = b.profiles as unknown as { full_name: string | null } | null;
-                const enrolled = (b.enrollments as { id: string }[] | null)?.length ?? 0;
+                const enr = (b.enrollments as { id: string; status: string; completed: boolean }[] | null) ?? [];
+                const approved = enr.filter((e) => e.status === "approved");
+                const enrolled = approved.length;
+                const completedCount = approved.filter((e) => e.completed).length;
+                const allDone = enrolled > 0 && completedCount === enrolled;
                 return (
                   <tr key={b.id} className="hover:bg-muted/20 transition-colors">
                     <td className="px-4 py-3">
@@ -74,6 +80,22 @@ export default async function AdminBatches() {
                       <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${b.is_active ? "bg-green-500/15 text-green-400" : "bg-muted text-muted-foreground"}`}>
                         {b.is_active ? "Active" : "Inactive"}
                       </span>
+                    </td>
+                    <td className="px-4 py-3">
+                      {allDone ? (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-xs font-medium">
+                          <CheckCircle2 className="w-3.5 h-3.5" /> Completed
+                        </span>
+                      ) : enrolled > 0 ? (
+                        <form action={markBatchComplete} className="inline">
+                          <input type="hidden" name="batch_id" value={b.id} />
+                          <button className="px-2.5 py-1 rounded-lg text-xs font-medium bg-primary text-primary-foreground hover:opacity-90">
+                            Mark complete{completedCount ? ` (${completedCount}/${enrolled})` : ""}
+                          </button>
+                        </form>
+                      ) : (
+                        <span className="text-xs text-muted-foreground">No students</span>
+                      )}
                     </td>
                   </tr>
                 );

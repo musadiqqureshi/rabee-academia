@@ -12,6 +12,7 @@ const navItems: NavItem[] = [
   { label: "Analytics",    icon: <TrendingUp className="w-4 h-4" />,     href: "/analytics" },
   { label: "Enrollments",  icon: <UserCheck className="w-4 h-4" />,      href: "/enrollments" },
   { label: "Demo Requests", icon: <GraduationCap className="w-4 h-4" />, href: "/demos" },
+  { label: "Completions",  icon: <GraduationCap className="w-4 h-4" />,  href: "/completions" },
   { label: "Messages",     icon: <MessageSquare className="w-4 h-4" />,  href: "/chat" },
   { label: "Students",     icon: <Users className="w-4 h-4" />,          href: "/students" },
   { label: "Batches",      icon: <BookOpen className="w-4 h-4" />,       href: "/batches" },

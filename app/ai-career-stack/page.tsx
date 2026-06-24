@@ -5,6 +5,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import EnforceTheme from "@/components/EnforceTheme";
 import { CAREER_STACK, STACK_BUNDLE, ROADMAP } from "@/lib/careerStack";
+import WaitlistForm from "./WaitlistForm";
 
 const fmt = (n: number) => "PKR " + n.toLocaleString("en-PK");
 
@@ -31,15 +32,15 @@ export default function CareerStackPage() {
           <p className="text-base md:text-lg text-muted-foreground mt-3 max-w-2xl mx-auto">
             Learn AI for <strong className="text-foreground">free</strong> → upgrade into <strong className="text-foreground">real-world, job-ready skills</strong> for industry jobs and freelancing.
           </p>
-          <div className="flex flex-wrap items-center justify-center gap-3 mt-6">
+          <div className="flex flex-col items-center gap-5 mt-6">
             <Link href="/enroll?subject=ai-mastery&type=weekend"
               className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-primary to-accent text-white text-sm font-bold hover:opacity-90">
               Start free with AI Mastery <ArrowRight className="w-4 h-4" />
             </Link>
-            <a href="https://chat.whatsapp.com/" target="_blank" rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl border border-border text-sm font-semibold hover:bg-muted">
-              Join the waitlist
-            </a>
+            <div className="w-full flex flex-col items-center">
+              <p className="text-sm font-semibold mb-2">🔔 Be first when the paid courses launch:</p>
+              <WaitlistForm />
+            </div>
           </div>
         </div>
 

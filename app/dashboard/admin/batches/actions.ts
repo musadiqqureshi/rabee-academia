@@ -3,6 +3,45 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getProfile } from "@/lib/auth";
+import { notifyMany } from "@/lib/notify";
+
+// Marks a whole batch (course) as completed: every approved student is marked
+// complete, their certificate becomes available, and they're notified.
+export async function markBatchComplete(formData: FormData) {
+  const profile = await getProfile();
+  if (!profile || !["admin", "super_admin"].includes(profile.role)) throw new Error("Not authorized");
+  const supabase = await createClient();
+
+  const batchId = String(formData.get("batch_id") ?? "");
+  if (!batchId) throw new Error("Batch required");
+
+  const { data: enrolled } = await supabase
+    .from("enrollments")
+    .select("student_id")
+    .eq("batch_id", batchId)
+    .eq("status", "approved")
+    .eq("completed", false);
+
+  await supabase
+    .from("enrollments")
+    .update({ completed: true, completed_at: new Date().toISOString() })
+    .eq("batch_id", batchId)
+    .eq("status", "approved");
+
+  const studentIds = [...new Set((enrolled ?? []).map((e) => e.student_id as string))];
+  if (studentIds.length > 0) {
+    await notifyMany(
+      studentIds,
+      "Course completed 🎓",
+      "Congratulations! Your course has been marked complete. Your certificate is now available in your portal under Certificates.",
+    );
+  }
+
+  revalidatePath("/dashboard/admin/batches");
+  revalidatePath("/dashboard/admin/completions");
+  revalidatePath("/dashboard/student/subjects");
+  revalidatePath("/dashboard/student/certificates");
+}
 
 async function requireStaff() {
   const profile = await getProfile();

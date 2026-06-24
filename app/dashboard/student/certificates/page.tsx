@@ -12,7 +12,7 @@ export default async function StudentCertificates() {
 
   const { data: enrollments } = await supabase
     .from("enrollments")
-    .select("id, batch_id, created_at, subjects:subject_id ( name, level )")
+    .select("id, batch_id, created_at, completed, subjects:subject_id ( name, level )")
     .eq("student_id", profile.id)
     .eq("status", "approved")
     .order("created_at", { ascending: false });
@@ -37,7 +37,8 @@ export default async function StudentCertificates() {
         <div className="grid gap-3">
           {rows.map(({ e, perf }) => {
             const subject = e.subjects as unknown as { name: string; level: string } | null;
-            const eligible = perf.overall >= CERT_THRESHOLD;
+            // A course marked complete by admin is always certificate-eligible.
+            const eligible = e.completed || perf.overall >= CERT_THRESHOLD;
             return (
               <div key={e.id} className="flex items-center gap-4 rounded-2xl border border-card-border bg-card shadow-sm p-4">
                 <div className={`w-11 h-11 rounded-xl grid place-items-center shrink-0 ${eligible ? "bg-amber-100 text-amber-600" : "bg-muted text-muted-foreground"}`}>

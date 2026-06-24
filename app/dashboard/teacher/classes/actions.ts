@@ -60,3 +60,39 @@ export async function setEnrollmentMeetLink(formData: FormData) {
   revalidatePath("/dashboard/student/classes");
   revalidatePath("/dashboard/student/subjects");
 }
+
+// Add an extra class link to a student's enrolment (unlimited per class).
+export async function addClassLink(formData: FormData) {
+  const profile = await getProfile();
+  if (!profile) throw new Error("Not authenticated");
+  const supabase = await createClient();
+
+  const enrollmentId = String(formData.get("enrollment_id") ?? "") || null;
+  const batchId = String(formData.get("batch_id") ?? "") || null;
+  const url = String(formData.get("url") ?? "").trim();
+  const label = String(formData.get("label") ?? "").trim() || null;
+  if (!url) throw new Error("A link URL is required");
+  if (!enrollmentId && !batchId) throw new Error("Class is required");
+
+  const { error } = await supabase.from("class_links").insert({
+    enrollment_id: enrollmentId,
+    batch_id: batchId,
+    teacher_id: profile.id,
+    label,
+    url,
+  });
+  if (error) throw new Error(error.message);
+
+  revalidatePath("/dashboard/teacher/classes");
+  revalidatePath("/dashboard/student/classes");
+}
+
+export async function deleteClassLink(formData: FormData) {
+  const profile = await getProfile();
+  if (!profile) throw new Error("Not authenticated");
+  const supabase = await createClient();
+  const id = String(formData.get("link_id") ?? "");
+  await supabase.from("class_links").delete().eq("id", id).eq("teacher_id", profile.id);
+  revalidatePath("/dashboard/teacher/classes");
+  revalidatePath("/dashboard/student/classes");
+}
