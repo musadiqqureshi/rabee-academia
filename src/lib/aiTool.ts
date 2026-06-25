@@ -3,35 +3,25 @@ import { getProfile } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { aiConfigured, chatComplete } from "@/lib/ai";
 
-// Models used by all Rabee's AI tools (Paper Maker, Essay Grader, Lesson Plan,
-// Notes, Planner, Quiz). By default the tools use the SAME model as the
-// dashboard (AI_MODEL), with a few free fallbacks tried only if the primary is
-// rate-limited (429) or fails. Set AI_TOOLS_MODEL (comma-separated) to override.
-const FALLBACK_MODELS = [
-  "google/gemini-2.0-flash-exp:free",
-  "qwen/qwen-2.5-72b-instruct:free",
-  "mistralai/mistral-nemo:free",
-];
+// Single model used across every AI feature (dashboard + all tools + humanizer).
+// Override per-area with AI_MODEL / AI_TOOLS_MODEL / AI_HUMANIZER_MODEL.
+export const DEFAULT_MODEL = process.env.AI_MODEL ?? "cohere/north-mini-code:free";
 
+// Models used by all Rabee's AI tools (Paper Maker, Essay Grader, Lesson Plan,
+// Notes, Planner, Quiz). Set AI_TOOLS_MODEL (comma-separated) to override.
 export const TOOL_MODELS = process.env.AI_TOOLS_MODEL
   ? process.env.AI_TOOLS_MODEL.split(",").map((s) => s.trim()).filter(Boolean)
-  : [process.env.AI_MODEL ?? "cohere/north-mini-code:free", ...FALLBACK_MODELS];
+  : [DEFAULT_MODEL];
 
 // First choice (kept for any single-model callers).
 export const TOOL_MODEL = TOOL_MODELS[0];
 
-// The Humanizer needs strong instruction-following PROSE models — the default
-// dashboard model (a code model) tends to echo the input nearly unchanged, so
-// the rewrite looks like "the same AI text". Use capable free models here, in
-// fallback order. Override with AI_HUMANIZER_MODEL (comma-separated).
+// The Humanizer uses the same model as everything else. Override with
+// AI_HUMANIZER_MODEL (comma-separated) if you want a stronger prose model —
+// note that a code-focused model tends to echo the input nearly unchanged.
 export const HUMANIZER_MODELS = process.env.AI_HUMANIZER_MODEL
   ? process.env.AI_HUMANIZER_MODEL.split(",").map((s) => s.trim()).filter(Boolean)
-  : [
-      "google/gemini-2.0-flash-exp:free",
-      "qwen/qwen-2.5-72b-instruct:free",
-      "mistralai/mistral-nemo:free",
-      "meta-llama/llama-3.3-70b-instruct:free",
-    ];
+  : [DEFAULT_MODEL];
 
 type GuardResult = { error: NextResponse } | { ok: true; pro: boolean };
 
