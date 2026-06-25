@@ -14,19 +14,27 @@ export default function AIMasterySection({ seatsTaken = 0 }: { seatsTaken?: numb
   return (
     <section className="py-16" id="ai-mastery">
       <div className="container mx-auto px-4 md:px-6">
-        <div className="glow-card relative max-w-4xl mx-auto rounded-3xl bg-gradient-to-br from-fuchsia-600 via-purple-600 to-indigo-600 p-[1.5px]">
-          <div className="rounded-[calc(1.5rem-1.5px)] bg-card/95 backdrop-blur-sm p-8 md:p-10">
+        <div className={`${full ? "glow-card-dull bg-gradient-to-br from-zinc-700 via-zinc-900 to-black" : "glow-card bg-gradient-to-br from-fuchsia-600 via-purple-600 to-indigo-600"} relative max-w-4xl mx-auto rounded-3xl p-[1.5px]`}>
+          <div className={`rounded-[calc(1.5rem-1.5px)] backdrop-blur-sm p-8 md:p-10 ${full ? "bg-zinc-950/95" : "bg-card/95"}`}>
             <div className="flex flex-wrap items-center gap-3 mb-4">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gradient-to-r from-fuchsia-500 to-purple-500 text-white text-xs font-extrabold">
-                <Sparkles className="w-3.5 h-3.5" /> SPECIAL LAUNCH OFFER
-              </span>
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-400 text-amber-950 text-xs font-bold">FREE</span>
+              {full ? (
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 text-zinc-300 text-xs font-extrabold ring-1 ring-white/15">
+                  <Sparkles className="w-3.5 h-3.5" /> ALL SEATS RESERVED
+                </span>
+              ) : (
+                <>
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gradient-to-r from-fuchsia-500 to-purple-500 text-white text-xs font-extrabold">
+                    <Sparkles className="w-3.5 h-3.5" /> SPECIAL LAUNCH OFFER
+                  </span>
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-400 text-amber-950 text-xs font-bold">FREE</span>
+                </>
+              )}
             </div>
 
             <div className="grid md:grid-cols-[1fr_auto] gap-8 items-center">
               <div>
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-fuchsia-500 to-purple-600 text-white grid place-items-center">
+                  <div className={`w-12 h-12 rounded-xl grid place-items-center text-white ${full ? "bg-zinc-800 ring-1 ring-white/10" : "bg-gradient-to-br from-fuchsia-500 to-purple-600"}`}>
                     <Icon className="w-6 h-6" />
                   </div>
                   <h2 className="text-2xl md:text-3xl font-extrabold">{course.name}</h2>
@@ -60,15 +68,21 @@ export default function AIMasterySection({ seatsTaken = 0 }: { seatsTaken?: numb
               </div>
 
               <div className="text-center shrink-0">
+                {full ? (
+                  <>
+                    <p className="text-4xl font-extrabold text-zinc-400">FULL</p>
+                    <p className="text-xs text-muted-foreground mb-4">0 seats remaining</p>
+                    <span className="inline-flex items-center justify-center px-6 py-3 rounded-xl bg-zinc-800 text-zinc-300 text-sm font-bold ring-1 ring-white/10">All Seats Filled</span>
+                  </>
+                ) : (
+                  <>
                 <p className="text-4xl font-extrabold bg-gradient-to-r from-fuchsia-500 to-purple-500 bg-clip-text text-transparent">FREE</p>
                 <p className="text-xs text-muted-foreground mb-4">limited seats</p>
-                {full ? (
-                  <span className="inline-flex items-center justify-center px-6 py-3 rounded-xl bg-muted text-muted-foreground text-sm font-bold">Seats Full</span>
-                ) : (
                   <Link href="/enroll?subject=ai-mastery&type=weekend"
                     className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-fuchsia-600 to-purple-600 text-white text-sm font-bold hover:opacity-90 shadow-lg">
                     Reserve your seat <ArrowRight className="w-4 h-4" />
                   </Link>
+                  </>
                 )}
               </div>
             </div>

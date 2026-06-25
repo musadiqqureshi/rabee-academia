@@ -320,7 +320,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .aurora, .particle, .animate-scroll, .glow-card { animation: none !important; }
+  .aurora, .particle, .animate-scroll, .glow-card, .glow-card-dull { animation: none !important; }
   .particle { opacity: 0.4; }
 }
 
@@ -330,6 +330,13 @@
   50%      { box-shadow: 0 0 0 1px rgba(236,72,153,0.5), 0 0 44px 8px rgba(236,72,153,0.45); }
 }
 .glow-card { animation: cardGlow 2.6s ease-in-out infinite; }
+
+/* Dull, monochrome glow for the special-offer card once all seats are filled */
+@keyframes cardGlowDull {
+  0%, 100% { box-shadow: 0 0 0 1px rgba(120,120,130,0.25), 0 0 20px 2px rgba(80,80,90,0.30); }
+  50%      { box-shadow: 0 0 0 1px rgba(160,160,170,0.32), 0 0 40px 7px rgba(110,110,120,0.42); }
+}
+.glow-card-dull { animation: cardGlowDull 3.2s ease-in-out infinite; }
 
 @layer utilities {
   input[type="search"]::-webkit-search-cancel-button { @apply hidden; }

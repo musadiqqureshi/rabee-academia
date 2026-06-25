@@ -4,6 +4,7 @@ import { Sparkles, ArrowRight, CheckCircle2, Rocket, GraduationCap, Briefcase, S
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import EnforceTheme from "@/components/EnforceTheme";
+import AnimatedBackground from "@/components/AnimatedBackground";
 import { CAREER_STACK, STACK_BUNDLE, ROADMAP } from "@/lib/careerStack";
 import WaitlistForm from "./WaitlistForm";
 
@@ -12,23 +13,33 @@ const fmt = (n: number) => "PKR " + n.toLocaleString("en-PK");
 export const metadata: Metadata = {
   title: "AI Career Stack — Become Job-Ready in AI | Rabee Academia",
   description:
-    "Learn AI for free, then upgrade into real-world, job-ready skills. The Rabee AI Career Stack: 5 affordable micro-courses (PKR 500–1000) in AI automation, data engineering, model building, creative AI and workflow integration. Launching soon.",
+    "Learn AI for free, then upgrade into real-world, job-ready skills. The Rabee AI Career Stack: 5 job-ready micro-courses (PKR 2,000–2,500) in AI automation, data engineering, model building, creative AI and workflow integration. Launching soon.",
   alternates: { canonical: "/ai-career-stack" },
 };
 
 export default function CareerStackPage() {
   return (
-    <div className="dark min-h-screen bg-background text-foreground">
+    <div className="dark min-h-screen text-foreground overflow-x-hidden">
       <EnforceTheme mode="site" />
+      <AnimatedBackground />
       <Navbar />
 
-      <div className="pt-28 pb-20 container mx-auto px-4 md:px-6 max-w-5xl">
+      {/* Soft gradient glow blobs behind the hero, matching the landing page */}
+      <div className="absolute inset-x-0 top-0 h-[700px] pointer-events-none -z-10 overflow-hidden">
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[900px] h-[600px] bg-primary/12 rounded-full blur-[140px]" />
+        <div className="absolute top-40 right-0 w-[420px] h-[420px] bg-accent/12 rounded-full blur-[120px]" />
+        <div className="absolute top-24 left-0 w-[420px] h-[420px] bg-fuchsia-600/10 rounded-full blur-[120px]" />
+      </div>
+
+      <div className="relative pt-28 pb-20 container mx-auto px-4 md:px-6 max-w-5xl">
         {/* Hero */}
         <div className="text-center mb-12">
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gradient-to-r from-fuchsia-500 to-purple-500 text-white text-xs font-extrabold mb-4">
             <Rocket className="w-3.5 h-3.5" /> LAUNCHING SOON
           </span>
-          <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight">Rabee AI Career Stack</h1>
+          <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight">
+            Rabee <span className="bg-gradient-to-r from-fuchsia-500 via-purple-500 to-indigo-500 bg-clip-text text-transparent">AI Career Stack</span>
+          </h1>
           <p className="text-base md:text-lg text-muted-foreground mt-3 max-w-2xl mx-auto">
             Learn AI for <strong className="text-foreground">free</strong> → upgrade into <strong className="text-foreground">real-world, job-ready skills</strong> for industry jobs and freelancing.
           </p>
@@ -45,7 +56,7 @@ export default function CareerStackPage() {
         </div>
 
         {/* Roadmap */}
-        <div className="rounded-2xl border border-border bg-card p-6 mb-12">
+        <div className="rounded-2xl border border-border bg-card/70 backdrop-blur-sm p-6 mb-12">
           <p className="text-xs font-semibold text-muted-foreground text-center uppercase tracking-widest mb-5">Your learning ladder</p>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             {ROADMAP.map((step, i) => {
@@ -62,13 +73,15 @@ export default function CareerStackPage() {
         </div>
 
         {/* Courses */}
-        <h2 className="text-2xl font-extrabold text-center mb-2">5 job-ready micro-courses</h2>
+        <h2 className="text-2xl md:text-3xl font-extrabold text-center mb-2">
+          5 <span className="bg-gradient-to-r from-fuchsia-500 to-purple-500 bg-clip-text text-transparent">job-ready</span> micro-courses
+        </h2>
         <p className="text-sm text-muted-foreground text-center mb-8">Each course: 5–10 short modules · 1 real project · certificate on completion.</p>
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-14">
           {CAREER_STACK.map((c) => {
             const Icon = c.icon;
             return (
-              <div key={c.slug} className="rounded-2xl border border-border bg-card overflow-hidden flex flex-col">
+              <div key={c.slug} className="group rounded-2xl border border-border bg-card/70 backdrop-blur-sm overflow-hidden flex flex-col transition-all duration-300 hover:-translate-y-1 hover:border-fuchsia-500/40 hover:shadow-xl hover:shadow-fuchsia-500/10">
                 <div className={`h-24 bg-gradient-to-br ${c.gradient} flex items-center justify-between px-5`}>
                   <Icon className="w-9 h-9 text-white" strokeWidth={1.5} />
                   <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${c.tier === "Premium" ? "bg-amber-400 text-amber-950" : "bg-white/20 text-white"}`}>{c.tier}</span>
@@ -94,7 +107,7 @@ export default function CareerStackPage() {
           })}
 
           {/* Bundle */}
-          <div className="rounded-2xl border-2 border-fuchsia-500/50 bg-gradient-to-br from-fuchsia-600/10 to-purple-600/10 p-5 flex flex-col">
+          <div className="rounded-2xl border-2 border-fuchsia-500/50 bg-gradient-to-br from-fuchsia-600/10 to-purple-600/10 backdrop-blur-sm p-5 flex flex-col transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-fuchsia-500/20">
             <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-gradient-to-r from-fuchsia-500 to-purple-500 text-white text-[10px] font-extrabold w-fit mb-2"><Star className="w-3 h-3 fill-current" /> BEST VALUE</span>
             <h3 className="font-bold">{STACK_BUNDLE.name}</h3>
             <p className="text-xs text-muted-foreground mt-1 mb-3">Get all 5 courses and complete the full AI career path.</p>

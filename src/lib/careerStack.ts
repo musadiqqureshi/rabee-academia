@@ -21,7 +21,7 @@ export const CAREER_STACK: StackCourse[] = [
     name: "AI Automation Engineering",
     tagline: "Automate real business workflows with AI.",
     tier: "Core",
-    price: 500,
+    price: 2000,
     icon: Workflow,
     gradient: "from-blue-600 to-indigo-600",
     skills: ["Build AI agents & automations", "Automate repetitive tasks", "Sell automation to clients"],
@@ -33,7 +33,7 @@ export const CAREER_STACK: StackCourse[] = [
     name: "AI Data Engineering & Pipelines",
     tagline: "Move, clean and prepare data that powers AI.",
     tier: "Core",
-    price: 500,
+    price: 2000,
     icon: Database,
     gradient: "from-emerald-500 to-teal-600",
     skills: ["Build data pipelines", "Clean & structure datasets", "Feed data into AI tools"],
@@ -45,7 +45,7 @@ export const CAREER_STACK: StackCourse[] = [
     name: "AI Model Building (ML to Deployment)",
     tagline: "Machine learning basics to a deployed model.",
     tier: "Premium",
-    price: 1000,
+    price: 2500,
     icon: Brain,
     gradient: "from-fuchsia-600 to-purple-600",
     skills: ["Train ML models", "Evaluate & improve accuracy", "Deploy a model to production"],
@@ -57,7 +57,7 @@ export const CAREER_STACK: StackCourse[] = [
     name: "AI Graphic Design & Creative Tools",
     tagline: "Create pro-level visuals with AI, fast.",
     tier: "Core",
-    price: 500,
+    price: 2000,
     icon: Palette,
     gradient: "from-pink-500 to-rose-600",
     skills: ["Design with AI tools", "Create brand & social content", "Offer creative AI services"],
@@ -69,7 +69,7 @@ export const CAREER_STACK: StackCourse[] = [
     name: "AI Workflow & Integration Engineering",
     tagline: "Connect tools with no-code, APIs, Zapier & n8n.",
     tier: "Premium",
-    price: 1000,
+    price: 2500,
     icon: Cable,
     gradient: "from-orange-500 to-amber-600",
     skills: ["No-code integrations", "Connect APIs & tools", "Build automated systems (Zapier/n8n)"],
@@ -80,8 +80,8 @@ export const CAREER_STACK: StackCourse[] = [
 
 export const STACK_BUNDLE = {
   name: "AI Career Stack — All 5 Courses",
-  price: 2800,
-  original: CAREER_STACK.reduce((s, c) => s + c.price, 0), // 3500
+  price: 8800,
+  original: CAREER_STACK.reduce((s, c) => s + c.price, 0), // 11000
 };
 
 export const ROADMAP = [
