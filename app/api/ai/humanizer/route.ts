@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getProfile } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { chatComplete, aiConfigured } from "@/lib/ai";
-import { TOOL_MODELS } from "@/lib/aiTool";
+import { HUMANIZER_MODELS } from "@/lib/aiTool";
 
 const SYSTEM = `# ROLE & ARCHITECTURAL OBJECTIVE
 You are the core text-transformation engine for a software application designed to eliminate AI-generated linguistic markers. Your objective is to re-engineer text to achieve low predictability metrics (High Perplexity) and high structural variance metrics (High Burstiness), rendering the output indistinguishable from human academic and professional writing.
@@ -80,7 +80,7 @@ export async function POST(req: Request) {
   }
 
   try {
-    const out = await chatComplete(SYSTEM, [{ role: "user", content: text }], { maxTokens: 4000, models: TOOL_MODELS, contentOnly: true });
+    const out = await chatComplete(SYSTEM, [{ role: "user", content: text }], { maxTokens: 4000, models: HUMANIZER_MODELS, contentOnly: true });
     return NextResponse.json({ text: out, words, remaining: q.remaining ?? null, pro: Boolean(q.pro) });
   } catch (e) {
     return NextResponse.json({ error: e instanceof Error ? e.message : "Failed to humanize. Please try again." }, { status: 502 });

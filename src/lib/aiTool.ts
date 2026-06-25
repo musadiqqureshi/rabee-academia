@@ -20,6 +20,19 @@ export const TOOL_MODELS = process.env.AI_TOOLS_MODEL
 // First choice (kept for any single-model callers).
 export const TOOL_MODEL = TOOL_MODELS[0];
 
+// The Humanizer needs strong instruction-following PROSE models — the default
+// dashboard model (a code model) tends to echo the input nearly unchanged, so
+// the rewrite looks like "the same AI text". Use capable free models here, in
+// fallback order. Override with AI_HUMANIZER_MODEL (comma-separated).
+export const HUMANIZER_MODELS = process.env.AI_HUMANIZER_MODEL
+  ? process.env.AI_HUMANIZER_MODEL.split(",").map((s) => s.trim()).filter(Boolean)
+  : [
+      "google/gemini-2.0-flash-exp:free",
+      "qwen/qwen-2.5-72b-instruct:free",
+      "mistralai/mistral-nemo:free",
+      "meta-llama/llama-3.3-70b-instruct:free",
+    ];
+
 type GuardResult = { error: NextResponse } | { ok: true; pro: boolean };
 
 // Shared gate for every AI tool route: requires auth + configured AI, then

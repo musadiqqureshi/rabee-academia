@@ -1,7 +1,8 @@
-import { CalendarDays, Sparkles } from "lucide-react";
+import { CalendarDays } from "lucide-react";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
-import { setBatchSchedule, generateScheduleWithAI } from "./actions";
+import { setBatchSchedule } from "./actions";
+import GenerateScheduleButton from "./GenerateScheduleButton";
 
 export const dynamic = "force-dynamic";
 
@@ -21,11 +22,7 @@ export default async function AdminSchedules() {
           <h1 className="text-2xl font-bold">Schedules</h1>
           <p className="text-sm text-muted-foreground mt-1">Set class timings per batch, or let AI propose a clash-free schedule.</p>
         </div>
-        <form action={generateScheduleWithAI}>
-          <button className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-primary/40 text-primary text-sm font-semibold hover:bg-primary/5">
-            <Sparkles className="w-4 h-4" /> Generate with AI
-          </button>
-        </form>
+        <GenerateScheduleButton />
       </div>
 
       {(!batches || batches.length === 0) ? (

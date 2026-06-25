@@ -5,6 +5,7 @@ import { Loader2, Printer, Sparkles } from "lucide-react";
 import Markdown from "@/components/Markdown";
 import UpgradeModal from "@/components/ai/UpgradeModal";
 import EnrolPerk from "@/components/ai/EnrolPerk";
+import { printArea } from "@/lib/printArea";
 
 export interface ToolField {
   name: string;
@@ -103,7 +104,7 @@ export default function AiToolClient({
             <div className="space-y-4">
               <div className="no-print flex items-center justify-between gap-3">
                 <p className="text-sm text-muted-foreground">Ready — print or save as PDF.</p>
-                <button onClick={() => window.print()} className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90">
+                <button onClick={() => printArea("paper-print-area", printTitle)} className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90">
                   <Printer className="w-4 h-4" /> Print / Save PDF
                 </button>
               </div>

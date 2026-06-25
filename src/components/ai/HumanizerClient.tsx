@@ -5,6 +5,7 @@ import { Loader2, Sparkles, Printer, Copy, Check } from "lucide-react";
 import Markdown from "@/components/Markdown";
 import UpgradeModal from "@/components/ai/UpgradeModal";
 import EnrolPerk from "@/components/ai/EnrolPerk";
+import { printArea } from "@/lib/printArea";
 
 const DAILY_LIMIT = 2000;
 
@@ -86,7 +87,7 @@ export default function HumanizerClient() {
                 <button onClick={copy} className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-border text-sm font-semibold hover:bg-muted">
                   {copied ? <><Check className="w-4 h-4 text-green-600" /> Copied</> : <><Copy className="w-4 h-4" /> Copy</>}
                 </button>
-                <button onClick={() => window.print()} className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90">
+                <button onClick={() => printArea("paper-print-area", "Humanized text — Rabee's AI")} className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90">
                   <Printer className="w-4 h-4" /> Print / PDF
                 </button>
               </div>
