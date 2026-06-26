@@ -23,6 +23,7 @@ export default function Footer() {
           <div>
             <h4 className="font-bold text-foreground mb-4">Programs</h4>
             <ul className="space-y-2 text-sm text-muted-foreground">
+              <li><a href="/quran-learning" className="hover:text-primary transition-colors">Quran Learning</a></li>
               <li><a href="/pricing" className="hover:text-primary transition-colors">FSc Pre-Medical</a></li>
               <li><a href="/pricing" className="hover:text-primary transition-colors">FSc Pre-Engineering</a></li>
               <li><a href="/pricing" className="hover:text-primary transition-colors">A/O Levels</a></li>
@@ -39,6 +40,7 @@ export default function Footer() {
               <li><a href="/pricing" className="hover:text-primary transition-colors">Biology</a></li>
               <li><a href="/pricing" className="hover:text-primary transition-colors">Mathematics</a></li>
               <li><a href="/products" className="hover:text-primary transition-colors">AI Tools</a></li>
+              <li><a href="/#ai-mastery" className="hover:text-primary transition-colors">AI Mastery Course</a></li>
               <li><a href="/ai-career-stack" className="hover:text-primary transition-colors">AI Career Stack</a></li>
             </ul>
           </div>

@@ -42,6 +42,7 @@ export default function Navbar() {
     { name: "Subjects", href: "/#subjects" },
     { name: "Programs", href: "/#programs" },
     { name: "Teachers", href: "/#teachers" },
+    { name: "Quran Learning", href: "/quran-learning" },
     { name: "Pricing",  href: "/pricing" },
     { name: "AI Tools", href: "/products" },
     { name: "Reviews",  href: "/#reviews" },

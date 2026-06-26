@@ -11,6 +11,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { path: "/faq", priority: 0.8, freq: "monthly" },
     { path: "/products", priority: 0.7, freq: "monthly" },
     { path: "/ai-career-stack", priority: 0.85, freq: "weekly" },
+    { path: "/quran-learning", priority: 0.9, freq: "weekly" },
     { path: "/enroll", priority: 0.7, freq: "weekly" },
     { path: "/register", priority: 0.6, freq: "yearly" },
     { path: "/login", priority: 0.4, freq: "yearly" },
