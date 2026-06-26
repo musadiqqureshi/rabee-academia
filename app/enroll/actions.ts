@@ -111,12 +111,22 @@ export async function submitEnrollment(formData: FormData): Promise<EnrollResult
     reEnrollId = existing.id;
   }
 
-  // 20% discount on the student's first-ever enrolment (paid courses only).
+  // Pricing: a course-level launch offer (e.g. Quran 11,000 → 5,000) takes
+  // precedence; otherwise 20% off the student's first-ever enrolment (paid only).
   let finalAmount = amount;
+  let discountLabel = "";
   if (!isFree) {
-    const { count: priorCount } = await supabase
-      .from("enrollments").select("id", { count: "exact", head: true }).eq("student_id", profile.id);
-    if ((priorCount ?? 0) === 0) finalAmount = Math.round(amount * 0.8);
+    if (staticCourse?.launchPrice && staticCourse.launchPrice < amount) {
+      finalAmount = staticCourse.launchPrice;
+      discountLabel = ` (launch offer — was ${amount.toLocaleString("en-PK")})`;
+    } else {
+      const { count: priorCount } = await supabase
+        .from("enrollments").select("id", { count: "exact", head: true }).eq("student_id", profile.id);
+      if ((priorCount ?? 0) === 0) {
+        finalAmount = Math.round(amount * 0.8);
+        discountLabel = " (20% first-enrolment discount)";
+      }
+    }
   }
 
   const row = {
@@ -196,7 +206,7 @@ export async function submitEnrollment(formData: FormData): Promise<EnrollResult
     enrollment_id: enrollment.id,
     subject_id: subjectId,
     category: "registration",
-    description: `${subject.name} — ${classType} classes${finalAmount < amount ? " (20% first-enrolment discount)" : ""}`,
+    description: `${subject.name} — ${classType} classes${discountLabel}`,
     amount_pkr: finalAmount,
     status: "issued",
     due_date: new Date(Date.now() + 3 * 86400000).toISOString().slice(0, 10),

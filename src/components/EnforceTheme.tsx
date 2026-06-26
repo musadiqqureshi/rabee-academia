@@ -6,10 +6,11 @@ import { usePathname } from "next/navigation";
 /**
  * Enforces the correct theme on client-side navigation (the inline head script
  * handles first paint with no flash).
- *  - mode="light": always light (dashboard, login, register)
- *  - mode="site":  dark by default, honoring the user's saved site preference
+ *  - mode="light":      always light (dashboard, login, register)
+ *  - mode="site":       dark by default, honoring the user's saved site preference
+ *  - mode="site-light": light by default, honoring the user's saved site preference
  */
-export default function EnforceTheme({ mode }: { mode: "site" | "light" }) {
+export default function EnforceTheme({ mode }: { mode: "site" | "light" | "site-light" }) {
   const pathname = usePathname();
 
   useEffect(() => {
@@ -18,7 +19,7 @@ export default function EnforceTheme({ mode }: { mode: "site" | "light" }) {
       root.classList.remove("dark");
       return;
     }
-    let dark = true;
+    let dark = mode !== "site-light"; // "site" defaults dark, "site-light" defaults light
     try {
       const pref = localStorage.getItem("site-theme");
       if (pref) dark = pref === "dark";

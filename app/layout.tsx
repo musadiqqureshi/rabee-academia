@@ -152,7 +152,7 @@ const jsonLd = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
@@ -161,7 +161,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           // eslint-disable-next-line react/no-danger
           dangerouslySetInnerHTML={{
             __html:
-              "(function(){try{var p=location.pathname;var app=p.indexOf('/dashboard')===0||p.indexOf('/login')===0||p.indexOf('/register')===0||p.indexOf('/auth')===0;var d;if(app){d=false;}else{var t=localStorage.getItem('site-theme');d=t?t==='dark':true;}document.documentElement.classList.toggle('dark',d);}catch(e){}})();",
+              "(function(){try{var p=location.pathname;var app=p.indexOf('/dashboard')===0||p.indexOf('/login')===0||p.indexOf('/register')===0||p.indexOf('/auth')===0;var quran=p.indexOf('/quran-learning')===0;var t=localStorage.getItem('site-theme');var d;if(app){d=false;}else if(quran){d=t?t==='dark':false;}else{d=t?t==='dark':true;}document.documentElement.classList.toggle('dark',d);}catch(e){}})();",
           }}
         />
         <script
