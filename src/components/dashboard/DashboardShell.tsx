@@ -17,6 +17,7 @@ export interface NavItem {
   label: string;
   icon: ReactNode;
   href: string;
+  absolute?: boolean; // link outside the dashboard (href used as-is, no basePath/badge)
 }
 
 interface DashboardShellProps {
@@ -57,9 +58,10 @@ export default function DashboardShell({
 
         <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-1">
           {navItems.map((item) => {
-            const fullHref = `${basePath}${item.href}`;
-            const isActive =
-              item.href === ""
+            const fullHref = item.absolute ? item.href : `${basePath}${item.href}`;
+            const isActive = item.absolute
+              ? pathname.startsWith(item.href)
+              : item.href === ""
                 ? pathname === basePath
                 : pathname.startsWith(fullHref);
             return (
@@ -75,7 +77,7 @@ export default function DashboardShell({
               >
                 <span className="w-4 h-4 shrink-0 flex items-center justify-center">{item.icon}</span>
                 {item.label}
-                {item.href && <SectionBadge href={item.href} />}
+                {item.href && !item.absolute && <SectionBadge href={item.href} />}
               </Link>
             );
           })}

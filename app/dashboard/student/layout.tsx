@@ -1,6 +1,6 @@
 import {
   BookOpen, Wallet, Video, CalendarDays, FileText, Bell, BarChart3,
-  ClipboardList, ListChecks, Receipt, Sparkles, Award, MessageSquare,
+  ClipboardList, ListChecks, Receipt, Sparkles, Award, MessageSquare, GraduationCap,
 } from "lucide-react";
 import { requireRole } from "@/lib/auth";
 import DashboardShell, { type NavItem } from "@/components/dashboard/DashboardShell";
@@ -21,6 +21,7 @@ const navItems: NavItem[] = [
   { label: "Schedule",       icon: <CalendarDays className="w-4 h-4" />, href: "/schedule" },
   { label: "Resources",      icon: <FileText className="w-4 h-4" />,    href: "/resources" },
   { label: "Notifications",  icon: <Bell className="w-4 h-4" />,        href: "/notifications" },
+  { label: "Become Instructor", icon: <GraduationCap className="w-4 h-4" />, href: "/instructor", absolute: true },
 ];
 
 export default async function StudentLayout({ children }: { children: ReactNode }) {
