@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 import { QURAN_COURSES } from "@/lib/quranContent";
+import { courses } from "@/lib/courses";
 
 const SITE_URL = "https://rabeeacademia.site";
 
@@ -7,6 +8,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date();
   const routes: { path: string; priority: number; freq: MetadataRoute.Sitemap[number]["changeFrequency"] }[] = [
     ...QURAN_COURSES.map((c) => ({ path: `/quran-learning/${c.slug}`, priority: 0.8, freq: "monthly" as const })),
+    ...courses.filter((c) => !c.slug.startsWith("quran-")).map((c) => ({ path: `/courses/${c.slug}`, priority: 0.7, freq: "monthly" as const })),
     { path: "/", priority: 1.0, freq: "weekly" },
     { path: "/pricing", priority: 0.9, freq: "weekly" },
     { path: "/demo", priority: 0.8, freq: "weekly" },

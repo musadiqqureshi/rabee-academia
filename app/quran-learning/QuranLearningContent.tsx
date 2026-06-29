@@ -24,6 +24,49 @@ const DASH_ICONS = [CalendarCheck, Video, FileText, ClipboardList, Bot, Calendar
 const fmt = (n: number) => "PKR " + n.toLocaleString("en-PK");
 const sectionHeading = "text-2xl md:text-4xl font-extrabold tracking-tight";
 
+// Designed Islamic-themed hero banners — green gradients + an enlarged geometric
+// motif (no photos). Each slide gets its own palette; they cross-fade with the
+// hero slide index. `bg-background` veils adapt to light/dark and keep the hero
+// text readable; vertical dimming works in both LTR and RTL.
+const BANNER_THEMES = [
+  "from-emerald-600 via-teal-600 to-emerald-700",
+  "from-teal-600 via-cyan-600 to-emerald-700",
+  "from-green-600 via-emerald-600 to-teal-700",
+];
+
+function BannerMotif() {
+  return (
+    <svg className="absolute inset-0 w-full h-full text-white/[0.12]" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+      <defs>
+        <pattern id="banner-star" width="120" height="120" patternUnits="userSpaceOnUse">
+          <path d="M60 8 L73 38 L104 30 L86 60 L104 90 L73 82 L60 112 L47 82 L16 90 L34 60 L16 30 L47 38 Z"
+            fill="none" stroke="currentColor" strokeWidth="1.6" />
+          <circle cx="60" cy="60" r="6" fill="currentColor" />
+        </pattern>
+      </defs>
+      <rect width="100%" height="100%" fill="url(#banner-star)" />
+    </svg>
+  );
+}
+
+function HeroBanners({ idx }: { idx: number }) {
+  return (
+    <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none" aria-hidden>
+      {BANNER_THEMES.map((g, i) => (
+        <div key={i} className="absolute inset-0 transition-opacity duration-700 ease-in-out" style={{ opacity: i === idx % BANNER_THEMES.length ? 1 : 0 }}>
+          <div className={`absolute inset-0 bg-gradient-to-br ${g}`} />
+          <BannerMotif />
+          <div className="absolute -top-32 -right-24 w-[480px] h-[480px] rounded-full bg-white/15 blur-[120px]" />
+          <div className="absolute -bottom-32 -left-24 w-[480px] h-[480px] rounded-full bg-black/10 blur-[120px]" />
+        </div>
+      ))}
+      {/* Dimming so the banner stays soft and the hero text stays readable */}
+      <div className="absolute inset-0 bg-background/72" />
+      <div className="absolute inset-0 bg-gradient-to-b from-background/65 via-background/40 to-background/85" />
+    </div>
+  );
+}
+
 // Subtle 8-point Islamic geometric pattern, tinted with currentColor.
 function IslamicPattern({ className = "" }: { className?: string }) {
   return (
@@ -60,14 +103,10 @@ function Hero() {
   return (
     <section className="relative pt-28 pb-14 overflow-hidden"
       onMouseEnter={() => (paused.current = true)} onMouseLeave={() => (paused.current = false)}>
+      <HeroBanners idx={idx} />
       <IslamicPattern />
-      <div className="absolute inset-0 -z-10 pointer-events-none overflow-hidden">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[900px] h-[600px] bg-emerald-500/10 rounded-full blur-[140px]" />
-        <div className="absolute top-40 right-0 w-[420px] h-[420px] bg-teal-500/10 rounded-full blur-[120px]" />
-        <div className="absolute top-24 left-0 w-[420px] h-[420px] bg-primary/10 rounded-full blur-[120px]" />
-      </div>
 
-      <div className="container mx-auto px-4 md:px-6">
+      <div className="container relative z-10 mx-auto px-4 md:px-6">
         <div className="flex justify-center mb-7"><LanguageSwitcher /></div>
         <div className="grid lg:grid-cols-[1.1fr_1fr] gap-12 items-center">
           <div>
@@ -101,7 +140,7 @@ function Hero() {
               ))}
             </div>
             <div className="flex flex-wrap gap-3 mt-6">
-              <a href="#register" className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 text-white text-sm font-bold hover:opacity-90 shadow-[0_0_24px_rgba(16,185,129,0.3)]">
+              <a href="#courses" className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 text-white text-sm font-bold hover:opacity-90 shadow-[0_0_24px_rgba(16,185,129,0.3)]">
                 {t.ctaEnroll} <ArrowRight className="w-4 h-4" />
               </a>
               <a href="#register" className="inline-flex items-center gap-2 px-6 py-3 rounded-xl border border-border bg-card/60 backdrop-blur-sm text-sm font-bold hover:bg-muted">
@@ -200,7 +239,7 @@ export default function QuranLearningContent() {
       </section>
 
       {/* Courses */}
-      <section className="py-20">
+      <section id="courses" className="py-20 scroll-mt-24">
         <div className="container mx-auto px-4 md:px-6">
           <div className="text-center mb-12">
             <h2 className={sectionHeading}>{t.coursesHeading}</h2>
@@ -359,7 +398,7 @@ export default function QuranLearningContent() {
                     <li key={inc} className="flex items-center gap-2.5 text-sm"><CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" /> {inc}</li>
                   ))}
                 </ul>
-                <a href="#register" className="mt-7 w-full inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 text-white text-sm font-bold hover:opacity-90 shadow-[0_0_24px_rgba(16,185,129,0.3)]">
+                <a href="#courses" className="mt-7 w-full inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 text-white text-sm font-bold hover:opacity-90 shadow-[0_0_24px_rgba(16,185,129,0.3)]">
                   {t.ctaEnroll} <ArrowRight className="w-4 h-4" />
                 </a>
               </div>
@@ -427,7 +466,7 @@ export default function QuranLearningContent() {
                 <h2 className="text-2xl md:text-4xl font-extrabold tracking-tight">{t.finalHeading}</h2>
                 <p className="text-sm md:text-base text-muted-foreground mt-4 max-w-2xl mx-auto">{t.finalSub}</p>
                 <div className="flex flex-wrap justify-center gap-3 mt-8">
-                  <a href="#register" className="inline-flex items-center gap-2 px-7 py-3 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 text-white text-sm font-bold hover:opacity-90 shadow-[0_0_24px_rgba(16,185,129,0.3)]">{t.ctaEnroll} <ArrowRight className="w-4 h-4" /></a>
+                  <a href="#courses" className="inline-flex items-center gap-2 px-7 py-3 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 text-white text-sm font-bold hover:opacity-90 shadow-[0_0_24px_rgba(16,185,129,0.3)]">{t.ctaEnroll} <ArrowRight className="w-4 h-4" /></a>
                   <a href="tel:+923086994758" className="inline-flex items-center gap-2 px-7 py-3 rounded-xl border border-border bg-card/60 backdrop-blur-sm text-sm font-bold hover:bg-muted"><Phone className="w-4 h-4" /> {t.contactUs}</a>
                 </div>
               </div>

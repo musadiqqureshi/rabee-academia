@@ -205,12 +205,20 @@ function PricingContent() {
                         Coming Soon
                       </span>
                     ) : (
-                      <Link
-                        href={`/enroll?subject=${course.slug}&type=${classType}`}
-                        className="w-full inline-flex items-center justify-center gap-2 py-2.5 rounded-lg bg-gradient-to-r from-primary to-accent text-white text-xs font-bold hover:opacity-90 transition-opacity shadow-[0_0_16px_rgba(99,102,241,0.25)]"
-                      >
-                        Enroll Now <ArrowRight className="w-3.5 h-3.5" />
-                      </Link>
+                      <div className="space-y-2">
+                        <Link
+                          href={`/enroll?subject=${course.slug}&type=${classType}`}
+                          className="w-full inline-flex items-center justify-center gap-2 py-2.5 rounded-lg bg-gradient-to-r from-primary to-accent text-white text-xs font-bold hover:opacity-90 transition-opacity shadow-[0_0_16px_rgba(99,102,241,0.25)]"
+                        >
+                          Enroll Now <ArrowRight className="w-3.5 h-3.5" />
+                        </Link>
+                        <Link
+                          href={course.slug.startsWith("quran-") ? `/quran-learning/${course.slug}` : `/courses/${course.slug}`}
+                          className="w-full inline-flex items-center justify-center gap-1.5 py-2 rounded-lg border border-border text-foreground/70 text-xs font-semibold hover:bg-muted hover:text-foreground transition-colors"
+                        >
+                          Learn More
+                        </Link>
+                      </div>
                     )}
                   </div>
                 </div>

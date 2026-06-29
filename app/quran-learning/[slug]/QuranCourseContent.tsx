@@ -9,6 +9,7 @@ import RabeeAIWidget from "@/components/RabeeAIWidget";
 import { getQuranCourse, LANDING, PRICE_ACTUAL, PRICE_LAUNCH } from "@/lib/quranContent";
 import { useLang, LanguageSwitcher } from "../lang";
 import QuranEnrollForm from "./QuranEnrollForm";
+import EnrollButton from "./EnrollButton";
 
 const fmt = (n: number) => "PKR " + n.toLocaleString("en-PK");
 
@@ -77,7 +78,8 @@ export default function QuranCourseContent({ slug }: { slug: string }) {
                 <div className="text-start md:text-end shrink-0">
                   <p className="text-3xl font-extrabold">{fmt(PRICE_LAUNCH)}<span className="text-sm font-normal text-muted-foreground">{t.perMonth}</span></p>
                   <p className="text-xs text-muted-foreground">{t.was} <span className="line-through">{fmt(PRICE_ACTUAL)}</span> · <span className="text-amber-600 font-semibold">{t.launch}</span></p>
-                  <a href="#enroll" className="mt-3 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 text-white text-sm font-bold hover:opacity-90">{t.enrollCta} <ArrowRight className="w-4 h-4 rtl:rotate-180" /></a>
+                  <EnrollButton slug={course.slug} label={t.enrollCta}
+                    className="mt-3 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 text-white text-sm font-bold hover:opacity-90 disabled:opacity-70" />
                 </div>
               </div>
               <p className="relative text-sm text-foreground/80 leading-relaxed mt-6">{course.intro[lang]}</p>
