@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { Users, UserCheck, BookOpen, GraduationCap } from "lucide-react";
+import { Users, UserCheck, BookOpen, GraduationCap, UserPlus } from "lucide-react";
+import { STATUS_LABEL, type ApplicationStatus } from "@/lib/instructor";
 import StatCard from "@/components/dashboard/StatCard";
 import StatDonut from "@/components/dashboard/StatDonut";
 import { requireRole } from "@/lib/auth";
@@ -46,6 +47,17 @@ export default async function AdminOverview() {
     .order("created_at", { ascending: false })
     .limit(5);
 
+  // Instructor applications overview.
+  const { count: instrTotal } = await supabase
+    .from("instructor_applications").select("id", { count: "exact", head: true });
+  const { count: instrAttention } = await supabase
+    .from("instructor_applications").select("id", { count: "exact", head: true }).in("status", ["payment_submitted", "qualified"]);
+  const { data: recentApps } = await supabase
+    .from("instructor_applications")
+    .select("id, full_name, email, subject_name, status, code, created_at")
+    .order("created_at", { ascending: false })
+    .limit(5);
+
   const { data: teachers } = await supabase
     .from("profiles")
     .select("id, full_name, email")
@@ -71,12 +83,16 @@ export default async function AdminOverview() {
       <h1 className="text-2xl font-bold">Academic Operations</h1>
       <p className="text-sm text-muted-foreground mt-1">Platform management overview</p>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mt-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-4 mt-6">
         <StatCard label="Total Students"      value={studentCount ?? 0} icon={Users} />
         <StatCard label="Pending Enrollments" value={pendingCount ?? 0} icon={UserCheck}
           hint={pendingCount ? "Needs review" : undefined} />
         <StatCard label="Active Batches"      value={batchCount ?? 0}   icon={BookOpen} />
         <StatCard label="Teachers"            value={teacherCount ?? 0} icon={GraduationCap} />
+        <Link href="/dashboard/admin/instructors" className="block">
+          <StatCard label="Instructor Applications" value={instrTotal ?? 0} icon={UserPlus}
+            hint={instrAttention ? `${instrAttention} need attention` : undefined} />
+        </Link>
       </div>
 
       {/* Colorful charts */}
@@ -191,6 +207,38 @@ export default async function AdminOverview() {
           )}
         </div>
       </div>
+
+      {/* Instructor applications */}
+      {recentApps && recentApps.length > 0 && (
+        <div className="mt-8">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-lg font-semibold">Instructor Applications</h2>
+            <Link href="/dashboard/admin/instructors" className="text-xs text-primary hover:underline">Manage →</Link>
+          </div>
+          <div className="bg-card border border-card-border rounded-xl overflow-hidden">
+            <table className="w-full text-sm">
+              <thead className="border-b border-border bg-muted/30">
+                <tr>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Applicant</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Subject</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Status</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Code</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {recentApps.map((a) => (
+                  <tr key={a.id} className="hover:bg-muted/20">
+                    <td className="px-4 py-3"><p className="font-medium">{a.full_name ?? "—"}</p><p className="text-xs text-muted-foreground">{a.email}</p></td>
+                    <td className="px-4 py-3 text-muted-foreground">{a.subject_name}</td>
+                    <td className="px-4 py-3 text-xs">{STATUS_LABEL[a.status as ApplicationStatus] ?? a.status}</td>
+                    <td className="px-4 py-3 text-xs font-mono text-primary">{a.code}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
 
       {/* Recent students */}
       {recentStudents && recentStudents.length > 0 && (

@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { createClient as createAdminClient } from "@supabase/supabase-js";
 import { getProfile } from "@/lib/auth";
 import { notifyUser } from "@/lib/notify";
+import { APPLICATION_FEE } from "@/lib/instructor";
 
 function svc() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -22,17 +23,33 @@ async function getApp(admin: NonNullable<ReturnType<typeof svc>>, id: string) {
   return data as { id: string; user_id: string; code: string; subject_name: string; status: string } | null;
 }
 
+// Make sure the application-fee invoice exists and is marked paid (handles
+// applications that paid before invoices were generated).
+async function ensurePaidInvoice(admin: NonNullable<ReturnType<typeof svc>>, app: { user_id: string; code: string; subject_name: string }) {
+  const { data: inv } = await admin.from("invoices").select("id")
+    .eq("student_id", app.user_id).ilike("description", `%code ${app.code}%`).maybeSingle();
+  if (inv) {
+    await admin.from("invoices").update({ status: "paid", paid_at: new Date().toISOString() }).eq("id", inv.id);
+  } else {
+    await admin.from("invoices").insert({
+      student_id: app.user_id,
+      category: "registration",
+      description: `Instructor application fee — ${app.subject_name} (code ${app.code})`,
+      amount_pkr: APPLICATION_FEE,
+      status: "paid",
+      paid_at: new Date().toISOString(),
+      due_date: new Date().toISOString().slice(0, 10),
+    }).then(() => null, () => null);
+  }
+}
+
 export async function verifyPayment(formData: FormData) {
   await requireAdmin();
   const admin = svc(); if (!admin) return;
   const id = String(formData.get("id") ?? "");
   const app = await getApp(admin, id); if (!app) return;
   await admin.from("instructor_applications").update({ payment_status: "verified", status: "test_unlocked" }).eq("id", id);
-  // Mark the matching application-fee invoice as paid.
-  await admin.from("invoices")
-    .update({ status: "paid", paid_at: new Date().toISOString() })
-    .eq("student_id", app.user_id).ilike("description", `%code ${app.code}%`)
-    .then(() => null, () => null);
+  await ensurePaidInvoice(admin, app);
   await notifyUser(admin as never, app.user_id, "Fee verified — your test is unlocked",
     `Your instructor assessment fee (code ${app.code}) is verified. Your ${app.subject_name} test is now unlocked in your instructor portal — good luck!`);
   revalidatePath("/dashboard/admin/instructors");

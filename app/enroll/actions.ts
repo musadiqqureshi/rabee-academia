@@ -13,6 +13,16 @@ export interface EnrollResult {
   enrollmentId?: string;
 }
 
+// Service-role client (bypasses RLS). Students can't insert into `payments` or
+// `invoices`, so those rows must be written with the service role or they fail
+// silently and the fee never shows up for admins.
+function svc() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !key) return null;
+  return createAdminClient(url, key, { auth: { autoRefreshToken: false, persistSession: false } });
+}
+
 interface SubjectRecord {
   id: string;
   name: string;
@@ -188,9 +198,12 @@ export async function submitEnrollment(formData: FormData): Promise<EnrollResult
     return { ok: true, enrollmentId: enrollment.id };
   }
 
-  // Payment record — non-fatal if the table doesn't exist yet.
+  // Payment + invoice are written with the service role — students can't insert
+  // into these tables, so using their client silently fails and the fee never
+  // appears for admins. Fall back to the user client if the key isn't set.
+  const writer = svc() ?? supabase;
   const monthYear = new Date().toISOString().slice(0, 7); // YYYY-MM
-  await supabase.from("payments").insert({
+  await writer.from("payments").insert({
     enrollment_id: enrollment.id,
     student_id: profile.id,
     amount_pkr: finalAmount,
@@ -200,8 +213,7 @@ export async function submitEnrollment(formData: FormData): Promise<EnrollResult
     receipt_url: receiptPath,
   }).then(() => null, () => null);
 
-  // Invoice — non-fatal if the table doesn't exist yet.
-  await supabase.from("invoices").insert({
+  await writer.from("invoices").insert({
     student_id: profile.id,
     enrollment_id: enrollment.id,
     subject_id: subjectId,
