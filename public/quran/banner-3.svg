@@ -1,0 +1,47 @@
+<svg viewBox="0 0 1600 700" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <linearGradient id="sky3" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#065f46"/>
+      <stop offset="0.6" stop-color="#0d9488"/>
+      <stop offset="1" stop-color="#0f766e"/>
+    </linearGradient>
+    <radialGradient id="glow3" cx="50%" cy="20%" r="50%">
+      <stop offset="0" stop-color="#5eead4" stop-opacity="0.4"/>
+      <stop offset="1" stop-color="#5eead4" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="stars3" width="120" height="120" patternUnits="userSpaceOnUse">
+      <circle cx="30" cy="30" r="2" fill="#ffffff" opacity="0.12"/>
+      <circle cx="90" cy="80" r="1.5" fill="#ffffff" opacity="0.1"/>
+    </pattern>
+  </defs>
+  <rect width="1600" height="700" fill="url(#sky3)"/>
+  <rect width="1600" height="700" fill="url(#stars3)"/>
+  <rect width="1600" height="700" fill="url(#glow3)"/>
+  <!-- central pointed arch -->
+  <g fill="none" stroke="#a7f3d0" stroke-width="6" opacity="0.5">
+    <path d="M640 620 V360 Q640 220 800 200 Q960 220 960 360 V620"/>
+    <path d="M700 620 V370 Q700 280 800 264 Q900 280 900 370 V620"/>
+  </g>
+  <!-- geometric star inside arch -->
+  <g transform="translate(800,380)" fill="none" stroke="#fef9c3" stroke-width="3" opacity="0.45">
+    <path d="M0 -70 L20 -20 L72 -20 L30 12 L46 64 L0 32 L-46 64 L-30 12 L-72 -20 L-20 -20 Z"/>
+    <circle r="14" fill="#fef9c3" opacity="0.6"/>
+  </g>
+  <!-- hanging lanterns -->
+  <g>
+    <g transform="translate(340,0)">
+      <line x1="0" y1="0" x2="0" y2="170" stroke="#a7f3d0" stroke-width="3" opacity="0.5"/>
+      <path d="M-34 200 Q-34 170 0 170 Q34 170 34 200 L28 280 Q0 300 -28 280 Z" fill="#fbbf24" opacity="0.9"/>
+      <rect x="-12" y="172" width="24" height="14" rx="4" fill="#064e3b"/>
+      <circle cx="0" cy="240" r="14" fill="#fffbeb" opacity="0.85"/>
+    </g>
+    <g transform="translate(1260,0)">
+      <line x1="0" y1="0" x2="0" y2="130" stroke="#a7f3d0" stroke-width="3" opacity="0.5"/>
+      <path d="M-30 160 Q-30 130 0 130 Q30 130 30 160 L24 232 Q0 250 -24 232 Z" fill="#fbbf24" opacity="0.85"/>
+      <rect x="-11" y="132" width="22" height="12" rx="4" fill="#064e3b"/>
+      <circle cx="0" cy="196" r="12" fill="#fffbeb" opacity="0.85"/>
+    </g>
+  </g>
+  <!-- ground line -->
+  <rect x="0" y="618" width="1600" height="82" fill="#064e3b" opacity="0.85"/>
+</svg>

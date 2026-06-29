@@ -1,0 +1,46 @@
+<svg viewBox="0 0 1600 700" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <linearGradient id="sky2" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0d9488"/>
+      <stop offset="0.5" stop-color="#0891b2"/>
+      <stop offset="1" stop-color="#059669"/>
+    </linearGradient>
+    <radialGradient id="rays2" cx="50%" cy="38%" r="55%">
+      <stop offset="0" stop-color="#fef9c3" stop-opacity="0.6"/>
+      <stop offset="1" stop-color="#fef9c3" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="stars2" width="130" height="130" patternUnits="userSpaceOnUse">
+      <path d="M65 14 L72 40 L98 33 L78 52 L91 78 L65 64 L39 78 L52 52 L32 33 L58 40 Z" fill="#ffffff" opacity="0.05"/>
+    </pattern>
+  </defs>
+  <rect width="1600" height="700" fill="url(#sky2)"/>
+  <rect width="1600" height="700" fill="url(#stars2)"/>
+  <rect width="1600" height="700" fill="url(#rays2)"/>
+  <!-- light rays -->
+  <g stroke="#fef9c3" stroke-width="3" opacity="0.25">
+    <line x1="800" y1="250" x2="600" y2="60"/><line x1="800" y1="250" x2="1000" y2="60"/>
+    <line x1="800" y1="250" x2="500" y2="200"/><line x1="800" y1="250" x2="1100" y2="200"/>
+    <line x1="800" y1="250" x2="800" y2="20"/>
+  </g>
+  <!-- open Quran on a stand (rehal) -->
+  <g transform="translate(800,360)">
+    <!-- pages -->
+    <path d="M-260 0 Q-130 -60 0 -22 Q130 -60 260 0 L210 150 Q105 118 0 140 Q-105 118 -210 150 Z" fill="#fefce8"/>
+    <path d="M0 -22 L0 140" stroke="#d6d3d1" stroke-width="3"/>
+    <!-- text lines -->
+    <g stroke="#0f766e" stroke-width="4" opacity="0.55" stroke-linecap="round">
+      <line x1="-200" y1="20" x2="-40" y2="6"/><line x1="-200" y1="50" x2="-40" y2="36"/><line x1="-200" y1="80" x2="-40" y2="66"/>
+      <line x1="40" y1="6" x2="200" y2="20"/><line x1="40" y1="36" x2="200" y2="50"/><line x1="40" y1="66" x2="200" y2="80"/>
+    </g>
+    <!-- rehal stand -->
+    <g fill="#064e3b" opacity="0.9">
+      <path d="M-150 150 L-30 300 L-70 300 L-180 165 Z"/>
+      <path d="M150 150 L30 300 L70 300 L180 165 Z"/>
+    </g>
+  </g>
+  <!-- geometric corner motifs -->
+  <g fill="none" stroke="#ffffff" stroke-width="2" opacity="0.18">
+    <path d="M120 120 L160 100 L200 120 L180 160 L200 200 L160 180 L120 200 L140 160 Z"/>
+    <path d="M1400 500 L1440 480 L1480 500 L1460 540 L1480 580 L1440 560 L1400 580 L1420 540 Z"/>
+  </g>
+</svg>

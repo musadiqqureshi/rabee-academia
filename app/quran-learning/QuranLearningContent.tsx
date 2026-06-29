@@ -24,45 +24,23 @@ const DASH_ICONS = [CalendarCheck, Video, FileText, ClipboardList, Bot, Calendar
 const fmt = (n: number) => "PKR " + n.toLocaleString("en-PK");
 const sectionHeading = "text-2xl md:text-4xl font-extrabold tracking-tight";
 
-// Designed Islamic-themed hero banners — green gradients + an enlarged geometric
-// motif (no photos). Each slide gets its own palette; they cross-fade with the
-// hero slide index. `bg-background` veils adapt to light/dark and keep the hero
-// text readable; vertical dimming works in both LTR and RTL.
-const BANNER_THEMES = [
-  "from-emerald-600 via-teal-600 to-emerald-700",
-  "from-teal-600 via-cyan-600 to-emerald-700",
-  "from-green-600 via-emerald-600 to-teal-700",
-];
-
-function BannerMotif() {
-  return (
-    <svg className="absolute inset-0 w-full h-full text-white/[0.12]" xmlns="http://www.w3.org/2000/svg" aria-hidden>
-      <defs>
-        <pattern id="banner-star" width="120" height="120" patternUnits="userSpaceOnUse">
-          <path d="M60 8 L73 38 L104 30 L86 60 L104 90 L73 82 L60 112 L47 82 L16 90 L34 60 L16 30 L47 38 Z"
-            fill="none" stroke="currentColor" strokeWidth="1.6" />
-          <circle cx="60" cy="60" r="6" fill="currentColor" />
-        </pattern>
-      </defs>
-      <rect width="100%" height="100%" fill="url(#banner-star)" />
-    </svg>
-  );
-}
+// Illustrated Islamic-themed hero banners (mosque, Quran, lanterns — SVG art in
+// public/quran). Each cross-fades with the hero slide index. A soft veil keeps
+// the hero text readable while still letting the artwork show.
+const HERO_BANNERS = ["/quran/banner-1.svg", "/quran/banner-2.svg", "/quran/banner-3.svg"];
 
 function HeroBanners({ idx }: { idx: number }) {
   return (
     <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none" aria-hidden>
-      {BANNER_THEMES.map((g, i) => (
-        <div key={i} className="absolute inset-0 transition-opacity duration-700 ease-in-out" style={{ opacity: i === idx % BANNER_THEMES.length ? 1 : 0 }}>
-          <div className={`absolute inset-0 bg-gradient-to-br ${g}`} />
-          <BannerMotif />
-          <div className="absolute -top-32 -right-24 w-[480px] h-[480px] rounded-full bg-white/15 blur-[120px]" />
-          <div className="absolute -bottom-32 -left-24 w-[480px] h-[480px] rounded-full bg-black/10 blur-[120px]" />
+      {HERO_BANNERS.map((src, i) => (
+        <div key={src} className="absolute inset-0 transition-opacity duration-700 ease-in-out" style={{ opacity: i === idx % HERO_BANNERS.length ? 1 : 0 }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={src} alt="" className="w-full h-full object-cover object-bottom" />
         </div>
       ))}
-      {/* Dimming so the banner stays soft and the hero text stays readable */}
-      <div className="absolute inset-0 bg-background/72" />
-      <div className="absolute inset-0 bg-gradient-to-b from-background/65 via-background/40 to-background/85" />
+      {/* Dimming so the artwork stays soft and the hero text stays readable (both themes) */}
+      <div className="absolute inset-0 bg-background/55" />
+      <div className="absolute inset-0 bg-gradient-to-b from-background/60 via-background/35 to-background/80" />
     </div>
   );
 }

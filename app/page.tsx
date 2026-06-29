@@ -25,6 +25,7 @@ import LeadershipSection from "@/components/LeadershipSection";
 import CountriesSection from "@/components/CountriesSection";
 import ReviewsMarquee from "@/components/ReviewsMarquee";
 import HowItWorksSection from "@/components/HowItWorksSection";
+import JoinInstructorSection from "@/components/JoinInstructorSection";
 import CTASection from "@/components/CTASection";
 import Footer from "@/components/Footer";
 
@@ -61,6 +62,7 @@ export default async function HomePage() {
       <CountriesSection />
       <ReviewsMarquee />
       <HowItWorksSection />
+      <JoinInstructorSection />
       <CTASection />
       <Footer />
       <RabeeAIWidget />
