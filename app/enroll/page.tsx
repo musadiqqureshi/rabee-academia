@@ -130,8 +130,12 @@ function EnrollContent() {
   }
 
   const price = type === "regular" ? course.regularPrice : course.weekendPrice;
-  const hasDiscount = !course.free && isFirstEnrollment;
-  const payable = hasDiscount ? Math.round(price * 0.8) : price;
+  // A course-level launch offer (e.g. Quran 11,000 → 5,000) takes precedence over
+  // the 20% first-course discount, and must mirror the server in submitEnrollment.
+  const launch = !course.free && course.launchPrice && course.launchPrice < price ? course.launchPrice : null;
+  const hasDiscount = !course.free && (launch !== null || isFirstEnrollment);
+  const payable = launch ?? (isFirstEnrollment ? Math.round(price * 0.8) : price);
+  const discountText = launch !== null ? "Launch offer" : "20% first-course discount";
   const Icon = course.icon;
   const steps: Step[] = ["confirm", "details", "payment", "success"];
   const stepLabel: Record<Step, string> = { confirm: "Review", details: "Your Details", payment: "Payment", success: "Confirmed" };
@@ -245,7 +249,7 @@ function EnrollContent() {
                   </span>
                 </div>
                 {hasDiscount && (
-                  <p className="text-[11px] text-emerald-600 font-semibold text-right -mt-2">🎉 20% first-course discount applied</p>
+                  <p className="text-[11px] text-emerald-600 font-semibold text-right -mt-2">🎉 {discountText} applied</p>
                 )}
               </div>
               <Button onClick={() => setStep("details")} className="w-full py-3 text-sm font-bold">
@@ -319,7 +323,7 @@ function EnrollContent() {
               <h1 className="text-2xl font-extrabold mb-2">Choose Payment Method</h1>
               <p className="text-muted-foreground text-sm mb-6">
                 Amount due: <strong className="text-foreground">{formatPrice(payable)}/month</strong>
-                {hasDiscount && <span className="ml-2 text-xs text-emerald-600 font-semibold">(20% off — was {formatPrice(price)})</span>}
+                {hasDiscount && <span className="ml-2 text-xs text-emerald-600 font-semibold">({discountText} — was {formatPrice(price)})</span>}
               </p>
 
               {!payMethod && (
@@ -372,7 +376,7 @@ function EnrollContent() {
                       {hasDiscount && (
                         <>
                           <div className="flex justify-between"><span className="text-muted-foreground">Course fee</span><span>{formatPrice(price)}</span></div>
-                          <div className="flex justify-between text-emerald-600 font-medium"><span>First-course discount (20%)</span><span>−{formatPrice(price - payable)}</span></div>
+                          <div className="flex justify-between text-emerald-600 font-medium"><span>{discountText}</span><span>−{formatPrice(price - payable)}</span></div>
                         </>
                       )}
                       <div className="flex justify-between border-t border-border pt-2 mt-1 font-bold text-base"><span>Amount Due</span><span>{formatPrice(payable)}</span></div>

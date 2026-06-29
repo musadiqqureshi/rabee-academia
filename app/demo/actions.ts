@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getProfile } from "@/lib/auth";
+import { notifyAdmins } from "@/lib/notify";
 
 export interface DemoResult { ok: boolean; error?: string }
 
@@ -29,6 +30,14 @@ export async function createDemoRequest(formData: FormData): Promise<DemoResult>
     status: "pending",
   });
   if (error) return { ok: false, error: error.message };
+
+  // Notify the academy team about the new demo-class request (in-app + email).
+  const subjectName = String(formData.get("subject_name") ?? "").trim();
+  const when = preferredTimes.length ? ` Preferred time(s): ${preferredTimes.join(", ")}.` : "";
+  await notifyAdmins(
+    "New free demo class request",
+    `${fullName} requested a free demo class${subjectName ? ` for ${subjectName}` : ""} (${email}).${when} Schedule it in the admin Demo Requests panel.`,
+  );
 
   revalidatePath("/dashboard/admin/demos");
   return { ok: true };
