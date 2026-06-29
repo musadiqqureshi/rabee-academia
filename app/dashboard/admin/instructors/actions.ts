@@ -28,6 +28,11 @@ export async function verifyPayment(formData: FormData) {
   const id = String(formData.get("id") ?? "");
   const app = await getApp(admin, id); if (!app) return;
   await admin.from("instructor_applications").update({ payment_status: "verified", status: "test_unlocked" }).eq("id", id);
+  // Mark the matching application-fee invoice as paid.
+  await admin.from("invoices")
+    .update({ status: "paid", paid_at: new Date().toISOString() })
+    .eq("student_id", app.user_id).ilike("description", `%code ${app.code}%`)
+    .then(() => null, () => null);
   await notifyUser(admin as never, app.user_id, "Fee verified — your test is unlocked",
     `Your instructor assessment fee (code ${app.code}) is verified. Your ${app.subject_name} test is now unlocked in your instructor portal — good luck!`);
   revalidatePath("/dashboard/admin/instructors");

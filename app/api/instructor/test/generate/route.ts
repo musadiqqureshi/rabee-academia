@@ -87,14 +87,33 @@ Rules:
 - Then exactly ${LONG_COUNT} long-answer questions that probe conceptual depth AND teaching ability (e.g. "explain X to a student and address the common misconception Y").
 - Keep mathematics as plain readable text (e.g. v = u + at), NOT LaTeX.`;
 
+  // Try each model in turn and VALIDATE the JSON ourselves — chatComplete returns
+  // the first model that yields any text, so a weak/code model can "succeed" with
+  // junk. Strong instruction models (better at strict JSON) are tried first; the
+  // configured TOOL_MODELS are the final fallback. Override with AI_QUIZ_MODEL.
+  const candidates = [
+    process.env.AI_QUIZ_MODEL,
+    "qwen/qwen-2.5-72b-instruct:free",
+    "meta-llama/llama-3.3-70b-instruct:free",
+    "mistralai/mistral-nemo:free",
+    ...TOOL_MODELS,
+  ].filter(Boolean) as string[];
+  const models = [...new Set(candidates)];
+
+  const userMsg = `Subject: ${app.subject_name}. Generate the hard screening exam now as JSON only.`;
   let test: FullTest | null = null;
-  try {
-    const raw = await chatComplete(system, [{ role: "user", content: `Subject: ${app.subject_name}. Generate the hard screening exam now.` }], { maxTokens: 4000, models: TOOL_MODELS });
-    test = sanitize(extractJson(raw));
-  } catch (e) {
-    return NextResponse.json({ error: e instanceof Error ? e.message : "Could not generate the test." }, { status: 502 });
+  let lastErr = "";
+  for (const model of models) {
+    try {
+      const raw = await chatComplete(system, [{ role: "user", content: userMsg }], { maxTokens: 6000, model });
+      const t = sanitize(extractJson(raw));
+      if (t) { test = t; break; }
+      lastErr = "The model didn't return a valid test.";
+    } catch (e) {
+      lastErr = e instanceof Error ? e.message : "Generation failed.";
+    }
   }
-  if (!test) return NextResponse.json({ error: "The test generator returned an unexpected response. Please try again." }, { status: 502 });
+  if (!test) return NextResponse.json({ error: lastErr || "Couldn't generate the test right now. Please try again in a moment." }, { status: 502 });
 
   // Store the FULL test (with answers) via the service role — the candidate's
   // RLS forbids reading this row, so the key never reaches the browser.

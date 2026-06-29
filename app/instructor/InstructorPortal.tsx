@@ -23,16 +23,22 @@ const fmt = (n: number) => "PKR " + n.toLocaleString("en-PK");
 const input = "w-full rounded-lg border border-input bg-background px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-ring/40";
 const label = "block text-xs font-medium text-muted-foreground mb-1.5";
 
+interface Defaults { full_name: string; email: string; phone: string }
+
 export default function InstructorPortal() {
   const [checked, setChecked] = useState(false);
   const [authed, setAuthed] = useState(false);
   const [app, setApp] = useState<InstructorApplication | null>(null);
+  const [defaults, setDefaults] = useState<Defaults>({ full_name: "", email: "", phone: "" });
 
   async function load() {
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) { setChecked(true); return; }
     setAuthed(true);
+    // Prefill the application from the user's signup / profile details.
+    const { data: profile } = await supabase.from("profiles").select("full_name, phone").eq("id", user.id).maybeSingle();
+    setDefaults({ full_name: profile?.full_name ?? "", email: user.email ?? "", phone: profile?.phone ?? "" });
     const { data } = await supabase.from("instructor_applications").select("*").eq("user_id", user.id).maybeSingle();
     setApp((data as InstructorApplication) ?? null);
     setChecked(true);
@@ -56,7 +62,7 @@ export default function InstructorPortal() {
       {!authed ? (
         <SignInCard />
       ) : !app ? (
-        <ApplyForm onDone={load} />
+        <ApplyForm onDone={load} defaults={defaults} />
       ) : (
         <Status app={app} onChange={load} />
       )}
@@ -77,7 +83,7 @@ function SignInCard() {
   );
 }
 
-function ApplyForm({ onDone }: { onDone: () => void }) {
+function ApplyForm({ onDone, defaults }: { onDone: () => void; defaults: Defaults }) {
   const { catalog } = useCatalog();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -95,9 +101,9 @@ function ApplyForm({ onDone }: { onDone: () => void }) {
     <form action={action} className="rounded-2xl border border-border bg-card p-6 md:p-8 space-y-4">
       <h2 className="text-lg font-bold">Your application</h2>
       <div className="grid sm:grid-cols-2 gap-4">
-        <div><label className={label}>Full name *</label><input name="full_name" required className={input} /></div>
-        <div><label className={label}>Email *</label><input name="email" type="email" required className={input} /></div>
-        <div><label className={label}>Phone / WhatsApp</label><input name="phone" type="tel" className={input} placeholder="+92 300 1234567" /></div>
+        <div><label className={label}>Full name *</label><input name="full_name" required defaultValue={defaults.full_name} className={input} /></div>
+        <div><label className={label}>Email *</label><input name="email" type="email" required defaultValue={defaults.email} className={input} /></div>
+        <div><label className={label}>Phone / WhatsApp</label><input name="phone" type="tel" defaultValue={defaults.phone} className={input} placeholder="+92 300 1234567" /></div>
         <div>
           <label className={label}>Subject you want to teach *</label>
           <select name="subject_name" required defaultValue="" className={input}

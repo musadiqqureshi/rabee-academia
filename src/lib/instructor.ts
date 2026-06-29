@@ -4,7 +4,7 @@ export const APPLICATION_FEE = 1000;          // PKR
 export const PASS_MARK = 70;                  // % needed to qualify
 export const MCQ_WEIGHT = 0.7;                // MCQ share of the combined score
 export const LONG_WEIGHT = 0.3;               // long-answer share
-export const MCQ_COUNT = 15;                  // hard MCQs generated
+export const MCQ_COUNT = 12;                  // hard MCQs generated
 export const LONG_COUNT = 2;                  // long-answer questions
 
 export type ApplicationStatus =

@@ -34,6 +34,13 @@ const COUNTERS: Record<string, (s: SB, uid: string) => Promise<number>> = {
     const { count } = await s.from("demo_requests").select("id", { count: "exact", head: true }).eq("status", "pending");
     return count ?? 0;
   },
+  "/instructors": async (s) => {
+    // Needs admin attention: fee awaiting verification, or a qualified candidate
+    // awaiting an interview date.
+    const { count } = await s.from("instructor_applications")
+      .select("id", { count: "exact", head: true }).in("status", ["payment_submitted", "qualified"]);
+    return count ?? 0;
+  },
   "/ai-pro": async (s) => {
     const { count } = await s.from("ai_pro_requests").select("id", { count: "exact", head: true }).eq("status", "pending");
     return count ?? 0;
