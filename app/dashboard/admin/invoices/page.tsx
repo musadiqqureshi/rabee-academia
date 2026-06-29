@@ -33,6 +33,37 @@ export default async function AdminInvoicesPage() {
 
   const fmt = (n: number) => "PKR " + n.toLocaleString("en-PK");
 
+  // Resolve the uploaded payment screenshot for each invoice. Course-enrollment
+  // invoices carry it on enrollments.receipt_url; instructor-fee invoices carry
+  // it on instructor_applications.receipt_url (matched by the INS code in the
+  // description). Sign the storage paths so admins can view them inline.
+  const enrollmentIds = all.map((i) => i.enrollment_id).filter(Boolean) as string[];
+  const { data: enrollRows } = enrollmentIds.length
+    ? await supabase.from("enrollments").select("id, receipt_url").in("id", enrollmentIds)
+    : { data: [] as { id: string; receipt_url: string | null }[] };
+  const enrollReceipt = new Map((enrollRows ?? []).map((e) => [e.id, e.receipt_url]));
+  const { data: instrApps } = await supabase
+    .from("instructor_applications").select("user_id, code, receipt_url");
+
+  const receiptUrl = new Map<string, string>();
+  for (const i of all) {
+    let path: string | null = i.enrollment_id ? enrollReceipt.get(i.enrollment_id) ?? null : null;
+    if (!path && typeof i.description === "string") {
+      const m = i.description.match(/code (INS-\w+)/);
+      if (m) path = (instrApps ?? []).find((a) => a.code === m[1] && a.user_id === i.student_id)?.receipt_url ?? null;
+    }
+    if (path) {
+      const { data } = await supabase.storage.from("receipts").createSignedUrl(path, 3600);
+      if (data?.signedUrl) receiptUrl.set(i.id, data.signedUrl);
+    }
+  }
+
+  // Instructor-fee invoices reuse the "registration" category; show a clearer label.
+  const categoryLabel = (i: { category: string; description: string | null }) =>
+    typeof i.description === "string" && i.description.startsWith("Instructor application fee")
+      ? "Instructor Registration"
+      : INVOICE_CATEGORY_LABEL[i.category as InvoiceCategory];
+
   return (
     <div className="space-y-6">
       <div>
@@ -56,6 +87,7 @@ export default async function AdminInvoicesPage() {
               <th className="px-4 py-3 font-medium">Student</th>
               <th className="px-4 py-3 font-medium">Category</th>
               <th className="px-4 py-3 font-medium text-right">Amount</th>
+              <th className="px-4 py-3 font-medium">Receipt</th>
               <th className="px-4 py-3 font-medium">Status</th>
               <th className="px-4 py-3 font-medium text-right">Actions</th>
             </tr>
@@ -71,8 +103,15 @@ export default async function AdminInvoicesPage() {
                     </Link>
                   </td>
                   <td className="px-4 py-3">{p?.full_name ?? "—"}<span className="block text-xs text-muted-foreground">{p?.student_code ?? ""}</span></td>
-                  <td className="px-4 py-3 text-muted-foreground">{INVOICE_CATEGORY_LABEL[i.category as InvoiceCategory]}</td>
+                  <td className="px-4 py-3 text-muted-foreground">{categoryLabel(i)}</td>
                   <td className="px-4 py-3 text-right font-medium">{fmt(i.amount_pkr)}</td>
+                  <td className="px-4 py-3">
+                    {receiptUrl.has(i.id) ? (
+                      <a href={receiptUrl.get(i.id)} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline text-xs font-medium">View</a>
+                    ) : (
+                      <span className="text-xs text-muted-foreground">—</span>
+                    )}
+                  </td>
                   <td className="px-4 py-3">
                     <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
                       i.status === "paid" ? "bg-emerald-100 text-emerald-700"
@@ -94,7 +133,7 @@ export default async function AdminInvoicesPage() {
               );
             })}
             {all.length === 0 && (
-              <tr><td colSpan={6} className="px-4 py-10 text-center text-muted-foreground">No invoices yet.</td></tr>
+              <tr><td colSpan={7} className="px-4 py-10 text-center text-muted-foreground">No invoices yet.</td></tr>
             )}
           </tbody>
         </table>

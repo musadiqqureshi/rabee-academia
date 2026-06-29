@@ -8,7 +8,8 @@ import { useCatalog } from "@/hooks/useCatalog";
 
 export default function SubjectsSection() {
   const { catalog } = useCatalog();
-  const featured = catalog.slice(0, 6);
+  // Quran subjects live on the dedicated /quran-learning platform, not here.
+  const featured = catalog.filter((c) => !c.slug.startsWith("quran-")).slice(0, 6);
   return (
     <section className="py-20" id="subjects">
       <div className="container mx-auto px-4 md:px-6">

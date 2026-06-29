@@ -20,7 +20,10 @@ function PricingContent() {
   const [classType, setClassType] = useState<"regular" | "weekend">("regular");
 
   // AI Mastery is a weekend-only intensive — hide it from the Regular tab.
-  const visible = catalog.filter((c) => !(c.slug === "ai-mastery" && classType === "regular"));
+  // Quran subjects are shown only on the dedicated /quran-learning platform.
+  const visible = catalog.filter(
+    (c) => !c.slug.startsWith("quran-") && !(c.slug === "ai-mastery" && classType === "regular"),
+  );
   const LEVELS = levelsFor(visible);
   const filtered =
     activeLevel === "All"
