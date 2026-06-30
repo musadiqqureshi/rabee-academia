@@ -13,6 +13,14 @@ export const metadata: Metadata = {
   description:
     "Answers about Rabee Academia: one-on-one online classes for FSc, O/A Levels, BS & MS, fees and the 20% first-course discount, the free AI Mastery Course, free demo classes, payments and certificates.",
   alternates: { canonical: "/faq" },
+  openGraph: {
+    title: "FAQ — Rabee Academia",
+    description: "Answers about courses, fees, the free AI Mastery Course, demos, payments and certificates.",
+    url: "/faq",
+    type: "website",
+    siteName: "Rabee Academia",
+    images: [{ url: "/opengraph.jpg", width: 1200, height: 630, alt: "Rabee Academia" }],
+  },
 };
 
 const faqJsonLd = {

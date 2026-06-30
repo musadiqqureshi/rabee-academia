@@ -19,6 +19,15 @@ const TOOLS = [
 export const metadata: Metadata = {
   title: "Rabee's AI Products — AI Paper Maker",
   description: "Rabee's AI tools for students and teachers. Generate professional exam papers with answer keys — free once a day.",
+  alternates: { canonical: "/products" },
+  openGraph: {
+    title: "Rabee's AI Products — Tools for Students & Teachers",
+    description: "Paper maker, essay grader, lesson planner, notes, study planner and quiz maker — free once a day.",
+    url: "/products",
+    type: "website",
+    siteName: "Rabee Academia",
+    images: [{ url: "/opengraph.jpg", width: 1200, height: 630, alt: "Rabee Academia" }],
+  },
 };
 
 export default function ProductsPage() {
