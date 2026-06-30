@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Atom, Menu, X, LayoutDashboard, LogOut, ChevronDown } from "lucide-react";
+import { Menu, X, LayoutDashboard, LogOut, ChevronDown } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { courses } from "@/lib/courses";
 import ThemeToggle from "./ThemeToggle";
@@ -67,7 +67,7 @@ export default function Navbar() {
 
   const closeMobile = () => setIsMobileMenuOpen(false);
 
-  const linkCls = "text-sm font-medium text-foreground/70 hover:text-primary transition-colors";
+  const linkCls = "text-sm font-medium text-foreground/70 hover:text-primary transition-colors whitespace-nowrap";
   const navItems: { name: string; href?: string; dropdown?: "subjects" | "products" }[] = [
     { name: "Home", href: "/" },
     { name: "Subjects", dropdown: "subjects" },
@@ -81,19 +81,17 @@ export default function Navbar() {
   ];
 
   return (
-    <nav className={`transition-all duration-300 ease-in-out ${isScrolled ? "bg-background/85 backdrop-blur-md border-b border-border shadow-sm py-2" : "bg-transparent py-3"}`}>
+    <nav className={`transition-all duration-300 ease-in-out border-b border-border ${isScrolled ? "bg-background/95 backdrop-blur-md shadow-md py-2.5" : "bg-background/80 backdrop-blur-md py-3.5"}`}>
       <div className="container mx-auto px-4 md:px-6 flex items-center justify-between gap-4">
         {/* Logo */}
-        <div className="flex items-center gap-2 shrink-0" data-testid="navbar-logo">
-          <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary relative shrink-0">
-            <Atom className="w-4 h-4 animate-pulse" />
-            <div className="absolute inset-0 rounded-full bg-primary/10 blur-lg"></div>
-          </div>
-          <span className="font-bold text-sm tracking-tight whitespace-nowrap">Rabee Academia</span>
-        </div>
+        <Link href="/" className="flex items-center gap-2.5 shrink-0" data-testid="navbar-logo">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/logo.svg" alt="Rabee Academia" className="w-9 h-9 shrink-0" />
+          <span className="font-extrabold text-base tracking-tight whitespace-nowrap">Rabee Academia</span>
+        </Link>
 
         {/* Desktop Nav */}
-        <div className="hidden lg:flex items-center gap-5 flex-1 justify-center">
+        <div className="hidden lg:flex items-center gap-4 xl:gap-5 flex-1 justify-center">
           {navItems.map((item) =>
             item.dropdown ? (
               <div key={item.name} className="relative"

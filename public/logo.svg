@@ -6,7 +6,6 @@
       <stop offset="1" stop-color="#A5683A"/>
     </linearGradient>
   </defs>
-  <rect width="100" height="100" rx="18" fill="#1b2740"/>
   <g fill="none" stroke="url(#raGold)" stroke-width="13" stroke-linecap="round" stroke-linejoin="round">
     <path d="M28 24 V80"/>
     <path d="M28 24 H52 C72 24 78 35 78 51 V80"/>
