@@ -3,7 +3,7 @@
 import { Suspense, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Atom, Loader2, Eye, EyeOff } from "lucide-react";
+import { Loader2, Eye, EyeOff } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import EnforceTheme from "@/components/EnforceTheme";
 
@@ -87,9 +87,8 @@ function LoginForm() {
     <div className="w-full max-w-md">
       {/* Logo */}
       <Link href="/" className="flex items-center justify-center gap-2 mb-8">
-        <div className="w-9 h-9 rounded-full bg-primary/20 flex items-center justify-center text-primary">
-          <Atom className="w-5 h-5" />
-        </div>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/logo.png" alt="Rabee Academia" className="w-9 h-9 rounded-lg object-cover" />
         <span className="font-bold text-lg">Rabee Academia</span>
       </Link>
 

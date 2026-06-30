@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Atom, Menu, X, LayoutDashboard, LogOut, ChevronDown } from "lucide-react";
+import { Menu, X, LayoutDashboard, LogOut, ChevronDown } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { courses } from "@/lib/courses";
 import ThemeToggle from "./ThemeToggle";
@@ -85,10 +85,8 @@ export default function Navbar() {
       <div className="container mx-auto px-4 md:px-6 flex items-center justify-between gap-4">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2.5 shrink-0" data-testid="navbar-logo">
-          <div className="w-9 h-9 rounded-full bg-primary/20 flex items-center justify-center text-primary relative shrink-0">
-            <Atom className="w-5 h-5 animate-pulse" />
-            <div className="absolute inset-0 rounded-full bg-primary/10 blur-lg"></div>
-          </div>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/logo.png" alt="Rabee Academia" className="w-9 h-9 rounded-lg object-cover shrink-0" />
           <span className="font-extrabold text-base tracking-tight whitespace-nowrap">Rabee Academia</span>
         </Link>
 

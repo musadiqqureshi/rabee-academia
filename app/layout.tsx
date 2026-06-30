@@ -56,9 +56,9 @@ export const metadata: Metadata = {
     },
   },
   icons: {
-    icon: [{ url: "/favicon.svg", type: "image/svg+xml" }],
-    apple: "/favicon.svg",
-    shortcut: "/favicon.svg",
+    icon: [{ url: "/logo.png", type: "image/png" }],
+    apple: "/logo.png",
+    shortcut: "/logo.png",
   },
   openGraph: {
     title: "Rabee Academia — Smart Online Learning for Future Achievers",

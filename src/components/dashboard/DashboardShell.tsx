@@ -3,7 +3,7 @@
 import { type ReactNode } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Atom, LogOut, Menu, X, UserCircle } from "lucide-react";
+import { LogOut, Menu, X, UserCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import EnforceTheme from "@/components/EnforceTheme";
@@ -50,9 +50,8 @@ export default function DashboardShell({
         }`}
       >
         <div className="h-16 flex items-center gap-2 px-5 border-b border-sidebar-border bg-gradient-to-r from-primary/10 to-accent/10">
-          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white shadow-md">
-            <Atom className="w-4 h-4" />
-          </div>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/logo.png" alt="Rabee Academia" className="w-8 h-8 rounded-lg object-cover shadow-md" />
           <span className="font-bold text-sm">Rabee Academia</span>
         </div>
 

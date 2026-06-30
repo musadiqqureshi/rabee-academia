@@ -1,5 +1,5 @@
 import React from "react";
-import { Atom, Facebook, Instagram, Phone } from "lucide-react";
+import { Facebook, Instagram, Phone } from "lucide-react";
 
 export default function Footer() {
   return (
@@ -8,7 +8,8 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
           <div className="col-span-1 md:col-span-1">
             <div className="flex items-center gap-2 mb-4">
-              <Atom className="w-6 h-6 text-primary" />
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/logo.png" alt="Rabee Academia" className="w-8 h-8 rounded-lg object-cover" />
               <span className="font-bold text-xl">Rabee Academia</span>
             </div>
             <p className="text-sm text-muted-foreground leading-relaxed mb-6">
