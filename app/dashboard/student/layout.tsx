@@ -4,7 +4,6 @@ import {
 } from "lucide-react";
 import { requireRole } from "@/lib/auth";
 import DashboardShell, { type NavItem } from "@/components/dashboard/DashboardShell";
-import { markSelfPresent } from "./attendance-actions";
 import type { ReactNode } from "react";
 
 const navItems: NavItem[] = [
@@ -26,8 +25,7 @@ const navItems: NavItem[] = [
 
 export default async function StudentLayout({ children }: { children: ReactNode }) {
   const profile = await requireRole("student");
-  // Auto-mark attendance present for today on login / portal visit.
-  await markSelfPresent();
+  // Attendance is recorded only by teachers per real class session — no auto-mark on login.
   return (
     <DashboardShell
       roleLabel="Student"
