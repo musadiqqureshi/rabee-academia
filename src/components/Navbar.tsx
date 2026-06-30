@@ -3,15 +3,46 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Atom, Menu, X, LayoutDashboard, LogOut } from "lucide-react";
+import { Atom, Menu, X, LayoutDashboard, LogOut, ChevronDown } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { courses } from "@/lib/courses";
 import ThemeToggle from "./ThemeToggle";
+
+// All Rabee AI tools — shown in the Products dropdown.
+const AI_TOOLS = [
+  { name: "AI Paper Maker", href: "/products/paper-maker" },
+  { name: "AI Essay Grader", href: "/products/essay-grader" },
+  { name: "AI Lesson Planner", href: "/products/lesson-plan" },
+  { name: "AI Notes & Flashcards", href: "/products/notes" },
+  { name: "AI Study Planner", href: "/products/planner" },
+  { name: "AI Quiz Maker", href: "/products/quiz" },
+  { name: "AI Humanizer", href: "/products/humanizer" },
+  { name: "Rabee AI Pro", href: "/products/pro" },
+];
+
+// Subjects grouped into a few categories for the horizontal mega-menu.
+const SUBJECT_CATEGORY: Record<string, string> = {
+  "FSc Level": "FSc",
+  "A Level": "O / A Levels", "O Level": "O / A Levels", "A/O Level": "O / A Levels",
+  "BS Level": "University (BS / MS)", "MS Level": "University (BS / MS)",
+};
+const SUBJECT_ORDER = ["FSc", "O / A Levels", "University (BS / MS)"];
+const SUBJECT_GROUPS: Record<string, { name: string; slug: string }[]> = (() => {
+  const g: Record<string, { name: string; slug: string }[]> = {};
+  for (const c of courses) {
+    if (c.slug.startsWith("quran-") || c.free) continue;
+    const cat = SUBJECT_CATEGORY[c.level] ?? "Other";
+    (g[cat] ??= []).push({ name: c.name, slug: c.slug });
+  }
+  return g;
+})();
 
 export default function Navbar() {
   const router = useRouter();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [openMenu, setOpenMenu] = useState<"subjects" | "products" | null>(null);
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 20);
@@ -21,12 +52,8 @@ export default function Navbar() {
 
   useEffect(() => {
     const supabase = createClient();
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setIsLoggedIn(!!session);
-    });
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setIsLoggedIn(!!session);
-    });
+    supabase.auth.getSession().then(({ data: { session } }) => setIsLoggedIn(!!session));
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, session) => setIsLoggedIn(!!session));
     return () => subscription.unsubscribe();
   }, []);
 
@@ -37,26 +64,23 @@ export default function Navbar() {
     router.refresh();
   }
 
-  const navLinks = [
-    { name: "Home",     href: "/" },
-    { name: "Subjects", href: "/#subjects" },
+  const closeMobile = () => setIsMobileMenuOpen(false);
+
+  const linkCls = "text-sm font-medium text-foreground/70 hover:text-primary transition-colors";
+  const navItems: { name: string; href?: string; dropdown?: "subjects" | "products" }[] = [
+    { name: "Home", href: "/" },
+    { name: "Subjects", dropdown: "subjects" },
     { name: "Programs", href: "/#programs" },
     { name: "Teachers", href: "/#teachers" },
     { name: "Quran Learning", href: "/quran-learning" },
-    { name: "Pricing",  href: "/pricing" },
-    { name: "AI Tools", href: "/products" },
-    { name: "Reviews",  href: "/#reviews" },
-    { name: "Contact",  href: "/#contact" },
+    { name: "Pricing", href: "/pricing" },
+    { name: "Products", dropdown: "products" },
+    { name: "Reviews", href: "/#reviews" },
+    { name: "Contact", href: "/#contact" },
   ];
 
   return (
-    <nav
-      className={`transition-all duration-300 ease-in-out ${
-        isScrolled
-          ? "bg-background/85 backdrop-blur-md border-b border-border shadow-sm py-2"
-          : "bg-transparent py-3"
-      }`}
-    >
+    <nav className={`transition-all duration-300 ease-in-out ${isScrolled ? "bg-background/85 backdrop-blur-md border-b border-border shadow-sm py-2" : "bg-transparent py-3"}`}>
       <div className="container mx-auto px-4 md:px-6 flex items-center justify-between gap-4">
         {/* Logo */}
         <div className="flex items-center gap-2 shrink-0" data-testid="navbar-logo">
@@ -69,15 +93,49 @@ export default function Navbar() {
 
         {/* Desktop Nav */}
         <div className="hidden lg:flex items-center gap-5 flex-1 justify-center">
-          {navLinks.map((link) => (
-            <Link
-              key={link.name}
-              href={link.href}
-              className="text-sm font-medium text-foreground/70 hover:text-primary transition-colors"
-            >
-              {link.name}
-            </Link>
-          ))}
+          {navItems.map((item) =>
+            item.dropdown ? (
+              <div key={item.name} className="relative"
+                onMouseEnter={() => setOpenMenu(item.dropdown!)} onMouseLeave={() => setOpenMenu(null)}>
+                <button className={`inline-flex items-center gap-1 ${linkCls}`}>
+                  {item.name} <ChevronDown className={`w-3.5 h-3.5 transition-transform ${openMenu === item.dropdown ? "rotate-180" : ""}`} />
+                </button>
+
+                {openMenu === item.dropdown && item.dropdown === "products" && (
+                  <div className="absolute top-full left-0 pt-3 z-50">
+                    <div className="w-60 rounded-xl border border-border bg-background/95 backdrop-blur-md shadow-xl p-2">
+                      {AI_TOOLS.map((t) => (
+                        <Link key={t.href} href={t.href} className="block px-3 py-2 rounded-lg text-sm text-foreground/80 hover:bg-muted hover:text-foreground transition-colors">{t.name}</Link>
+                      ))}
+                      <Link href="/products" className="block px-3 py-2 mt-1 rounded-lg text-sm font-semibold text-primary hover:bg-primary/5">All AI Tools →</Link>
+                    </div>
+                  </div>
+                )}
+
+                {openMenu === item.dropdown && item.dropdown === "subjects" && (
+                  <div className="absolute top-full left-0 pt-3 z-50">
+                    <div className="flex gap-8 rounded-xl border border-border bg-background/95 backdrop-blur-md shadow-xl p-5">
+                      {SUBJECT_ORDER.map((cat) => (
+                        <div key={cat} className="min-w-[150px]">
+                          <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider mb-2.5">{cat}</p>
+                          <div className="space-y-1.5">
+                            {(SUBJECT_GROUPS[cat] ?? []).map((s) => (
+                              <Link key={s.slug} href={`/courses/${s.slug}`} className="block text-sm text-foreground/75 hover:text-primary transition-colors whitespace-nowrap">{s.name}</Link>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                      <div className="flex items-end">
+                        <Link href="/pricing" className="text-sm font-semibold text-primary hover:underline whitespace-nowrap">View all &amp; pricing →</Link>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <Link key={item.name} href={item.href!} className={linkCls}>{item.name}</Link>
+            ),
+          )}
         </div>
 
         {/* CTA */}
@@ -85,36 +143,17 @@ export default function Navbar() {
           <ThemeToggle />
           {isLoggedIn ? (
             <>
-              <Link
-                href="/dashboard"
-                className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold rounded-md bg-gradient-to-r from-primary to-accent text-primary-foreground hover:opacity-90 transition-opacity shadow-[0_0_16px_rgba(99,102,241,0.35)]"
-              >
-                <LayoutDashboard className="w-3.5 h-3.5" />
-                Dashboard
+              <Link href="/dashboard" className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold rounded-md bg-gradient-to-r from-primary to-accent text-primary-foreground hover:opacity-90 transition-opacity shadow-[0_0_16px_rgba(99,102,241,0.35)]">
+                <LayoutDashboard className="w-3.5 h-3.5" /> Dashboard
               </Link>
-              <button
-                onClick={handleSignOut}
-                className="inline-flex items-center gap-1.5 text-sm font-medium text-foreground/70 hover:text-destructive transition-colors"
-              >
-                <LogOut className="w-3.5 h-3.5" />
-                Sign out
+              <button onClick={handleSignOut} className="inline-flex items-center gap-1.5 text-sm font-medium text-foreground/70 hover:text-destructive transition-colors">
+                <LogOut className="w-3.5 h-3.5" /> Sign out
               </button>
             </>
           ) : (
             <>
-              <Link
-                href="/login"
-                className="text-sm font-medium text-foreground/70 hover:text-primary transition-colors"
-              >
-                Sign in
-              </Link>
-              <Link
-                href="/register"
-                className="px-4 py-2 text-sm font-semibold rounded-md bg-gradient-to-r from-primary to-accent text-primary-foreground hover:opacity-90 transition-opacity shadow-[0_0_16px_rgba(99,102,241,0.35)]"
-                data-testid="button-book-demo"
-              >
-                Get Started
-              </Link>
+              <Link href="/login" className="text-sm font-medium text-foreground/70 hover:text-primary transition-colors">Sign in</Link>
+              <Link href="/register" className="px-4 py-2 text-sm font-semibold rounded-md bg-gradient-to-r from-primary to-accent text-primary-foreground hover:opacity-90 transition-opacity shadow-[0_0_16px_rgba(99,102,241,0.35)]" data-testid="button-book-demo">Get Started</Link>
             </>
           )}
         </div>
@@ -122,11 +161,7 @@ export default function Navbar() {
         {/* Mobile: theme switch + menu toggle */}
         <div className="lg:hidden flex items-center gap-1.5 shrink-0">
           <ThemeToggle />
-          <button
-            className="p-2 text-foreground"
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
-          >
+          <button className="p-2 text-foreground" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}>
             {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
         </div>
@@ -134,51 +169,38 @@ export default function Navbar() {
 
       {/* Mobile Menu */}
       {isMobileMenuOpen && (
-        <div className="lg:hidden absolute top-full left-0 right-0 bg-background/95 backdrop-blur-lg border-b border-border py-4 px-4 flex flex-col gap-3">
-          {navLinks.map((link) => (
-            <Link
-              key={link.name}
-              href={link.href}
-              className="text-sm font-medium py-2 border-b border-border/40 text-foreground/80"
-              onClick={() => setIsMobileMenuOpen(false)}
-            >
-              {link.name}
-            </Link>
-          ))}
+        <div className="lg:hidden absolute top-full left-0 right-0 bg-background/95 backdrop-blur-lg border-b border-border py-4 px-4 flex flex-col gap-1 max-h-[80vh] overflow-y-auto">
+          {navItems.map((item) =>
+            item.dropdown ? (
+              <div key={item.name} className="py-2 border-b border-border/40">
+                <p className="text-sm font-semibold mb-2">{item.name === "Products" ? "AI Tools" : item.name}</p>
+                <div className="flex flex-col gap-1.5 pl-2">
+                  {item.dropdown === "products"
+                    ? [...AI_TOOLS, { name: "All AI Tools", href: "/products" }].map((t) => (
+                        <Link key={t.href} href={t.href} onClick={closeMobile} className="text-sm text-foreground/75 hover:text-primary">{t.name}</Link>
+                      ))
+                    : SUBJECT_ORDER.flatMap((cat) => (SUBJECT_GROUPS[cat] ?? []).map((s) => (
+                        <Link key={s.slug} href={`/courses/${s.slug}`} onClick={closeMobile} className="text-sm text-foreground/75 hover:text-primary">{s.name}</Link>
+                      )))}
+                </div>
+              </div>
+            ) : (
+              <Link key={item.name} href={item.href!} className="text-sm font-medium py-2 border-b border-border/40 text-foreground/80" onClick={closeMobile}>{item.name}</Link>
+            ),
+          )}
           {isLoggedIn ? (
             <>
-              <Link
-                href="/dashboard"
-                className="mt-1 w-full py-2.5 text-center text-sm font-semibold rounded-md bg-gradient-to-r from-primary to-accent text-primary-foreground flex items-center justify-center gap-2"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                <LayoutDashboard className="w-4 h-4" />
-                Dashboard
+              <Link href="/dashboard" className="mt-2 w-full py-2.5 text-center text-sm font-semibold rounded-md bg-gradient-to-r from-primary to-accent text-primary-foreground flex items-center justify-center gap-2" onClick={closeMobile}>
+                <LayoutDashboard className="w-4 h-4" /> Dashboard
               </Link>
-              <button
-                onClick={() => { setIsMobileMenuOpen(false); handleSignOut(); }}
-                className="w-full py-2 text-sm font-medium text-foreground/70 hover:text-destructive transition-colors text-left flex items-center gap-2"
-              >
-                <LogOut className="w-4 h-4" />
-                Sign out
+              <button onClick={() => { closeMobile(); handleSignOut(); }} className="w-full py-2 text-sm font-medium text-foreground/70 hover:text-destructive transition-colors text-left flex items-center gap-2">
+                <LogOut className="w-4 h-4" /> Sign out
               </button>
             </>
           ) : (
             <>
-              <Link
-                href="/login"
-                className="text-sm font-medium py-2 text-foreground/80"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                Sign in
-              </Link>
-              <Link
-                href="/register"
-                className="mt-1 w-full py-2.5 text-center text-sm font-semibold rounded-md bg-gradient-to-r from-primary to-accent text-primary-foreground"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                Get Started
-              </Link>
+              <Link href="/login" className="text-sm font-medium py-2 text-foreground/80" onClick={closeMobile}>Sign in</Link>
+              <Link href="/register" className="mt-1 w-full py-2.5 text-center text-sm font-semibold rounded-md bg-gradient-to-r from-primary to-accent text-primary-foreground" onClick={closeMobile}>Get Started</Link>
             </>
           )}
         </div>
