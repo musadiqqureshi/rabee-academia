@@ -43,6 +43,7 @@ export default function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [openMenu, setOpenMenu] = useState<"subjects" | "products" | null>(null);
+  const [mobileGroup, setMobileGroup] = useState<"subjects" | "products" | null>(null);
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 20);
@@ -172,17 +173,31 @@ export default function Navbar() {
         <div className="lg:hidden absolute top-full left-0 right-0 bg-background/95 backdrop-blur-lg border-b border-border py-4 px-4 flex flex-col gap-1 max-h-[80vh] overflow-y-auto">
           {navItems.map((item) =>
             item.dropdown ? (
-              <div key={item.name} className="py-2 border-b border-border/40">
-                <p className="text-sm font-semibold mb-2">{item.name === "Products" ? "AI Tools" : item.name}</p>
-                <div className="flex flex-col gap-1.5 pl-2">
-                  {item.dropdown === "products"
-                    ? [...AI_TOOLS, { name: "All AI Tools", href: "/products" }].map((t) => (
-                        <Link key={t.href} href={t.href} onClick={closeMobile} className="text-sm text-foreground/75 hover:text-primary">{t.name}</Link>
-                      ))
-                    : SUBJECT_ORDER.flatMap((cat) => (SUBJECT_GROUPS[cat] ?? []).map((s) => (
-                        <Link key={s.slug} href={`/courses/${s.slug}`} onClick={closeMobile} className="text-sm text-foreground/75 hover:text-primary">{s.name}</Link>
-                      )))}
-                </div>
+              <div key={item.name} className="border-b border-border/40">
+                <button
+                  onClick={() => setMobileGroup(mobileGroup === item.dropdown ? null : item.dropdown!)}
+                  className="w-full flex items-center justify-between py-3 text-sm font-semibold"
+                  aria-expanded={mobileGroup === item.dropdown}
+                >
+                  {item.name}
+                  <ChevronDown className={`w-4 h-4 transition-transform ${mobileGroup === item.dropdown ? "rotate-180" : ""}`} />
+                </button>
+                {mobileGroup === item.dropdown && (
+                  <div className="flex flex-col gap-1.5 pl-3 pb-3">
+                    {item.dropdown === "products"
+                      ? [...AI_TOOLS, { name: "All AI Tools", href: "/products" }].map((t) => (
+                          <Link key={t.href} href={t.href} onClick={closeMobile} className="text-sm text-foreground/75 hover:text-primary">{t.name}</Link>
+                        ))
+                      : SUBJECT_ORDER.map((cat) => (
+                          <div key={cat}>
+                            <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider mt-2 mb-1">{cat}</p>
+                            {(SUBJECT_GROUPS[cat] ?? []).map((s) => (
+                              <Link key={s.slug} href={`/courses/${s.slug}`} onClick={closeMobile} className="block py-0.5 text-sm text-foreground/75 hover:text-primary">{s.name}</Link>
+                            ))}
+                          </div>
+                        ))}
+                  </div>
+                )}
               </div>
             ) : (
               <Link key={item.name} href={item.href!} className="text-sm font-medium py-2 border-b border-border/40 text-foreground/80" onClick={closeMobile}>{item.name}</Link>
