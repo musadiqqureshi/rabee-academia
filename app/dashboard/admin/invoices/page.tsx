@@ -4,7 +4,7 @@ import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import StatCard from "@/components/dashboard/StatCard";
 import CreateInvoiceForm from "./CreateInvoiceForm";
-import { setInvoiceStatus } from "./actions";
+import { setInvoiceStatus, generateMonthlyInvoicesNow, setStudentDiscount } from "./actions";
 import { INVOICE_CATEGORY_LABEL, type InvoiceCategory } from "@/lib/supabase/types";
 
 export const dynamic = "force-dynamic";
@@ -66,9 +66,43 @@ export default async function AdminInvoicesPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">Invoices</h1>
-        <p className="text-sm text-muted-foreground mt-1">Generate and track student invoices.</p>
+      <div className="flex items-start justify-between gap-3 flex-wrap">
+        <div>
+          <h1 className="text-2xl font-bold">Invoices</h1>
+          <p className="text-sm text-muted-foreground mt-1">Generate and track student invoices. Monthly fees auto-generate on the 1st (due the 5th).</p>
+        </div>
+        <form action={generateMonthlyInvoicesNow}>
+          <button className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90">
+            <Receipt className="w-4 h-4" /> Generate this month&apos;s fees
+          </button>
+        </form>
+      </div>
+
+      {/* Per-student monthly-fee discount */}
+      <div className="rounded-2xl border border-card-border bg-card p-4">
+        <p className="text-sm font-semibold mb-3">Set a student&apos;s monthly-fee discount</p>
+        <form action={setStudentDiscount} className="flex flex-wrap items-end gap-3">
+          <label className="block">
+            <span className="block text-xs text-muted-foreground mb-1">Student</span>
+            <select name="student_id" required className="rounded-lg border border-input bg-background px-3 py-2 text-sm min-w-[200px]">
+              <option value="">Select…</option>
+              {studentOpts.map((s) => <option key={s.id} value={s.id}>{s.label}</option>)}
+            </select>
+          </label>
+          <label className="block">
+            <span className="block text-xs text-muted-foreground mb-1">Subject (optional)</span>
+            <select name="subject_id" className="rounded-lg border border-input bg-background px-3 py-2 text-sm min-w-[160px]">
+              <option value="">All subjects</option>
+              {(subjects ?? []).map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+            </select>
+          </label>
+          <label className="block">
+            <span className="block text-xs text-muted-foreground mb-1">Discount %</span>
+            <input name="discount_pct" type="number" min={0} max={100} defaultValue={0} className="w-24 rounded-lg border border-input bg-background px-3 py-2 text-sm" />
+          </label>
+          <button className="px-4 py-2 rounded-lg border border-border text-sm font-semibold hover:bg-muted">Save discount</button>
+        </form>
+        <p className="text-[11px] text-muted-foreground mt-2">Set 0% to remove a discount. Applies to future monthly invoices.</p>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
