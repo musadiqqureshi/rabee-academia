@@ -1,8 +1,10 @@
 import Link from "next/link";
-import { Users, UserCheck, BookOpen, GraduationCap, UserPlus } from "lucide-react";
+import { Users, UserCheck, BookOpen, GraduationCap, UserPlus, Wallet, Receipt, CalendarDays } from "lucide-react";
 import { STATUS_LABEL, type ApplicationStatus } from "@/lib/instructor";
-import StatCard from "@/components/dashboard/StatCard";
 import StatDonut from "@/components/dashboard/StatDonut";
+import GradientStatCard from "@/components/dashboard/GradientStatCard";
+import WelcomeBanner from "@/components/dashboard/WelcomeBanner";
+import QuickActions, { type QuickAction } from "@/components/dashboard/QuickActions";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import RealtimeRefresher from "@/components/dashboard/RealtimeRefresher";
@@ -77,23 +79,32 @@ export default async function AdminOverview() {
     batchesByTeacher.set(b.teacher_id, list);
   }
 
-  return (
-    <div>
-      <RealtimeRefresher tables={["profiles", "enrollments", "batches"]} />
-      <h1 className="text-2xl font-bold">Academic Operations</h1>
-      <p className="text-sm text-muted-foreground mt-1">Platform management overview</p>
+  const adminQuick: QuickAction[] = [
+    { href: "/dashboard/admin/enrollments", label: "Enrollments", icon: UserCheck,     tone: "from-indigo-500 to-violet-600" },
+    { href: "/dashboard/admin/instructors", label: "Instructors", icon: UserPlus,      tone: "from-fuchsia-500 to-purple-600" },
+    { href: "/dashboard/admin/payroll",     label: "Payroll",     icon: Wallet,        tone: "from-emerald-500 to-teal-600" },
+    { href: "/dashboard/admin/invoices",    label: "Invoices",    icon: Receipt,       tone: "from-amber-500 to-orange-600" },
+    { href: "/dashboard/admin/schedules",   label: "Schedules",   icon: CalendarDays,  tone: "from-sky-500 to-blue-600" },
+    { href: "/dashboard/admin/teachers",    label: "Teachers",    icon: GraduationCap, tone: "from-rose-500 to-pink-600" },
+  ];
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-4 mt-6">
-        <StatCard label="Total Students"      value={studentCount ?? 0} icon={Users} />
-        <StatCard label="Pending Enrollments" value={pendingCount ?? 0} icon={UserCheck}
-          hint={pendingCount ? "Needs review" : undefined} />
-        <StatCard label="Active Batches"      value={batchCount ?? 0}   icon={BookOpen} />
-        <StatCard label="Teachers"            value={teacherCount ?? 0} icon={GraduationCap} />
+  return (
+    <div className="space-y-8">
+      <RealtimeRefresher tables={["profiles", "enrollments", "batches"]} />
+
+      <WelcomeBanner title="Academic Operations" subtitle="Platform management overview — students, teachers, enrollments, payroll and applications." />
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-4">
+        <GradientStatCard label="Total Students"      value={studentCount ?? 0} icon={Users}         tone="from-indigo-500 to-violet-600" />
+        <GradientStatCard label="Pending Enrollments" value={pendingCount ?? 0} icon={UserCheck}     tone="from-amber-500 to-orange-600" hint={pendingCount ? "Needs review" : "All clear"} />
+        <GradientStatCard label="Active Batches"      value={batchCount ?? 0}   icon={BookOpen}      tone="from-sky-500 to-blue-600" />
+        <GradientStatCard label="Teachers"            value={teacherCount ?? 0} icon={GraduationCap} tone="from-emerald-500 to-teal-600" />
         <Link href="/dashboard/admin/instructors" className="block">
-          <StatCard label="Instructor Applications" value={instrTotal ?? 0} icon={UserPlus}
-            hint={instrAttention ? `${instrAttention} need attention` : undefined} />
+          <GradientStatCard label="Instructor Apps"   value={instrTotal ?? 0}   icon={UserPlus}      tone="from-fuchsia-500 to-purple-600" hint={instrAttention ? `${instrAttention} need attention` : undefined} />
         </Link>
       </div>
+
+      <QuickActions items={adminQuick} title="Manage" />
 
       {/* Colorful charts */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">

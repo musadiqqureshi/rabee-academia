@@ -1,5 +1,6 @@
 import { Mail, Phone, BadgeCheck, CalendarDays } from "lucide-react";
 import type { Profile } from "@/lib/supabase/types";
+import AvatarUpload from "@/components/dashboard/AvatarUpload";
 
 const ROLE_LABEL: Record<string, string> = {
   student: "Student", teacher: "Teacher", admin: "Administrator", super_admin: "Administrator",
@@ -20,9 +21,7 @@ export default function ProfileCard({ profile }: { profile: Profile }) {
   return (
     <div className="rounded-2xl border border-card-border bg-card shadow-sm p-6">
       <div className="flex items-center gap-4">
-        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-accent text-white grid place-items-center text-2xl font-extrabold shrink-0">
-          {initial}
-        </div>
+        <AvatarUpload avatarUrl={profile.avatar_url} initial={initial} />
         <div>
           <h1 className="text-xl font-bold">{name}</h1>
           <span className="inline-flex items-center gap-1.5 mt-1 px-2.5 py-0.5 rounded-full bg-primary/10 text-primary text-xs font-semibold">

@@ -23,6 +23,7 @@ export interface Profile {
   phone: string | null;
   role: UserRole;
   student_code?: string | null;
+  avatar_url?: string | null;
   created_at: string;
 }
 
