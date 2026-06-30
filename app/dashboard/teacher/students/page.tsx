@@ -1,9 +1,23 @@
 import { Users } from "lucide-react";
+import { createClient as createAdminClient } from "@supabase/supabase-js";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import RealtimeRefresher from "@/components/dashboard/RealtimeRefresher";
 
 export const dynamic = "force-dynamic";
+
+// Teachers can't always read student profiles via RLS — resolve names + codes
+// with the service role (falls back to the enrollment's stored name/email).
+async function resolveStudents(ids: string[]) {
+  const out = new Map<string, { full_name: string | null; email: string | null; student_code: string | null }>();
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !key || ids.length === 0) return out;
+  const admin = createAdminClient(url, key, { auth: { autoRefreshToken: false, persistSession: false } });
+  const { data } = await admin.from("profiles").select("id, full_name, email, student_code").in("id", ids);
+  for (const p of data ?? []) out.set(p.id as string, { full_name: p.full_name, email: p.email, student_code: p.student_code });
+  return out;
+}
 
 const statusStyle: Record<string, string> = {
   approved: "bg-emerald-100 text-emerald-700",
@@ -12,10 +26,11 @@ const statusStyle: Record<string, string> = {
   cancelled: "bg-muted text-muted-foreground",
 };
 
-const SELECT = "id, status, created_at, class_type, student:student_id ( full_name, email, student_code ), subjects:subject_id ( name )";
+const SELECT = "id, status, created_at, class_type, student_id, student_name, student_email, student:student_id ( full_name, email, student_code ), subjects:subject_id ( name )";
 
 interface Row {
   id: string; status: string; created_at: string; class_type: string | null;
+  student_id: string | null; student_name: string | null; student_email: string | null;
   student: unknown; subjects: unknown;
 }
 
@@ -39,6 +54,7 @@ export default async function TeacherStudents() {
   const map = new Map<string, Row>();
   for (const e of [...(byTeacher ?? []), ...(byBatch ?? [])] as Row[]) map.set(e.id, e);
   const rows = [...map.values()];
+  const resolved = await resolveStudents([...new Set(rows.map((r) => r.student_id).filter(Boolean) as string[])]);
 
   return (
     <div>
@@ -68,12 +84,16 @@ export default async function TeacherStudents() {
             </thead>
             <tbody className="divide-y divide-border">
               {rows.map((e) => {
-                const student = e.student as { full_name: string | null; email: string | null; student_code: string | null } | null;
+                const joined = e.student as { full_name: string | null; email: string | null; student_code: string | null } | null;
+                const r = e.student_id ? resolved.get(e.student_id) : null;
+                const name = r?.full_name ?? joined?.full_name ?? e.student_name ?? "—";
+                const email = r?.email ?? joined?.email ?? e.student_email ?? "";
+                const code = r?.student_code ?? joined?.student_code ?? "—";
                 const subject = e.subjects as { name: string } | null;
                 return (
                   <tr key={e.id} className="hover:bg-muted/20 transition-colors">
-                    <td className="px-4 py-3 font-medium">{student?.full_name ?? "—"}<span className="block text-xs text-muted-foreground">{student?.email}</span></td>
-                    <td className="px-4 py-3 text-muted-foreground">{student?.student_code ?? "—"}</td>
+                    <td className="px-4 py-3 font-medium">{name}<span className="block text-xs text-muted-foreground">{email}</span></td>
+                    <td className="px-4 py-3 text-muted-foreground">{code}</td>
                     <td className="px-4 py-3">{subject?.name ?? "—"}</td>
                     <td className="px-4 py-3 capitalize text-muted-foreground">{e.class_type?.replace("_", " ") ?? "—"}</td>
                     <td className="px-4 py-3">

@@ -3,7 +3,7 @@
 import { type ReactNode } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Atom, LogOut, Menu, X } from "lucide-react";
+import { Atom, LogOut, Menu, X, UserCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import EnforceTheme from "@/components/EnforceTheme";
@@ -128,6 +128,14 @@ export default function DashboardShell({
           <div className="flex items-center gap-2">
             <ThemeToggle />
             <NotificationBell />
+            <Link
+              href={`${basePath}/profile`}
+              aria-label="View profile"
+              className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground"
+            >
+              <UserCircle className="w-5 h-5" />
+              <span className="hidden sm:inline">Profile</span>
+            </Link>
             <Link
               href="/"
               className="text-sm text-muted-foreground hover:text-foreground"

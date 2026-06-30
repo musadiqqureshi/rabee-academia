@@ -11,7 +11,7 @@ const items = [
   },
   {
     icon: <Zap className="w-3 h-3 shrink-0 text-yellow-300" />,
-    text: "🚀 NEW: AI Mastery Course launched — FREE 2-week intensive, weekends, starts July 2026. Only 30 seats!",
+    text: "🚀 NEW: AI Mastery Course launched — FREE 2-week intensive, weekends, starts July 2026. Only 50 seats!",
     highlight: true,
   },
   {

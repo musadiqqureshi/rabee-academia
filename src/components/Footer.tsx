@@ -60,7 +60,7 @@ export default function Footer() {
         </div>
         
         <div className="pt-8 border-t border-border text-center text-sm text-muted-foreground">
-          <p>Copyright © 2024 Rabee Academia. All rights reserved.</p>
+          <p>Copyright © 2026 Rabee Academia. All rights reserved.</p>
         </div>
       </div>
     </footer>
