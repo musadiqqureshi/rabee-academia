@@ -14,7 +14,7 @@ export default function AIMasterySection({ seatsTaken = 0 }: { seatsTaken?: numb
   return (
     <section className="py-16" id="ai-mastery">
       <div className="container mx-auto px-4 md:px-6">
-        <div className={`${full ? "glow-card-dull bg-gradient-to-br from-zinc-700 via-zinc-900 to-black" : "glow-card bg-gradient-to-br from-fuchsia-600 via-purple-600 to-indigo-600"} relative max-w-4xl mx-auto rounded-3xl p-[1.5px]`}>
+        <div className={`${full ? "dark glow-card-dull bg-gradient-to-br from-zinc-700 via-zinc-900 to-black" : "glow-card bg-gradient-to-br from-fuchsia-600 via-purple-600 to-indigo-600"} relative max-w-4xl mx-auto rounded-3xl p-[1.5px]`}>
           <div className={`rounded-[calc(1.5rem-1.5px)] backdrop-blur-sm p-8 md:p-10 ${full ? "bg-zinc-950/95" : "bg-card/95"}`}>
             <div className="flex flex-wrap items-center gap-3 mb-4">
               {full ? (
