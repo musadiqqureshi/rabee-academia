@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Clock, Save } from "lucide-react";
+import { Clock, Save, ShieldAlert } from "lucide-react";
 import { saveProgress, submitAttempt } from "../actions";
 import type { QuizQuestionOption, QuizQuestionType } from "@/lib/supabase/types";
 
@@ -61,8 +61,23 @@ export default function QuizRunner({ quizId, attemptId, questions, initialAnswer
   const mm = remaining !== null ? Math.floor(remaining / 60) : 0;
   const ss = remaining !== null ? remaining % 60 : 0;
 
+  // Anti-cheat: discourage copying the questions into an AI tool. A deterrent,
+  // not DRM — block selection/copy/cut/right-click on the quiz surface, while
+  // still letting students select & edit text inside their own answer fields.
+  const block = (e: React.SyntheticEvent) => e.preventDefault();
+
   return (
-    <div className="space-y-4">
+    <div
+      className="space-y-4 select-none [&_input]:select-text [&_textarea]:select-text"
+      onCopy={block}
+      onCut={block}
+      onContextMenu={block}
+    >
+      <div className="flex items-start gap-2 rounded-lg border border-amber-400/30 bg-amber-400/10 px-3 py-2 text-xs text-amber-700 dark:text-amber-400">
+        <ShieldAlert className="w-4 h-4 mt-0.5 shrink-0" />
+        Copying the questions is disabled to keep this test fair. Answer in your own words.
+      </div>
+
       {remaining !== null && (
         <div className={`sticky top-2 z-10 inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-semibold ${
           remaining < 60 ? "bg-destructive/10 text-destructive" : "bg-primary/10 text-primary"}`}>
