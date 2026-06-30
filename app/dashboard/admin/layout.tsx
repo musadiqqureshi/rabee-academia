@@ -28,6 +28,7 @@ const navItems: NavItem[] = [
   { label: "AI Pro",       icon: <Crown className="w-4 h-4" />,          href: "/ai-pro" },
   { label: "Users",        icon: <UserCircle className="w-4 h-4" />,     href: "/users" },
   { label: "Payments",     icon: <Wallet className="w-4 h-4" />,         href: "/payments" },
+  { label: "Payroll",      icon: <Wallet className="w-4 h-4" />,         href: "/payroll" },
   { label: "Notifications", icon: <Bell className="w-4 h-4" />,          href: "/notifications" },
   { label: "Settings",     icon: <Settings className="w-4 h-4" />,       href: "/settings" },
 ];
