@@ -10,17 +10,6 @@ import PartnersMarquee from "@/components/PartnersMarquee";
 import AISection from "@/components/AISection";
 import AIMasterySection from "@/components/AIMasterySection";
 import SubjectsSection from "@/components/SubjectsSection";
-import { createClient } from "@/lib/supabase/server";
-
-async function getMasterySeats(): Promise<number> {
-  try {
-    const supabase = await createClient();
-    const { data } = await supabase.rpc("ai_mastery_seats");
-    return Number(data ?? 0);
-  } catch {
-    return 0;
-  }
-}
 import LeadershipSection from "@/components/LeadershipSection";
 import CountriesSection from "@/components/CountriesSection";
 import ReviewsMarquee from "@/components/ReviewsMarquee";
@@ -30,7 +19,6 @@ import CTASection from "@/components/CTASection";
 import Footer from "@/components/Footer";
 
 export default async function HomePage() {
-  const masterySeats = await getMasterySeats();
   return (
     <div className="min-h-screen text-foreground overflow-x-hidden">
       <EnforceTheme mode="site" />
@@ -55,7 +43,7 @@ export default async function HomePage() {
         <PartnersMarquee />
       </div>
 
-      <AIMasterySection seatsTaken={masterySeats} />
+      <AIMasterySection />
       <AISection />
       <SubjectsSection />
       <LeadershipSection />
