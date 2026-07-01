@@ -6,7 +6,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Sparkles, BrainCircuit, CalendarClock, Globe2, ArrowRight, Play } from "lucide-react";
 import HeroBackgroundSlider from "./HeroBackgroundSlider";
 
-const cyclingPrograms = ["FSc Medical", "FSc Engineering", "A/O Levels", "BS Programs", "MS Programs"];
+const cyclingPrograms = ["FSc Medical", "FSc Engineering", "A/O Levels", "BS Programs", "MS Programs", "Quran Pak"];
 
 const featureCards = [
   { icon: BrainCircuit, text: "AI-Powered Learning",          color: "text-primary" },
