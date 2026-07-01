@@ -31,12 +31,24 @@ export default async function QuranCoursePage({ params }: { params: Promise<{ sl
 
   const jsonLd = {
     "@context": "https://schema.org",
-    "@type": "Course",
-    name: course.name.en,
-    description: course.intro.en,
-    provider: { "@type": "Organization", name: "Rabee Academia", sameAs: "https://rabeeacademia.site" },
-    offers: { "@type": "Offer", price: String(PRICE_LAUNCH), priceCurrency: "PKR", category: "Monthly subscription" },
-    hasCourseInstance: { "@type": "CourseInstance", courseMode: "online" },
+    "@graph": [
+      {
+        "@type": "Course",
+        name: course.name.en,
+        description: course.intro.en,
+        provider: { "@type": "Organization", name: "Rabee Academia", sameAs: "https://rabeeacademia.site" },
+        offers: { "@type": "Offer", price: String(PRICE_LAUNCH), priceCurrency: "PKR", category: "Monthly subscription" },
+        hasCourseInstance: { "@type": "CourseInstance", courseMode: "online" },
+      },
+      {
+        "@type": "BreadcrumbList",
+        itemListElement: [
+          { "@type": "ListItem", position: 1, name: "Home", item: "https://rabeeacademia.site" },
+          { "@type": "ListItem", position: 2, name: "Quran Learning", item: "https://rabeeacademia.site/quran-learning" },
+          { "@type": "ListItem", position: 3, name: course.name.en, item: `https://rabeeacademia.site/quran-learning/${slug}` },
+        ],
+      },
+    ],
   };
 
   return (

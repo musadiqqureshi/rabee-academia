@@ -63,14 +63,26 @@ export default async function CoursePage({ params }: { params: Promise<{ slug: s
 
   const jsonLd = {
     "@context": "https://schema.org",
-    "@type": "Course",
-    name: course.name,
-    description: course.description,
-    educationalLevel: course.level,
-    provider: { "@type": "Organization", name: "Rabee Academia", sameAs: "https://rabeeacademia.site" },
-    ...(course.free ? {} : {
-      offers: { "@type": "Offer", price: course.regularPrice, priceCurrency: "PKR", category: "monthly" },
-    }),
+    "@graph": [
+      {
+        "@type": "Course",
+        name: course.name,
+        description: course.description,
+        educationalLevel: course.level,
+        provider: { "@type": "Organization", name: "Rabee Academia", sameAs: "https://rabeeacademia.site" },
+        ...(course.free ? {} : {
+          offers: { "@type": "Offer", price: course.regularPrice, priceCurrency: "PKR", category: "monthly" },
+        }),
+      },
+      {
+        "@type": "BreadcrumbList",
+        itemListElement: [
+          { "@type": "ListItem", position: 1, name: "Home", item: "https://rabeeacademia.site" },
+          { "@type": "ListItem", position: 2, name: "Courses", item: "https://rabeeacademia.site/pricing" },
+          { "@type": "ListItem", position: 3, name: course.name, item: `https://rabeeacademia.site/courses/${slug}` },
+        ],
+      },
+    ],
   };
 
   return (
