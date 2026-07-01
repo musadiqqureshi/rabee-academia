@@ -14,6 +14,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { path: "/demo", priority: 0.8, freq: "weekly" },
     { path: "/faq", priority: 0.8, freq: "monthly" },
     { path: "/products", priority: 0.7, freq: "monthly" },
+    ...["paper-maker", "essay-grader", "lesson-plan", "notes", "planner", "quiz", "humanizer", "pro"]
+      .map((t) => ({ path: `/products/${t}`, priority: 0.6, freq: "monthly" as const })),
     { path: "/ai-career-stack", priority: 0.85, freq: "weekly" },
     { path: "/quran-learning", priority: 0.9, freq: "weekly" },
     { path: "/instructor", priority: 0.6, freq: "monthly" },
