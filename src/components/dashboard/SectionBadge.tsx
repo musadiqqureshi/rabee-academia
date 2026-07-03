@@ -41,6 +41,11 @@ const COUNTERS: Record<string, (s: SB, uid: string) => Promise<number>> = {
       .select("id", { count: "exact", head: true }).in("status", ["payment_submitted", "qualified"]);
     return count ?? 0;
   },
+  "/scholarships": async (s) => {
+    const { count } = await s.from("scholarship_applications")
+      .select("id", { count: "exact", head: true }).in("status", ["submitted", "under_review"]);
+    return count ?? 0;
+  },
   "/ai-pro": async (s) => {
     const { count } = await s.from("ai_pro_requests").select("id", { count: "exact", head: true }).eq("status", "pending");
     return count ?? 0;

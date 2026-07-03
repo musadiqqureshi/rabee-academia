@@ -19,6 +19,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { path: "/ai-career-stack", priority: 0.85, freq: "weekly" },
     { path: "/quran-learning", priority: 0.9, freq: "weekly" },
     { path: "/instructor", priority: 0.6, freq: "monthly" },
+    { path: "/scholarships", priority: 0.7, freq: "monthly" },
     { path: "/enroll", priority: 0.7, freq: "weekly" },
     { path: "/register", priority: 0.6, freq: "yearly" },
     { path: "/login", priority: 0.4, freq: "yearly" },

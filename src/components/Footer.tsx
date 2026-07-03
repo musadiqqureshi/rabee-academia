@@ -25,6 +25,7 @@ export default function Footer() {
             <h4 className="font-bold text-foreground mb-4">Programs</h4>
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li><a href="/quran-learning" className="hover:text-primary transition-colors">Quran Learning</a></li>
+              <li><a href="/scholarships" className="hover:text-primary transition-colors">Scholarships</a></li>
               <li><a href="/pricing" className="hover:text-primary transition-colors">FSc Pre-Medical</a></li>
               <li><a href="/pricing" className="hover:text-primary transition-colors">FSc Pre-Engineering</a></li>
               <li><a href="/pricing" className="hover:text-primary transition-colors">A/O Levels</a></li>

@@ -20,9 +20,17 @@ export async function generateMonthlyInvoices(admin: SupabaseClient): Promise<{ 
   const subjMap = new Map((subjects ?? []).map((s) => [s.id as string, s]));
 
   const { data: discounts } = await admin
-    .from("student_fee_discounts").select("student_id, subject_id, discount_pct");
-  const discMap = new Map<string, number>();
-  for (const d of discounts ?? []) discMap.set(`${d.student_id}:${d.subject_id ?? "all"}`, d.discount_pct as number);
+    .from("student_fee_discounts").select("student_id, subject_id, discount_pct, discount_amount, valid_until");
+  const today = now.toISOString().slice(0, 10);
+  // key -> { pct, amount } (skip expired discounts/scholarships)
+  const discMap = new Map<string, { pct: number; amount: number }>();
+  for (const d of discounts ?? []) {
+    if (d.valid_until && (d.valid_until as string) < today) continue;
+    discMap.set(`${d.student_id}:${d.subject_id ?? "all"}`, {
+      pct: (d.discount_pct as number) ?? 0,
+      amount: (d.discount_amount as number) ?? 0,
+    });
+  }
 
   const { data: existing } = await admin
     .from("invoices").select("student_id, subject_id")
@@ -36,13 +44,17 @@ export async function generateMonthlyInvoices(admin: SupabaseClient): Promise<{ 
     const s = subjMap.get(e.subject_id as string);
     if (!s) continue;
     const baseAmount = e.class_type === "weekend" ? s.weekend_price : s.regular_price;
-    const disc = discMap.get(`${e.student_id}:${e.subject_id}`) ?? discMap.get(`${e.student_id}:all`) ?? 0;
-    const amount = Math.round(baseAmount * (100 - disc) / 100);
+    const d = discMap.get(`${e.student_id}:${e.subject_id}`) ?? discMap.get(`${e.student_id}:all`) ?? { pct: 0, amount: 0 };
+    // Fixed amount (e.g. a scholarship) takes precedence over a percentage.
+    const amount = d.amount > 0
+      ? Math.max(0, baseAmount - d.amount)
+      : Math.round(baseAmount * (100 - d.pct) / 100);
+    const note = d.amount > 0 ? ` (scholarship −PKR ${d.amount})` : d.pct > 0 ? ` (${d.pct}% off)` : "";
     toInsert.push({
       student_id: e.student_id,
       subject_id: e.subject_id,
       category: "monthly_fee",
-      description: `Monthly fee — ${s.name} (${monthLabel})${disc ? ` (${disc}% off)` : ""}`,
+      description: `Monthly fee — ${s.name} (${monthLabel})${note}`,
       amount_pkr: amount,
       status: "issued",
       due_date: dueDate,

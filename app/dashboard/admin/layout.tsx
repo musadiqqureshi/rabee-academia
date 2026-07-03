@@ -1,7 +1,7 @@
 import {
   Users, UserCheck, BookOpen, Video, ClipboardCheck, CalendarDays, BarChart3,
   ClipboardList, Receipt, Network, GraduationCap, TrendingUp, MessageSquare,
-  UserCog, Wallet, Bell, Settings, UserCircle, Crown, UserPlus,
+  UserCog, Wallet, Bell, Settings, UserCircle, Crown, UserPlus, HeartHandshake,
 } from "lucide-react";
 import { requireRole } from "@/lib/auth";
 import DashboardShell, { type NavItem } from "@/components/dashboard/DashboardShell";
@@ -24,6 +24,7 @@ const navItems: NavItem[] = [
   { label: "Schedules",    icon: <CalendarDays className="w-4 h-4" />,   href: "/schedules" },
   { label: "Teachers",     icon: <UserCog className="w-4 h-4" />,        href: "/teachers" },
   { label: "Instructors",  icon: <UserPlus className="w-4 h-4" />,       href: "/instructors" },
+  { label: "Scholarships", icon: <HeartHandshake className="w-4 h-4" />, href: "/scholarships" },
   { label: "Subjects",     icon: <BookOpen className="w-4 h-4" />,       href: "/subjects" },
   { label: "AI Pro",       icon: <Crown className="w-4 h-4" />,          href: "/ai-pro" },
   { label: "Users",        icon: <UserCircle className="w-4 h-4" />,     href: "/users" },
