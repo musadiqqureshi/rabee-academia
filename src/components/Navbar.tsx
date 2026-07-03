@@ -71,9 +71,9 @@ export default function Navbar() {
   const navItems: { name: string; href?: string; dropdown?: "subjects" | "products" }[] = [
     { name: "Home", href: "/" },
     { name: "Subjects", dropdown: "subjects" },
-    { name: "Programs", href: "/#programs" },
     { name: "Teachers", href: "/#teachers" },
     { name: "Quran Learning", href: "/quran-learning" },
+    { name: "Scholarship", href: "/scholarships" },
     { name: "Pricing", href: "/pricing" },
     { name: "Products", dropdown: "products" },
     { name: "Reviews", href: "/#reviews" },
