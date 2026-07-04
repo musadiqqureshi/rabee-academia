@@ -47,11 +47,18 @@ export default async function AssignmentDetailPage({
 
   const subByStudent = new Map((submissions ?? []).map((s) => [s.student_id, s]));
 
-  // Sign uploaded submission images (private bucket) via the service role.
+  // Resolve student names (RLS blanks the profiles join for teachers) and sign
+  // uploaded submission images — both via the service role.
   const imageUrls = new Map<string, string>();
+  const names = new Map<string, { full_name: string | null; email: string | null; student_code: string | null }>();
   const svcUrl = process.env.NEXT_PUBLIC_SUPABASE_URL, svcKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (svcUrl && svcKey) {
     const admin = createAdminClient(svcUrl, svcKey, { auth: { autoRefreshToken: false, persistSession: false } });
+    const ids = [...new Set((enrollments ?? []).map((e) => e.student_id as string).filter(Boolean))];
+    if (ids.length) {
+      const { data } = await admin.from("profiles").select("id, full_name, email, student_code").in("id", ids);
+      for (const p of data ?? []) names.set(p.id as string, { full_name: p.full_name, email: p.email, student_code: p.student_code });
+    }
     for (const s of submissions ?? []) {
       if (!s.file_url) continue;
       const { data } = await admin.storage.from("assignment-files").createSignedUrl(s.file_url as string, 3600);
@@ -60,7 +67,8 @@ export default async function AssignmentDetailPage({
   }
 
   const rows = (enrollments ?? []).map((e) => {
-    const p = e.profiles as unknown as { full_name: string | null; email: string | null; student_code: string | null } | null;
+    const joined = e.profiles as unknown as { full_name: string | null; email: string | null; student_code: string | null } | null;
+    const p = names.get(e.student_id as string) ?? joined;
     return {
       studentId: e.student_id,
       name: p?.full_name ?? p?.email ?? "Student",
