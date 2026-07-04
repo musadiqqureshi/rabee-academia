@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { ImagePlus } from "lucide-react";
 import RichTextEditor from "@/components/RichTextEditor";
 import { saveDraft, submitWork } from "./actions";
 import type { SubmissionType } from "@/lib/supabase/types";
@@ -10,6 +11,7 @@ interface Props {
   submissionType: SubmissionType;
   initialContent: string;
   initialDriveUrl: string;
+  hasImage?: boolean; // an image was already uploaded
   locked: boolean; // true once graded or past due
 }
 
@@ -18,10 +20,12 @@ export default function SubmissionForm({
   submissionType,
   initialContent,
   initialDriveUrl,
+  hasImage = false,
   locked,
 }: Props) {
   const [content, setContent] = useState(initialContent);
   const [driveUrl, setDriveUrl] = useState(initialDriveUrl);
+  const [image, setImage] = useState<File | null>(null);
   const [pending, startTransition] = useTransition();
   const [msg, setMsg] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -33,6 +37,7 @@ export default function SubmissionForm({
     fd.set("assignment_id", assignmentId);
     fd.set("content", content);
     fd.set("drive_url", driveUrl);
+    if (image) fd.set("file", image);
     startTransition(async () => {
       try {
         if (kind === "draft") {
@@ -74,6 +79,18 @@ export default function SubmissionForm({
           />
         </label>
       )}
+
+      {/* Image upload — attach one image (e.g. your poster) */}
+      <div>
+        <span className="block text-xs font-medium text-muted-foreground mb-1.5">Attach an image (one file — e.g. your poster)</span>
+        <label className="flex items-center gap-2.5 rounded-lg border border-dashed border-border px-3 py-2.5 text-sm cursor-pointer hover:border-primary/50 transition-colors">
+          <ImagePlus className="w-4 h-4 text-muted-foreground shrink-0" />
+          <input type="file" accept="image/*" className="hidden" onChange={(e) => setImage(e.target.files?.[0] ?? null)} />
+          <span className="text-muted-foreground truncate">
+            {image ? image.name : hasImage ? "Image attached — choose another to replace" : "Choose an image (JPG, PNG)"}
+          </span>
+        </label>
+      </div>
 
       {msg && <p className="text-sm text-emerald-600">{msg}</p>}
       {error && <p className="text-sm text-destructive">{error}</p>}

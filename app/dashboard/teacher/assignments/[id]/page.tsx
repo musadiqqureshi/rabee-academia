@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, ExternalLink, FileText } from "lucide-react";
+import { ArrowLeft, ExternalLink, FileText, ImageIcon } from "lucide-react";
+import { createClient as createAdminClient } from "@supabase/supabase-js";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { SUBMISSION_STATUS_LABEL, type SubmissionStatus } from "@/lib/supabase/types";
@@ -45,6 +46,18 @@ export default async function AssignmentDetailPage({
     .eq("assignment_id", id);
 
   const subByStudent = new Map((submissions ?? []).map((s) => [s.student_id, s]));
+
+  // Sign uploaded submission images (private bucket) via the service role.
+  const imageUrls = new Map<string, string>();
+  const svcUrl = process.env.NEXT_PUBLIC_SUPABASE_URL, svcKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (svcUrl && svcKey) {
+    const admin = createAdminClient(svcUrl, svcKey, { auth: { autoRefreshToken: false, persistSession: false } });
+    for (const s of submissions ?? []) {
+      if (!s.file_url) continue;
+      const { data } = await admin.storage.from("assignment-files").createSignedUrl(s.file_url as string, 3600);
+      if (data?.signedUrl) imageUrls.set(s.id as string, data.signedUrl);
+    }
+  }
 
   const rows = (enrollments ?? []).map((e) => {
     const p = e.profiles as unknown as { full_name: string | null; email: string | null; student_code: string | null } | null;
@@ -105,6 +118,13 @@ export default async function AssignmentDetailPage({
                     <a href={s.drive_url} target="_blank" rel="noopener noreferrer"
                        className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline">
                       <ExternalLink className="w-3.5 h-3.5" /> Open Drive submission
+                    </a>
+                  )}
+                  {imageUrls.has(s.id) && (
+                    <a href={imageUrls.get(s.id)} target="_blank" rel="noopener noreferrer" className="block w-fit">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={imageUrls.get(s.id)} alt="Submitted image" className="max-h-56 rounded-lg border border-border" />
+                      <span className="inline-flex items-center gap-1.5 text-xs text-primary hover:underline mt-1"><ImageIcon className="w-3.5 h-3.5" /> Open full image</span>
                     </a>
                   )}
                   {s.content && (

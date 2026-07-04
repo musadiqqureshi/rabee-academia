@@ -88,6 +88,7 @@ export default async function StudentAssignmentDetail({
           submissionType={assignment.submission_type}
           initialContent={submission?.content ?? ""}
           initialDriveUrl={submission?.drive_url ?? ""}
+          hasImage={Boolean(submission?.file_url)}
           locked={locked}
         />
       </div>
