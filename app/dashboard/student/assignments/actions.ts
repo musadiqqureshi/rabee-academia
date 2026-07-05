@@ -13,24 +13,6 @@ function svc() {
   return createAdminClient(url, key, { auth: { autoRefreshToken: false, persistSession: false } });
 }
 
-// Upload the (optional) submission image. Returns { path } on success,
-// { error } on a real failure, or {} when no image was provided.
-async function uploadImage(assignmentId: string, studentId: string, formData: FormData): Promise<{ path?: string; error?: string }> {
-  const file = formData.get("file");
-  if (!(file instanceof File) || file.size === 0) return {};
-  if (!file.type.startsWith("image/")) return { error: "Please upload an image file." };
-  if (file.size > 8 * 1024 * 1024) return { error: "Image must be under 8 MB." };
-  const admin = svc();
-  if (!admin) return { error: "File uploads aren't configured on the server." };
-  const ext = (file.name.split(".").pop() ?? "jpg").toLowerCase();
-  const path = `${studentId}/${assignmentId}.${ext}`;
-  // Convert to bytes — passing a File directly can fail inside a Node server action.
-  const bytes = new Uint8Array(await file.arrayBuffer());
-  const { error } = await admin.storage.from("assignment-files").upload(path, bytes, { upsert: true, contentType: file.type || "image/jpeg" });
-  if (error) return { error: `Couldn't upload the image: ${error.message}. (Make sure the "assignment-files" storage bucket exists — run supabase/assignment-uploads.sql.)` };
-  return { path };
-}
-
 async function save(formData: FormData, status: "draft" | "submitted"): Promise<SubmitResult> {
   // Everything is wrapped so the action can NEVER throw — a thrown server
   // action is masked in production as the opaque "Server Components render"
@@ -41,8 +23,12 @@ async function save(formData: FormData, status: "draft" | "submitted"): Promise<
     const assignmentId = String(formData.get("assignment_id") ?? "");
     if (!assignmentId) return { ok: false, error: "Missing assignment." };
 
-    const up = await uploadImage(assignmentId, profile.id, formData);
-    if (up.error) return { ok: false, error: up.error };
+    // The image was already uploaded to Storage by the browser; we only receive
+    // its path. Guard that it lives in this student's own folder.
+    const filePath = String(formData.get("file_path") ?? "").trim();
+    if (filePath && !filePath.startsWith(`${profile.id}/`)) {
+      return { ok: false, error: "That file doesn't belong to your account." };
+    }
 
     const values: Record<string, unknown> = {
       assignment_id: assignmentId,
@@ -51,7 +37,7 @@ async function save(formData: FormData, status: "draft" | "submitted"): Promise<
       drive_url: String(formData.get("drive_url") ?? "").trim() || null,
       status,
       ...(status === "submitted" ? { submitted_at: new Date().toISOString() } : {}),
-      ...(up.path ? { file_url: up.path } : {}),
+      ...(filePath ? { file_url: filePath } : {}),
     };
 
     // Write with the service role so a stray RLS policy can't block or mask the

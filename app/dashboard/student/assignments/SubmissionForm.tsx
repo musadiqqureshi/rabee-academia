@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { UploadCloud, CheckCircle2 } from "lucide-react";
 import RichTextEditor from "@/components/RichTextEditor";
 import { saveDraft, submitWork } from "./actions";
+import { createClient } from "@/lib/supabase/client";
 import type { SubmissionType } from "@/lib/supabase/types";
 
 interface Props {
@@ -32,16 +33,40 @@ export default function SubmissionForm({
   const [msg, setMsg] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  // Upload the image straight to Storage from the browser (avoids the server
+  // action / serverless request-body size limit). Returns the stored path.
+  async function uploadImage(): Promise<{ path?: string; error?: string }> {
+    if (!image) return {};
+    if (!image.type.startsWith("image/")) return { error: "Please choose an image file (JPG or PNG)." };
+    if (image.size > 15 * 1024 * 1024) return { error: "Image is too large — please keep it under 15 MB." };
+    const supabase = createClient();
+    const { data: auth } = await supabase.auth.getUser();
+    if (!auth.user) return { error: "Your session expired — please sign in again." };
+    const ext = (image.name.split(".").pop() ?? "jpg").toLowerCase();
+    const path = `${auth.user.id}/${assignmentId}.${ext}`;
+    const { error } = await supabase.storage
+      .from("assignment-files")
+      .upload(path, image, { upsert: true, contentType: image.type });
+    if (error) {
+      return { error: `Couldn't upload the image: ${error.message}. (Make sure supabase/assignment-uploads.sql has been run.)` };
+    }
+    return { path };
+  }
+
   function run(kind: "draft" | "submit") {
     setMsg(null);
     setError(null);
-    const fd = new FormData();
-    fd.set("assignment_id", assignmentId);
-    fd.set("content", content);
-    fd.set("drive_url", driveUrl);
-    if (image) fd.set("file", image);
     startTransition(async () => {
       try {
+        const up = await uploadImage();
+        if (up.error) { setError(up.error); return; }
+
+        const fd = new FormData();
+        fd.set("assignment_id", assignmentId);
+        fd.set("content", content);
+        fd.set("drive_url", driveUrl);
+        if (up.path) fd.set("file_path", up.path);
+
         const res = kind === "draft" ? await saveDraft(fd) : await submitWork(fd);
         if (!res.ok) { setError(res.error ?? "Something went wrong."); return; }
         setMsg(kind === "draft" ? "Draft saved." : "Submitted! Your teacher will review it.");
