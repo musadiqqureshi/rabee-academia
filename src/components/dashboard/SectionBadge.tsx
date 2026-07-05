@@ -46,6 +46,18 @@ const COUNTERS: Record<string, (s: SB, uid: string) => Promise<number>> = {
       .select("id", { count: "exact", head: true }).in("status", ["submitted", "under_review"]);
     return count ?? 0;
   },
+  // Student: published assignments in their batches they haven't submitted yet.
+  "/assignments": async (s, uid) => {
+    const { data: enr } = await s.from("enrollments").select("batch_id").eq("student_id", uid).eq("status", "approved");
+    const batchIds = [...new Set((enr ?? []).map((e) => e.batch_id).filter(Boolean) as string[])];
+    if (batchIds.length === 0) return 0;
+    const { data: assigns } = await s.from("assignments").select("id").in("batch_id", batchIds).eq("is_published", true);
+    const ids = (assigns ?? []).map((a) => a.id as string);
+    if (ids.length === 0) return 0;
+    const { data: subs } = await s.from("assignment_submissions").select("assignment_id").eq("student_id", uid).in("assignment_id", ids);
+    const done = new Set((subs ?? []).map((x) => x.assignment_id as string));
+    return ids.filter((id) => !done.has(id)).length;
+  },
   "/ai-pro": async (s) => {
     const { count } = await s.from("ai_pro_requests").select("id", { count: "exact", head: true }).eq("status", "pending");
     return count ?? 0;
