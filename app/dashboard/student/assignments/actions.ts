@@ -25,8 +25,10 @@ async function uploadImage(assignmentId: string, studentId: string, formData: Fo
   if (!admin) return { error: "File uploads aren't configured on the server." };
   const ext = (file.name.split(".").pop() ?? "jpg").toLowerCase();
   const path = `${studentId}/${assignmentId}.${ext}`;
-  const { error } = await admin.storage.from("assignment-files").upload(path, file, { upsert: true, contentType: file.type || undefined });
-  if (error) return { error: `Couldn't upload the image: ${error.message}. (Has the "assignment-files" storage bucket been created?)` };
+  // Convert to bytes — passing a File directly can fail inside a Node server action.
+  const bytes = new Uint8Array(await file.arrayBuffer());
+  const { error } = await admin.storage.from("assignment-files").upload(path, bytes, { upsert: true, contentType: file.type || "image/jpeg" });
+  if (error) return { error: `Couldn't upload the image: ${error.message}. (Make sure the "assignment-files" storage bucket exists — run supabase/assignment-uploads.sql.)` };
   return { path };
 }
 
