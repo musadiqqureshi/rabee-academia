@@ -42,9 +42,16 @@ export default function ChatClient({
 
   const openConversation = useCallback(async (cid: string) => {
     setConversationId(cid);
-    const { data } = await supabase
-      .from("messages").select("*").eq("conversation_id", cid).order("created_at", { ascending: true });
-    setMessages((data as Message[]) ?? []);
+    // Load history via a SECURITY DEFINER RPC (reliable), falling back to a
+    // direct select if the RPC isn't deployed yet.
+    let history: Message[] = [];
+    const { data: rpcData, error: rpcErr } = await supabase.rpc("chat_history", { cid });
+    if (!rpcErr && rpcData) history = rpcData as Message[];
+    else {
+      const { data } = await supabase.from("messages").select("*").eq("conversation_id", cid).order("created_at", { ascending: true });
+      history = (data as Message[]) ?? [];
+    }
+    setMessages(history);
     scrollDown();
 
     // (Re)subscribe to realtime inserts for this conversation.
