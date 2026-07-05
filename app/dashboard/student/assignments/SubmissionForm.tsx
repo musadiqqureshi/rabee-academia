@@ -40,13 +40,9 @@ export default function SubmissionForm({
     if (image) fd.set("file", image);
     startTransition(async () => {
       try {
-        if (kind === "draft") {
-          await saveDraft(fd);
-          setMsg("Draft saved.");
-        } else {
-          await submitWork(fd);
-          setMsg("Submitted! Your teacher will review it.");
-        }
+        const res = kind === "draft" ? await saveDraft(fd) : await submitWork(fd);
+        if (!res.ok) { setError(res.error ?? "Something went wrong."); return; }
+        setMsg(kind === "draft" ? "Draft saved." : "Submitted! Your teacher will review it.");
       } catch (e) {
         setError(e instanceof Error ? e.message : "Something went wrong");
       }
