@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { ImagePlus } from "lucide-react";
+import { UploadCloud, CheckCircle2 } from "lucide-react";
 import RichTextEditor from "@/components/RichTextEditor";
 import { saveDraft, submitWork } from "./actions";
 import type { SubmissionType } from "@/lib/supabase/types";
@@ -76,16 +76,41 @@ export default function SubmissionForm({
         </label>
       )}
 
-      {/* Image upload — attach one image (e.g. your poster) */}
+      {/* Prominent file upload — attach one image (e.g. your poster) */}
       <div>
-        <span className="block text-xs font-medium text-muted-foreground mb-1.5">Attach an image (one file — e.g. your poster)</span>
-        <label className="flex items-center gap-2.5 rounded-lg border border-dashed border-border px-3 py-2.5 text-sm cursor-pointer hover:border-primary/50 transition-colors">
-          <ImagePlus className="w-4 h-4 text-muted-foreground shrink-0" />
+        <span className="block text-sm font-semibold text-foreground mb-2">
+          Upload your assignment file <span className="text-destructive">*</span>
+        </span>
+        <label
+          className={`group relative flex flex-col items-center justify-center gap-2.5 rounded-2xl border-2 border-dashed px-6 py-8 text-center cursor-pointer transition-colors ${
+            image || hasImage
+              ? "border-primary bg-primary/10"
+              : "border-primary/50 bg-primary/5 hover:bg-primary/10 hover:border-primary"
+          }`}
+        >
           <input type="file" accept="image/*" className="hidden" onChange={(e) => setImage(e.target.files?.[0] ?? null)} />
-          <span className="text-muted-foreground truncate">
-            {image ? image.name : hasImage ? "Image attached — choose another to replace" : "Choose an image (JPG, PNG)"}
+          <span className="grid place-items-center w-16 h-16 rounded-full bg-gradient-to-br from-primary to-accent text-primary-foreground shadow-lg shadow-primary/30 group-hover:scale-105 transition-transform">
+            {image || hasImage ? <CheckCircle2 className="w-8 h-8" /> : <UploadCloud className="w-8 h-8" />}
+          </span>
+          <span className="text-base font-bold text-foreground">
+            {image ? "Change file" : hasImage ? "Replace uploaded file" : "Click to upload your file"}
+          </span>
+          <span className="text-xs text-muted-foreground max-w-[16rem] truncate">
+            {image
+              ? image.name
+              : hasImage
+                ? "A file is already attached — click to replace it"
+                : "JPG or PNG image · up to 8 MB"}
+          </span>
+          <span className="mt-1 inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-primary to-accent px-4 py-1.5 text-xs font-semibold text-primary-foreground">
+            <UploadCloud className="w-3.5 h-3.5" /> Choose file
           </span>
         </label>
+        {image && (
+          <p className="mt-2 flex items-center gap-1.5 text-xs font-medium text-emerald-600">
+            <CheckCircle2 className="w-3.5 h-3.5" /> {image.name} ready to submit
+          </p>
+        )}
       </div>
 
       {msg && <p className="text-sm text-emerald-600">{msg}</p>}

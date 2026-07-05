@@ -8,6 +8,14 @@ interface Contact { id: string; full_name: string | null; email: string | null; 
 interface Group { batchId: string; label: string }
 interface Message { id: string; conversation_id: string; sender_id: string; body: string; created_at: string }
 
+function Badge({ n }: { n: number }) {
+  return (
+    <span className="ml-auto min-w-[18px] h-[18px] px-1.5 rounded-full bg-destructive text-white text-[10px] font-bold grid place-items-center shrink-0">
+      {n > 9 ? "9+" : n}
+    </span>
+  );
+}
+
 const roleIcon: Record<string, React.ReactNode> = {
   super_admin: <Shield className="w-3.5 h-3.5" />,
   admin: <Shield className="w-3.5 h-3.5" />,
@@ -29,8 +37,32 @@ export default function ChatClient({
   const [messages, setMessages] = useState<Message[]>([]);
   const [text, setText] = useState("");
   const [loading, setLoading] = useState(false);
+  // Unread counts keyed by sidebar item: `u:<contactId>` and `g:<batchId>`.
+  const [unread, setUnread] = useState<Record<string, number>>({});
   const scrollRef = useRef<HTMLDivElement>(null);
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+
+  // Poll unread counts so the sidebar shows who messaged (works with or without
+  // realtime). Uses the chat_unread() RPC; silently no-ops if not deployed yet.
+  const refreshUnread = useCallback(async () => {
+    const { data, error } = await supabase.rpc("chat_unread");
+    if (error || !data) return;
+    const map: Record<string, number> = {};
+    for (const row of data as { other_id: string | null; batch_id: string | null; unread: number }[]) {
+      if (!row.unread) continue;
+      const key = row.batch_id ? `g:${row.batch_id}` : row.other_id ? `u:${row.other_id}` : null;
+      if (key) map[key] = (map[key] ?? 0) + row.unread;
+    }
+    setUnread(map);
+  }, [supabase]);
+
+  useEffect(() => {
+    refreshUnread();
+    const t = setInterval(refreshUnread, 10000);
+    const onFocus = () => refreshUnread();
+    window.addEventListener("focus", onFocus);
+    return () => { clearInterval(t); window.removeEventListener("focus", onFocus); };
+  }, [refreshUnread]);
 
   const nameOf = useCallback(
     (id: string) => (id === meId ? "You" : contacts.find((c) => c.id === id)?.full_name ?? "Member"),
@@ -40,8 +72,11 @@ export default function ChatClient({
   const scrollDown = () =>
     setTimeout(() => scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" }), 40);
 
-  const openConversation = useCallback(async (cid: string) => {
+  const openConversation = useCallback(async (cid: string, key?: string) => {
     setConversationId(cid);
+    // Mark read on the server and clear the sidebar badge for this thread.
+    supabase.rpc("mark_conversation_read", { cid }).then(() => {});
+    if (key) setUnread((u) => ({ ...u, [key]: 0 }));
     // Load history via a SECURITY DEFINER RPC (reliable), falling back to a
     // direct select if the RPC isn't deployed yet.
     let history: Message[] = [];
@@ -62,25 +97,29 @@ export default function ChatClient({
         (payload) => {
           const m = payload.new as Message;
           setMessages((prev) => (prev.some((x) => x.id === m.id) ? prev : [...prev, m]));
+          // The thread is open, so keep it marked read.
+          if (m.sender_id !== meId) supabase.rpc("mark_conversation_read", { cid }).then(() => {});
           scrollDown();
         })
       .subscribe();
     channelRef.current = ch;
-  }, [supabase]);
+  }, [supabase, meId]);
 
   useEffect(() => () => { if (channelRef.current) supabase.removeChannel(channelRef.current); }, [supabase]);
 
   async function selectContact(c: Contact) {
-    setActiveKey(`u:${c.id}`); setActiveTitle(c.full_name ?? "Direct message"); setLoading(true);
+    const key = `u:${c.id}`;
+    setActiveKey(key); setActiveTitle(c.full_name ?? "Direct message"); setLoading(true);
     const { data, error } = await supabase.rpc("get_or_create_direct", { other: c.id });
     setLoading(false);
-    if (!error && data) await openConversation(data as string);
+    if (!error && data) await openConversation(data as string, key);
   }
   async function selectGroup(g: Group) {
-    setActiveKey(`g:${g.batchId}`); setActiveTitle(`${g.label} (class group)`); setLoading(true);
+    const key = `g:${g.batchId}`;
+    setActiveKey(key); setActiveTitle(`${g.label} (class group)`); setLoading(true);
     const { data, error } = await supabase.rpc("get_or_create_batch_group", { batch: g.batchId });
     setLoading(false);
-    if (!error && data) await openConversation(data as string);
+    if (!error && data) await openConversation(data as string, key);
   }
 
   async function send() {
@@ -102,7 +141,8 @@ export default function ChatClient({
               <button key={g.batchId} onClick={() => selectGroup(g)}
                 className={`w-full flex items-center gap-2 px-2.5 py-2 rounded-lg text-sm text-left hover:bg-muted transition-colors ${activeKey === `g:${g.batchId}` ? "bg-muted" : ""}`}>
                 <span className="w-7 h-7 rounded-lg bg-accent/15 text-accent grid place-items-center shrink-0"><Users className="w-3.5 h-3.5" /></span>
-                <span className="truncate">{g.label}</span>
+                <span className={`truncate ${unread[`g:${g.batchId}`] ? "font-semibold text-foreground" : ""}`}>{g.label}</span>
+                {unread[`g:${g.batchId}`] > 0 && <Badge n={unread[`g:${g.batchId}`]} />}
               </button>
             ))}
           </div>
@@ -113,11 +153,15 @@ export default function ChatClient({
           {contacts.map((c) => (
             <button key={c.id} onClick={() => selectContact(c)}
               className={`w-full flex items-center gap-2 px-2.5 py-2 rounded-lg text-sm text-left hover:bg-muted transition-colors ${activeKey === `u:${c.id}` ? "bg-muted" : ""}`}>
-              <span className="w-7 h-7 rounded-full bg-primary/15 text-primary grid place-items-center shrink-0">{roleIcon[c.role] ?? <UserRound className="w-3.5 h-3.5" />}</span>
-              <span className="min-w-0">
-                <span className="block truncate">{c.full_name ?? c.email}</span>
+              <span className="relative w-7 h-7 rounded-full bg-primary/15 text-primary grid place-items-center shrink-0">
+                {roleIcon[c.role] ?? <UserRound className="w-3.5 h-3.5" />}
+                {unread[`u:${c.id}`] > 0 && <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-destructive ring-2 ring-card" />}
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className={`block truncate ${unread[`u:${c.id}`] ? "font-semibold text-foreground" : ""}`}>{c.full_name ?? c.email}</span>
                 <span className="block text-[10px] text-muted-foreground capitalize">{c.role.replace("_", " ")}</span>
               </span>
+              {unread[`u:${c.id}`] > 0 && <Badge n={unread[`u:${c.id}`]} />}
             </button>
           ))}
         </div>
