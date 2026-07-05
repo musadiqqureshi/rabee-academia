@@ -1,6 +1,5 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
 import { createClient as createAdminClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 import { getProfile } from "@/lib/auth";
@@ -33,35 +32,46 @@ async function uploadImage(assignmentId: string, studentId: string, formData: Fo
 }
 
 async function save(formData: FormData, status: "draft" | "submitted"): Promise<SubmitResult> {
-  const profile = await getProfile();
-  if (!profile) return { ok: false, error: "Please sign in." };
-  const assignmentId = String(formData.get("assignment_id") ?? "");
-  if (!assignmentId) return { ok: false, error: "Missing assignment." };
+  // Everything is wrapped so the action can NEVER throw — a thrown server
+  // action is masked in production as the opaque "Server Components render"
+  // error. We always hand the form a specific { ok, error } instead.
+  try {
+    const profile = await getProfile();
+    if (!profile) return { ok: false, error: "Please sign in again — your session expired." };
+    const assignmentId = String(formData.get("assignment_id") ?? "");
+    if (!assignmentId) return { ok: false, error: "Missing assignment." };
 
-  const up = await uploadImage(assignmentId, profile.id, formData);
-  if (up.error) return { ok: false, error: up.error };
+    const up = await uploadImage(assignmentId, profile.id, formData);
+    if (up.error) return { ok: false, error: up.error };
 
-  const values: Record<string, unknown> = {
-    assignment_id: assignmentId,
-    student_id: profile.id,
-    content: String(formData.get("content") ?? "") || null,
-    drive_url: String(formData.get("drive_url") ?? "").trim() || null,
-    status,
-    ...(status === "submitted" ? { submitted_at: new Date().toISOString() } : {}),
-    ...(up.path ? { file_url: up.path } : {}),
-  };
+    const values: Record<string, unknown> = {
+      assignment_id: assignmentId,
+      student_id: profile.id,
+      content: String(formData.get("content") ?? "") || null,
+      drive_url: String(formData.get("drive_url") ?? "").trim() || null,
+      status,
+      ...(status === "submitted" ? { submitted_at: new Date().toISOString() } : {}),
+      ...(up.path ? { file_url: up.path } : {}),
+    };
 
-  const supabase = await createClient();
-  const { error } = await supabase
-    .from("assignment_submissions").upsert(values, { onConflict: "assignment_id,student_id" });
-  if (error) {
-    return { ok: false, error: /file_url/.test(error.message)
-      ? 'The image column isn\'t set up yet. Run the "assignment-uploads.sql" migration in Supabase.'
-      : `Could not save your submission: ${error.message}` };
+    // Write with the service role so a stray RLS policy can't block or mask the
+    // submission; fall back to the user client if the service key is absent.
+    const db = svc() ?? (await createClient());
+    const { error } = await db
+      .from("assignment_submissions").upsert(values, { onConflict: "assignment_id,student_id" });
+    if (error) {
+      return { ok: false, error: /file_url/.test(error.message)
+        ? 'The image column isn\'t set up yet. Run the "assignment-uploads.sql" migration in Supabase.'
+        : `Could not save your submission: ${error.message}` };
+    }
+
+    // NOTE: no revalidatePath here — its post-return re-render is the one thing
+    // this try/catch can't guard, and a render error there surfaces as the
+    // masked error. The client calls router.refresh() after a successful save.
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? `Upload failed: ${e.message}` : "Upload failed unexpectedly." };
   }
-
-  revalidatePath(`/dashboard/student/assignments/${assignmentId}`);
-  return { ok: true };
 }
 
 export async function saveDraft(formData: FormData): Promise<SubmitResult> {

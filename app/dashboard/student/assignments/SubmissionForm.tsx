@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { UploadCloud, CheckCircle2 } from "lucide-react";
 import RichTextEditor from "@/components/RichTextEditor";
 import { saveDraft, submitWork } from "./actions";
@@ -23,6 +24,7 @@ export default function SubmissionForm({
   hasImage = false,
   locked,
 }: Props) {
+  const router = useRouter();
   const [content, setContent] = useState(initialContent);
   const [driveUrl, setDriveUrl] = useState(initialDriveUrl);
   const [image, setImage] = useState<File | null>(null);
@@ -43,6 +45,8 @@ export default function SubmissionForm({
         const res = kind === "draft" ? await saveDraft(fd) : await submitWork(fd);
         if (!res.ok) { setError(res.error ?? "Something went wrong."); return; }
         setMsg(kind === "draft" ? "Draft saved." : "Submitted! Your teacher will review it.");
+        setImage(null);
+        router.refresh();
       } catch (e) {
         setError(e instanceof Error ? e.message : "Something went wrong");
       }
