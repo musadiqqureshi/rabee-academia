@@ -1,5 +1,9 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
+// One-time / short bootcamp courses that are paid once at enrolment and must
+// NOT receive a recurring monthly fee (e.g. the 2-week AI Mastery course).
+const ONE_TIME_SLUGS = new Set(["ai-mastery"]);
+
 // Generates monthly_fee invoices (due the 5th) for every approved enrollment
 // that doesn't already have one this month, applying any per-student discount.
 // Idempotent within a month. Must be called with a SERVICE-ROLE client.
@@ -15,8 +19,8 @@ export async function generateMonthlyInvoices(admin: SupabaseClient): Promise<{ 
 
   const subjectIds = [...new Set(enrollments.map((e) => e.subject_id).filter(Boolean))] as string[];
   const { data: subjects } = subjectIds.length
-    ? await admin.from("subjects").select("id, name, regular_price, weekend_price").in("id", subjectIds)
-    : { data: [] as { id: string; name: string; regular_price: number; weekend_price: number }[] };
+    ? await admin.from("subjects").select("id, slug, name, regular_price, weekend_price").in("id", subjectIds)
+    : { data: [] as { id: string; slug: string; name: string; regular_price: number; weekend_price: number }[] };
   const subjMap = new Map((subjects ?? []).map((s) => [s.id as string, s]));
 
   const { data: discounts } = await admin
@@ -43,6 +47,7 @@ export async function generateMonthlyInvoices(admin: SupabaseClient): Promise<{ 
     if (existingSet.has(`${e.student_id}:${e.subject_id}`)) continue;
     const s = subjMap.get(e.subject_id as string);
     if (!s) continue;
+    if (ONE_TIME_SLUGS.has(s.slug)) continue; // one-time course — no monthly fee
     const baseAmount = e.class_type === "weekend" ? s.weekend_price : s.regular_price;
     const d = discMap.get(`${e.student_id}:${e.subject_id}`) ?? discMap.get(`${e.student_id}:all`) ?? { pct: 0, amount: 0 };
     // Fixed amount (e.g. a scholarship) takes precedence over a percentage.

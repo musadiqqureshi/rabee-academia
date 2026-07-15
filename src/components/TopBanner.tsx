@@ -11,7 +11,7 @@ const items = [
   },
   {
     icon: <Zap className="w-3 h-3 shrink-0 text-yellow-300" />,
-    text: "🚀 NEW: AI Mastery Course launched — FREE 2-week intensive, weekends, starts July 2026. Only 50 seats!",
+    text: "🚀 AI Mastery Batch 2 NOW OPEN — Automation, AI Reels & Cartoon Generation. One-time fee just PKR 499. Only 50 seats — enroll now!",
     highlight: true,
   },
   {
