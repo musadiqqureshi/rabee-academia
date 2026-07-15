@@ -23,7 +23,7 @@ export function GET() {
 - Subjects: Physics, Chemistry, Biology, Mathematics, Computer Science.
 - Fees: per subject per month; 20% discount on a student's first course.
 - Free demo class available (no payment): https://rabeeacademia.site/demo
-- AI Mastery Course: FREE 2-week weekend intensive, starts July 2026, 30 seats, auto certificate.
+- AI Mastery Course: 1-month weekend bootcamp. Batch 2 now open for a one-time PKR 499 fee (AI automation, AI reels, AI cartoon generation), auto certificate on completion.
 - Serves students in Pakistan, Saudi Arabia, UAE, Qatar and the UK.
 - Certificates issued on the student portal on completion.
 - Contact: info@rabeeacademia.site

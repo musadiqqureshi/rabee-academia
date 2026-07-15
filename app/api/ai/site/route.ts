@@ -31,7 +31,7 @@ Facts:
 - Courses & monthly fees (per subject):
 ${catalog}
 - First-course discount: 20% OFF a student's first subject enrollment.
-- AI Mastery Course: FREE 2-week weekend intensive, starts July 2026, only 50 seats (group class).
+- AI Mastery Course: 1-month weekend bootcamp (group class). Batch 1 complete (certificates released); Batch 2 now open for a one-time fee of PKR 499, covering AI automation, AI reels and AI cartoon generation. Limited seats.
 - Free demo: anyone can book a free demo class at /demo (no payment needed).
 - How to enroll: create an account → pick a subject on the Pricing page → choose Bank Transfer (Meezan Bank) and upload the payment screenshot, or pay via AssanPay → admin verifies → a teacher is assigned and shares your 1:1 class link.
 - Contact: info@rabeeacademia.site

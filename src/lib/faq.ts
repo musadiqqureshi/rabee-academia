@@ -29,8 +29,8 @@ export const FAQ_ITEMS: FaqItem[] = [
     a: "Go to rabeeacademia.site/demo, pick your subject and a preferred date and time, and submit the form. Rabee Academia's team assigns a teacher and emails you a Google Meet link — no payment required.",
   },
   {
-    q: "What is the AI Mastery Course and is it really free?",
-    a: "The AI Mastery Course is a FREE 2-week weekend intensive (starting July 2026, limited to 30 seats) covering an introduction to prompt engineering and market-competitive AI automation. Students who complete it get an automatic certificate on the portal.",
+    q: "What is the AI Mastery Course and how much does it cost?",
+    a: "The AI Mastery Course is a hands-on 1-month weekend bootcamp. Batch 1 is complete (certificates released), and Batch 2 is now open for a one-time fee of just PKR 499 — covering AI automation, AI reel creation and AI cartoon/animation generation. Students who complete it get an automatic certificate on the portal.",
   },
   {
     q: "How do I enroll and pay?",
